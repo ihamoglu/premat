@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import DocumentDetailPageClient from "@/components/pages/DocumentDetailPageClient";
+import StructuredData from "@/components/seo/StructuredData";
 import { getPublishedDocumentBySlug } from "@/lib/server-documents";
 
 type PageProps = {
@@ -49,5 +50,28 @@ export default async function DocumentDetailPage({ params }: PageProps) {
     notFound();
   }
 
-  return <DocumentDetailPageClient slug={slug} />;
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@type": "CreativeWork",
+    name: doc.title,
+    headline: doc.title,
+    description: doc.description,
+    url: `https://www.premat.com.tr/documents/${doc.slug}`,
+    datePublished: doc.created_at,
+    educationalLevel: `${doc.grade}. Sınıf`,
+    learningResourceType: doc.type,
+    about: [doc.topic, doc.subtopic].filter(Boolean),
+    publisher: {
+      "@type": "Organization",
+      name: "premat",
+      url: "https://www.premat.com.tr",
+    },
+  };
+
+  return (
+    <>
+      <StructuredData data={structuredData} />
+      <DocumentDetailPageClient slug={slug} />
+    </>
+  );
 }

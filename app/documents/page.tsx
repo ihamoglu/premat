@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import DocumentsPageClient from "@/components/pages/DocumentsPageClient";
+import StructuredData from "@/components/seo/StructuredData";
 
 export const metadata: Metadata = {
   title: "Tüm Dökümanlar",
@@ -32,9 +33,21 @@ function DocumentsPageFallback() {
 }
 
 export default function DocumentsPage() {
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    name: "Tüm Dökümanlar | premat",
+    url: "https://www.premat.com.tr/documents",
+    description:
+      "Sınıf, konu ve içerik türüne göre filtrelenebilen matematik döküman arşivi.",
+  };
+
   return (
-    <Suspense fallback={<DocumentsPageFallback />}>
-      <DocumentsPageClient />
-    </Suspense>
+    <>
+      <StructuredData data={structuredData} />
+      <Suspense fallback={<DocumentsPageFallback />}>
+        <DocumentsPageClient />
+      </Suspense>
+    </>
   );
 }

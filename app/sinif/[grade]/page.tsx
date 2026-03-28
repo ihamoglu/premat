@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import GradePageClient from "@/components/pages/GradePageClient";
+import StructuredData from "@/components/seo/StructuredData";
 
 const validGrades = ["5", "6", "7", "8"] as const;
 
@@ -43,5 +44,23 @@ export default async function GradePage({ params }: PageProps) {
     notFound();
   }
 
-  return <GradePageClient grade={grade} />;
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    name: `${grade}. Sınıf Matematik Dökümanları | premat`,
+    url: `https://www.premat.com.tr/sinif/${grade}`,
+    description: `${grade}. sınıf düzeyine ait seçili matematik dökümanları ve konu bazlı içerikler.`,
+    isPartOf: {
+      "@type": "WebSite",
+      name: "premat",
+      url: "https://www.premat.com.tr",
+    },
+  };
+
+  return (
+    <>
+      <StructuredData data={structuredData} />
+      <GradePageClient grade={grade} />
+    </>
+  );
 }
