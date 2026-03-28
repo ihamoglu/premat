@@ -1,3 +1,7 @@
+"use client";
+
+import { useConsent } from "@/components/providers/ConsentProvider";
+
 type AdSlotProps = {
   label?: string;
   compact?: boolean;
@@ -7,6 +11,36 @@ export default function AdSlot({
   label = "Google Reklam Alanı",
   compact = false,
 }: AdSlotProps) {
+  const { canShowAds, consent, isReady, resetConsent } = useConsent();
+
+  const content = !isReady ? (
+    <p className="mt-2 text-sm leading-7 text-slate-500">
+      Reklam tercihi kontrol ediliyor...
+    </p>
+  ) : canShowAds ? (
+    <p className="mt-2 text-sm leading-7 text-slate-500">
+      Bu alan reklam yerleşimi için hazır. Gerçek Google AdSense kodu daha sonra
+      burada çalıştırılacaktır.
+    </p>
+  ) : (
+    <div>
+      <p className="mt-2 text-sm leading-7 text-slate-500">
+        Reklam çerezleri kapalı olduğu için bu alanda reklam gösterimi pasif
+        durumda.
+      </p>
+
+      {consent === "rejected" ? (
+        <button
+          type="button"
+          onClick={resetConsent}
+          className="mt-4 rounded-2xl border border-slate-300 bg-white px-4 py-2 text-sm font-bold text-slate-700 transition hover:border-blue-300 hover:text-blue-800"
+        >
+          Çerez Tercihini Güncelle
+        </button>
+      ) : null}
+    </div>
+  );
+
   return (
     <section className="mx-auto w-full max-w-7xl px-4 md:px-6">
       <div
@@ -23,10 +57,7 @@ export default function AdSlot({
             {label}
           </h3>
 
-          <p className="mt-2 text-sm leading-7 text-slate-500">
-            Bu alan reklam yerleşimi için hazırlanmıştır. Gerçek Google AdSense
-            kodu daha sonra burada çalıştırılacaktır.
-          </p>
+          {content}
         </div>
       </div>
     </section>

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import CookiePreferencePanel from "@/components/common/CookiePreferencePanel";
 
 export const metadata: Metadata = {
   title: "Çerez Politikası",
@@ -45,6 +46,10 @@ export default function CookiePolicyPage() {
             <p>
               Çerez yapısı ve kapsamı zaman içinde güncellenebilir.
             </p>
+          </div>
+
+          <div className="mt-8">
+            <CookiePreferencePanel />
           </div>
 
           <div className="mt-8">

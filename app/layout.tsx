@@ -3,6 +3,7 @@ import "./globals.css";
 import AppShell from "@/components/layout/AppShell";
 import { AuthProvider } from "@/components/providers/AuthProvider";
 import { DocumentsProvider } from "@/components/providers/DocumentsProvider";
+import { ConsentProvider } from "@/components/providers/ConsentProvider";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://www.premat.com.tr"),
@@ -72,7 +73,9 @@ export default function RootLayout({
       <body>
         <AuthProvider>
           <DocumentsProvider>
-            <AppShell>{children}</AppShell>
+            <ConsentProvider>
+              <AppShell>{children}</AppShell>
+            </ConsentProvider>
           </DocumentsProvider>
         </AuthProvider>
       </body>
