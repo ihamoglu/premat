@@ -1,5 +1,21 @@
+import type { Metadata } from "next";
 import { Suspense } from "react";
 import DocumentsPageClient from "@/components/pages/DocumentsPageClient";
+
+export const metadata: Metadata = {
+  title: "Tüm Dökümanlar",
+  description:
+    "Yayındaki tüm matematik dökümanları burada listelenir. Sınıf, konu ve içerik türüne göre filtreleyerek arşivi hızlıca tarayabilirsin.",
+  alternates: {
+    canonical: "/documents",
+  },
+  openGraph: {
+    title: "Tüm Dökümanlar | premat",
+    description:
+      "Sınıf, konu ve içerik türüne göre filtrelenebilen matematik döküman arşivi.",
+    url: "https://www.premat.com.tr/documents",
+  },
+};
 
 function DocumentsPageFallback() {
   return (

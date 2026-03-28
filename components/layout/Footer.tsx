@@ -4,7 +4,7 @@ import Link from "next/link";
 export default function Footer() {
   return (
     <footer className="border-t border-slate-200 bg-white">
-      <div className="mx-auto grid max-w-7xl gap-10 px-4 py-12 md:grid-cols-[1.2fr_0.8fr] md:px-6">
+      <div className="mx-auto grid max-w-7xl gap-10 px-4 py-12 md:grid-cols-[1.1fr_0.9fr_0.9fr] md:px-6">
         <div>
           <Image
             src="/brand/logo-horizontal.png"
@@ -31,6 +31,36 @@ export default function Footer() {
             </Link>
             <Link href="/documents" className="transition hover:text-blue-800">
               Dökümanlar
+            </Link>
+            <Link href="/sinif/5" className="transition hover:text-blue-800">
+              5. Sınıf
+            </Link>
+            <Link href="/sinif/6" className="transition hover:text-blue-800">
+              6. Sınıf
+            </Link>
+          </div>
+        </div>
+
+        <div>
+          <h3 className="text-sm font-black uppercase tracking-wide text-slate-900">
+            Kurumsal
+          </h3>
+
+          <div className="mt-4 flex flex-col gap-3 text-sm font-semibold text-slate-600">
+            <Link
+              href="/gizlilik-politikasi"
+              className="transition hover:text-blue-800"
+            >
+              Gizlilik Politikası
+            </Link>
+            <Link
+              href="/cerez-politikasi"
+              className="transition hover:text-blue-800"
+            >
+              Çerez Politikası
+            </Link>
+            <Link href="/iletisim" className="transition hover:text-blue-800">
+              İletişim
             </Link>
           </div>
         </div>
