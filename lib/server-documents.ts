@@ -39,3 +39,18 @@ export async function getPublishedDocumentBySlug(slug: string) {
 
   return data as ServerDocumentRow | null;
 }
+
+export async function getPublishedDocumentsForSitemap() {
+  const { data, error } = await supabase
+    .from("documents")
+    .select("slug, created_at")
+    .eq("published", true)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error("Sitemap için dökümanlar alınamadı:", error.message);
+    return [];
+  }
+
+  return (data ?? []) as { slug: string; created_at: string }[];
+}

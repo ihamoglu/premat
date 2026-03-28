@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import DocumentDetailPageClient from "@/components/pages/DocumentDetailPageClient";
 import { getPublishedDocumentBySlug } from "@/lib/server-documents";
 
@@ -42,6 +43,11 @@ export async function generateMetadata({
 
 export default async function DocumentDetailPage({ params }: PageProps) {
   const { slug } = await params;
+  const doc = await getPublishedDocumentBySlug(slug);
+
+  if (!doc) {
+    notFound();
+  }
 
   return <DocumentDetailPageClient slug={slug} />;
 }

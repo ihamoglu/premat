@@ -1,11 +1,13 @@
 import type { MetadataRoute } from "next";
+import { getPublishedDocumentsForSitemap } from "@/lib/server-documents";
 
 const siteUrl = "https://www.premat.com.tr";
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();
+  const documents = await getPublishedDocumentsForSitemap();
 
-  return [
+  const staticPages: MetadataRoute.Sitemap = [
     {
       url: `${siteUrl}`,
       lastModified: now,
@@ -54,5 +56,32 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "monthly",
       priority: 0.6,
     },
+    {
+      url: `${siteUrl}/gizlilik-politikasi`,
+      lastModified: now,
+      changeFrequency: "monthly",
+      priority: 0.3,
+    },
+    {
+      url: `${siteUrl}/cerez-politikasi`,
+      lastModified: now,
+      changeFrequency: "monthly",
+      priority: 0.3,
+    },
+    {
+      url: `${siteUrl}/iletisim`,
+      lastModified: now,
+      changeFrequency: "monthly",
+      priority: 0.4,
+    },
   ];
+
+  const documentPages: MetadataRoute.Sitemap = documents.map((doc) => ({
+    url: `${siteUrl}/documents/${doc.slug}`,
+    lastModified: new Date(doc.created_at),
+    changeFrequency: "weekly",
+    priority: 0.7,
+  }));
+
+  return [...staticPages, ...documentPages];
 }
