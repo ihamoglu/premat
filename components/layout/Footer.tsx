@@ -71,8 +71,8 @@ export default function Footer() {
           <Image
             src="/brand/logo-square.png"
             alt="premat kare logo"
-            width={90}
-            height={90}
+            width={140}
+            height={140}
             className="h-auto w-[70px] md:w-[85px]"
           />
         </div>
