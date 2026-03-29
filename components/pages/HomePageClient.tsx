@@ -74,8 +74,8 @@ export default function HomePageClient() {
                   <Image
                     src="/brand/logo-square.png"
                     alt="premat kare logo"
-                    width={220}
-                    height={220}
+                    width={300}
+                    height={300}
                     className="h-auto w-[90px] sm:w-[110px] md:w-[130px]"
                     priority
                   />
