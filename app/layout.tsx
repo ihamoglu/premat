@@ -4,6 +4,7 @@ import AppShell from "@/components/layout/AppShell";
 import { AuthProvider } from "@/components/providers/AuthProvider";
 import { DocumentsProvider } from "@/components/providers/DocumentsProvider";
 import { ConsentProvider } from "@/components/providers/ConsentProvider";
+import GoogleAnalytics from "@/components/analytics/GoogleAnalytics";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://www.premat.com.tr"),
@@ -74,6 +75,7 @@ export default function RootLayout({
         <AuthProvider>
           <DocumentsProvider>
             <ConsentProvider>
+              <GoogleAnalytics />
               <AppShell>{children}</AppShell>
             </ConsentProvider>
           </DocumentsProvider>

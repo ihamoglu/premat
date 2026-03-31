@@ -1,0 +1,71 @@
+"use client";
+
+import { useEffect, useRef } from "react";
+import { usePathname, useSearchParams } from "next/navigation";
+import Script from "next/script";
+import { useConsent } from "@/components/providers/ConsentProvider";
+
+declare global {
+  interface Window {
+    dataLayer: unknown[];
+    gtag: (...args: unknown[]) => void;
+  }
+}
+
+const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
+
+export default function GoogleAnalytics() {
+  const { isReady, canTrack } = useConsent();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const hasTrackedRouteChange = useRef(false);
+
+  useEffect(() => {
+    if (
+      !GA_MEASUREMENT_ID ||
+      !isReady ||
+      !canTrack ||
+      typeof window.gtag !== "function"
+    ) {
+      return;
+    }
+
+    const query = searchParams.toString();
+    const pagePath = query ? `${pathname}?${query}` : pathname;
+
+    if (!hasTrackedRouteChange.current) {
+      hasTrackedRouteChange.current = true;
+      return;
+    }
+
+    window.gtag("event", "page_view", {
+      page_title: document.title,
+      page_location: window.location.href,
+      page_path: pagePath,
+    });
+  }, [pathname, searchParams, isReady, canTrack]);
+
+  if (!GA_MEASUREMENT_ID || !isReady || !canTrack) {
+    return null;
+  }
+
+  return (
+    <>
+      <Script
+        src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}
+        strategy="afterInteractive"
+      />
+      <Script id="google-analytics" strategy="afterInteractive">
+        {`
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          window.gtag = gtag;
+          gtag('js', new Date());
+          gtag('config', '${GA_MEASUREMENT_ID}', {
+            send_page_view: true
+          });
+        `}
+      </Script>
+    </>
+  );
+}

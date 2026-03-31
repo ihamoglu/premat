@@ -14,6 +14,7 @@ type ConsentContextType = {
   consent: ConsentStatus;
   isReady: boolean;
   canShowAds: boolean;
+  canTrack: boolean;
   acceptConsent: () => void;
   rejectConsent: () => void;
   resetConsent: () => void;
@@ -63,6 +64,7 @@ export function ConsentProvider({
       consent,
       isReady,
       canShowAds: consent === "accepted",
+      canTrack: consent === "accepted",
       acceptConsent,
       rejectConsent,
       resetConsent,
@@ -71,7 +73,9 @@ export function ConsentProvider({
   );
 
   return (
-    <ConsentContext.Provider value={value}>{children}</ConsentContext.Provider>
+    <ConsentContext.Provider value={value}>
+      {children}
+    </ConsentContext.Provider>
   );
 }
 
