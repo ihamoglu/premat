@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import "./globals.css";
 import AppShell from "@/components/layout/AppShell";
 import { AuthProvider } from "@/components/providers/AuthProvider";
@@ -75,7 +76,9 @@ export default function RootLayout({
         <AuthProvider>
           <DocumentsProvider>
             <ConsentProvider>
-              <GoogleAnalytics />
+              <Suspense fallback={null}>
+                <GoogleAnalytics />
+              </Suspense>
               <AppShell>{children}</AppShell>
             </ConsentProvider>
           </DocumentsProvider>

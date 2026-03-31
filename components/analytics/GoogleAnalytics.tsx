@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname } from "next/navigation";
 import Script from "next/script";
 import { useConsent } from "@/components/providers/ConsentProvider";
 
@@ -17,7 +17,6 @@ const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
 export default function GoogleAnalytics() {
   const { isReady, canTrack } = useConsent();
   const pathname = usePathname();
-  const searchParams = useSearchParams();
   const hasTrackedRouteChange = useRef(false);
 
   useEffect(() => {
@@ -25,13 +24,11 @@ export default function GoogleAnalytics() {
       !GA_MEASUREMENT_ID ||
       !isReady ||
       !canTrack ||
+      typeof window === "undefined" ||
       typeof window.gtag !== "function"
     ) {
       return;
     }
-
-    const query = searchParams.toString();
-    const pagePath = query ? `${pathname}?${query}` : pathname;
 
     if (!hasTrackedRouteChange.current) {
       hasTrackedRouteChange.current = true;
@@ -41,9 +38,9 @@ export default function GoogleAnalytics() {
     window.gtag("event", "page_view", {
       page_title: document.title,
       page_location: window.location.href,
-      page_path: pagePath,
+      page_path: pathname,
     });
-  }, [pathname, searchParams, isReady, canTrack]);
+  }, [pathname, isReady, canTrack]);
 
   if (!GA_MEASUREMENT_ID || !isReady || !canTrack) {
     return null;
