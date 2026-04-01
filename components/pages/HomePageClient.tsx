@@ -30,6 +30,14 @@ export default function HomePageClient() {
     [publishedDocs]
   );
 
+  const latestDocs = useMemo(
+    () =>
+      [...publishedDocs]
+        .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+        .slice(0, 8),
+    [publishedDocs]
+  );
+
   const stats = useMemo(
     () => [
       { label: "Yayındaki Döküman", value: publishedDocs.length },
@@ -40,6 +48,21 @@ export default function HomePageClient() {
       { label: "Öne Çıkan İçerik", value: featuredDocs.length },
     ],
     [publishedDocs, featuredDocs]
+  );
+
+  const gradeBlocks = useMemo(
+    () =>
+      (["5", "6", "7", "8"] as const).map((level) => {
+        const docs = publishedDocs.filter((doc) => doc.grade === level);
+        const topics = new Set(docs.map((doc) => doc.topic)).size;
+        return {
+          level,
+          count: docs.length,
+          topics,
+          featured: docs.filter((doc) => doc.featured).length,
+        };
+      }),
+    [publishedDocs]
   );
 
   const topicOptions = useMemo(() => {
@@ -74,9 +97,9 @@ export default function HomePageClient() {
                   <Image
                     src="/brand/logo-square.png"
                     alt="premat kare logo"
-                    width={300}
-                    height={300}
-                    className="h-auto w-[90px] sm:w-[110px] md:w-[130px]"
+                    width={220}
+                    height={220}
+                    className="h-auto w-[120px] sm:w-[145px] md:w-[175px]"
                     priority
                   />
                 </div>
@@ -116,6 +139,13 @@ export default function HomePageClient() {
                     className="w-full rounded-2xl bg-blue-800 px-5 py-3 text-center text-sm font-bold text-white shadow-lg shadow-blue-900/15 transition hover:bg-blue-900 sm:w-auto"
                   >
                     Arşivi İncele
+                  </Link>
+
+                  <Link
+                    href="/sinif/8"
+                    className="w-full rounded-2xl border border-slate-300 bg-white px-5 py-3 text-center text-sm font-bold text-slate-700 transition hover:border-blue-300 hover:text-blue-800 sm:w-auto"
+                  >
+                    8. Sınıfa Git
                   </Link>
                 </div>
               </div>
@@ -208,6 +238,61 @@ export default function HomePageClient() {
 
       <section className="mx-auto max-w-7xl px-4 pb-8 md:px-6 md:pb-10">
         <div className="rounded-[1.75rem] border border-slate-200 bg-white p-4 shadow-xl shadow-slate-900/5 sm:p-6 md:rounded-[2rem] md:p-8">
+          <div className="mb-6">
+            <h2 className="text-xl font-black text-slate-900 sm:text-2xl md:text-3xl">
+              Sınıfa Göre Hızlı Geçiş
+            </h2>
+            <p className="mt-2 text-sm text-slate-600">
+              Her sınıf için mevcut içerik yoğunluğunu gör ve doğrudan ilgili
+              arşive geç.
+            </p>
+          </div>
+
+          <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
+            {gradeBlocks.map((item) => (
+              <Link
+                key={item.level}
+                href={`/sinif/${item.level}`}
+                className="group rounded-[1.75rem] border border-slate-200 bg-slate-50 p-5 transition hover:-translate-y-1 hover:border-blue-200 hover:bg-white hover:shadow-lg"
+              >
+                <div className="inline-flex rounded-full bg-blue-100 px-3 py-1 text-xs font-black text-blue-800">
+                  {item.level}. Sınıf
+                </div>
+
+                <div className="mt-4 text-3xl font-black text-slate-950">
+                  {item.count}
+                </div>
+
+                <div className="mt-1 text-sm font-semibold text-slate-500">
+                  Yayındaki döküman
+                </div>
+
+                <div className="mt-4 grid gap-2 text-sm text-slate-600">
+                  <div>
+                    <span className="font-bold text-slate-800">
+                      Konu sayısı:
+                    </span>{" "}
+                    {item.topics}
+                  </div>
+                  <div>
+                    <span className="font-bold text-slate-800">
+                      Öne çıkan:
+                    </span>{" "}
+                    {item.featured}
+                  </div>
+                </div>
+
+                <div className="mt-5 text-sm font-black text-blue-800">
+                  Arşive Git →
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="mx-auto max-w-7xl px-4 pb-8 md:px-6 md:pb-10">
+        <div className="rounded-[1.75rem] border border-slate-200 bg-white p-4 shadow-xl shadow-slate-900/5 sm:p-6 md:rounded-[2rem] md:p-8">
           <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h2 className="text-xl font-black text-slate-900 sm:text-2xl md:text-3xl">
@@ -233,6 +318,38 @@ export default function HomePageClient() {
               </div>
             ) : (
               featuredDocs.map((doc) => <DocumentCard key={doc.id} doc={doc} />)
+            )}
+          </div>
+        </div>
+      </section>
+
+      <section className="mx-auto max-w-7xl px-4 pb-8 md:px-6 md:pb-10">
+        <div className="rounded-[1.75rem] border border-slate-200 bg-white p-4 shadow-xl shadow-slate-900/5 sm:p-6 md:rounded-[2rem] md:p-8">
+          <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h2 className="text-xl font-black text-slate-900 sm:text-2xl md:text-3xl">
+                Son Eklenen Dökümanlar
+              </h2>
+              <p className="mt-2 text-sm text-slate-600">
+                Arşive en son eklenen yayınları hızlıca incele.
+              </p>
+            </div>
+
+            <Link
+              href="/documents"
+              className="rounded-2xl border border-slate-300 bg-white px-5 py-3 text-center text-sm font-bold text-slate-700 transition hover:border-blue-300 hover:text-blue-800"
+            >
+              Tümünü Aç
+            </Link>
+          </div>
+
+          <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
+            {latestDocs.length === 0 ? (
+              <div className="col-span-full rounded-3xl border border-dashed border-slate-300 bg-slate-50 p-10 text-center text-slate-500">
+                Henüz yayınlanmış döküman yok.
+              </div>
+            ) : (
+              latestDocs.map((doc) => <DocumentCard key={doc.id} doc={doc} />)
             )}
           </div>
         </div>
