@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { supabase } from "@/lib/supabase";
 import { useDocuments } from "@/components/providers/DocumentsProvider";
 import {
   documentTypeCatalog,
@@ -10,6 +11,7 @@ import {
 import { DocumentItem, GradeLevel, SourceType } from "@/types/document";
 
 const gradeOptions: GradeLevel[] = ["5", "6", "7", "8"];
+const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
 
 type FormState = {
   title: string;
@@ -64,6 +66,15 @@ function slugifyTr(text: string) {
     .replace(/-+/g, "-");
 }
 
+function getFileExtension(file: File) {
+  const fromName = file.name.split(".").pop()?.toLowerCase();
+  if (fromName) return fromName;
+
+  if (file.type === "image/png") return "png";
+  if (file.type === "image/webp") return "webp";
+  return "jpg";
+}
+
 export default function AdminDocumentForm({
   editingDoc,
   onCancelEdit,
@@ -76,10 +87,29 @@ export default function AdminDocumentForm({
   const [submitting, setSubmitting] = useState(false);
   const [statusMessage, setStatusMessage] = useState("");
   const [statusType, setStatusType] = useState<"success" | "error" | "">("");
+  const [coverImageFile, setCoverImageFile] = useState<File | null>(null);
+  const [localCoverPreviewUrl, setLocalCoverPreviewUrl] = useState("");
+  const [fileInputKey, setFileInputKey] = useState(0);
 
   const topicOptions = useMemo(() => getTopicsByGrade(form.grade), [form.grade]);
 
   useEffect(() => {
+    return () => {
+      if (localCoverPreviewUrl) {
+        URL.revokeObjectURL(localCoverPreviewUrl);
+      }
+    };
+  }, [localCoverPreviewUrl]);
+
+  useEffect(() => {
+    if (localCoverPreviewUrl) {
+      URL.revokeObjectURL(localCoverPreviewUrl);
+    }
+
+    setCoverImageFile(null);
+    setLocalCoverPreviewUrl("");
+    setFileInputKey((prev) => prev + 1);
+
     if (!editingDoc) {
       setForm(initialState);
       return;
@@ -110,10 +140,83 @@ export default function AdminDocumentForm({
   }
 
   function resetFormCompletely() {
+    if (localCoverPreviewUrl) {
+      URL.revokeObjectURL(localCoverPreviewUrl);
+    }
+
     setForm(initialState);
+    setCoverImageFile(null);
+    setLocalCoverPreviewUrl("");
+    setFileInputKey((prev) => prev + 1);
     setStatusMessage("");
     setStatusType("");
     onCancelEdit();
+  }
+
+  function handleCoverImageChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+
+    if (!file) {
+      return;
+    }
+
+    if (!file.type.startsWith("image/")) {
+      setStatusType("error");
+      setStatusMessage("Yalnızca görsel dosyası yükleyebilirsin.");
+      return;
+    }
+
+    if (file.size > MAX_IMAGE_SIZE) {
+      setStatusType("error");
+      setStatusMessage("Görsel boyutu en fazla 5 MB olabilir.");
+      return;
+    }
+
+    if (localCoverPreviewUrl) {
+      URL.revokeObjectURL(localCoverPreviewUrl);
+    }
+
+    const previewUrl = URL.createObjectURL(file);
+    setCoverImageFile(file);
+    setLocalCoverPreviewUrl(previewUrl);
+    setStatusMessage("");
+    setStatusType("");
+  }
+
+  function clearCoverImage() {
+    if (localCoverPreviewUrl) {
+      URL.revokeObjectURL(localCoverPreviewUrl);
+    }
+
+    setCoverImageFile(null);
+    setLocalCoverPreviewUrl("");
+    updateField("coverImageUrl", "");
+    setFileInputKey((prev) => prev + 1);
+  }
+
+  async function uploadCoverImageIfNeeded(): Promise<string | undefined> {
+    if (!coverImageFile) {
+      return form.coverImageUrl || undefined;
+    }
+
+    const extension = getFileExtension(coverImageFile);
+    const path = `documents/${new Date().getFullYear()}/${Date.now()}-${crypto.randomUUID()}.${extension}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from("document-covers")
+      .upload(path, coverImageFile, {
+        cacheControl: "3600",
+        contentType: coverImageFile.type,
+        upsert: false,
+      });
+
+    if (uploadError) {
+      throw uploadError;
+    }
+
+    const { data } = supabase.storage.from("document-covers").getPublicUrl(path);
+
+    return data.publicUrl;
   }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -124,6 +227,7 @@ export default function AdminDocumentForm({
 
     try {
       const slug = slugifyTr(form.title);
+      const uploadedCoverImageUrl = await uploadCoverImageIfNeeded();
 
       if (editingDoc) {
         const updatedDoc: DocumentItem = {
@@ -139,7 +243,7 @@ export default function AdminDocumentForm({
           fileUrl: form.fileUrl,
           solutionUrl: form.solutionUrl || undefined,
           answerKeyUrl: form.answerKeyUrl || undefined,
-          coverImageUrl: form.coverImageUrl || undefined,
+          coverImageUrl: uploadedCoverImageUrl,
           featured: form.featured,
           published: form.published,
         };
@@ -149,6 +253,12 @@ export default function AdminDocumentForm({
 
         setCreatedDoc(updatedDoc);
         setForm(initialState);
+        setCoverImageFile(null);
+        if (localCoverPreviewUrl) {
+          URL.revokeObjectURL(localCoverPreviewUrl);
+        }
+        setLocalCoverPreviewUrl("");
+        setFileInputKey((prev) => prev + 1);
         setStatusType("success");
         setStatusMessage("Kayıt başarıyla güncellendi.");
         onFinish();
@@ -168,7 +278,7 @@ export default function AdminDocumentForm({
         fileUrl: form.fileUrl,
         solutionUrl: form.solutionUrl || undefined,
         answerKeyUrl: form.answerKeyUrl || undefined,
-        coverImageUrl: form.coverImageUrl || undefined,
+        coverImageUrl: uploadedCoverImageUrl,
         featured: form.featured,
         published: form.published,
         createdAt: new Date().toISOString().slice(0, 10),
@@ -179,18 +289,25 @@ export default function AdminDocumentForm({
 
       setCreatedDoc(newDoc);
       setForm(initialState);
+      setCoverImageFile(null);
+      if (localCoverPreviewUrl) {
+        URL.revokeObjectURL(localCoverPreviewUrl);
+      }
+      setLocalCoverPreviewUrl("");
+      setFileInputKey((prev) => prev + 1);
       setStatusType("success");
       setStatusMessage("Kayıt başarıyla oluşturuldu.");
       onFinish();
     } catch {
       setStatusType("error");
-      setStatusMessage("İşlem sırasında bir hata oluştu.");
+      setStatusMessage("Görsel veya kayıt işlemi sırasında bir hata oluştu.");
     } finally {
       setSubmitting(false);
     }
   }
 
-  const livePreviewImage = form.coverImageUrl || createdDoc?.coverImageUrl;
+  const livePreviewImage =
+    localCoverPreviewUrl || form.coverImageUrl || createdDoc?.coverImageUrl;
 
   return (
     <div className="grid gap-8 lg:grid-cols-[1.18fr_0.82fr]">
@@ -350,17 +467,32 @@ export default function AdminDocumentForm({
             />
           </div>
 
-          <div>
+          <div className="rounded-[1.5rem] border border-slate-200 bg-slate-50 p-4">
             <label className="mb-2 block text-sm font-bold text-slate-700">
-              Tanıtım Görseli URL
+              Tanıtım Görseli Yükle
             </label>
+
             <input
-              type="url"
-              value={form.coverImageUrl}
-              onChange={(e) => updateField("coverImageUrl", e.target.value)}
-              placeholder="https://...jpg / png / webp"
-              className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-blue-400"
+              key={fileInputKey}
+              type="file"
+              accept="image/png,image/jpeg,image/webp,image/jpg"
+              onChange={handleCoverImageChange}
+              className="block w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 file:mr-4 file:rounded-xl file:border-0 file:bg-blue-800 file:px-4 file:py-2 file:text-sm file:font-bold file:text-white hover:file:bg-blue-900"
             />
+
+            <p className="mt-3 text-xs leading-6 text-slate-500">
+              PNG, JPG veya WEBP yükle. Maksimum 5 MB.
+            </p>
+
+            {(form.coverImageUrl || localCoverPreviewUrl) ? (
+              <button
+                type="button"
+                onClick={clearCoverImage}
+                className="mt-3 rounded-2xl border border-red-300 bg-red-50 px-4 py-2 text-sm font-bold text-red-700 transition hover:bg-red-100"
+              >
+                Görseli Kaldır
+              </button>
+            ) : null}
           </div>
 
           <div className="grid gap-5 md:grid-cols-2">
@@ -519,7 +651,7 @@ export default function AdminDocumentForm({
               </div>
               <div>
                 <span className="font-bold">Tanıtım Görseli:</span>{" "}
-                {form.coverImageUrl ? "Var" : "Yok"}
+                {livePreviewImage ? "Var" : "Yok"}
               </div>
               <div>
                 <span className="font-bold">Görünürlük:</span>{" "}
