@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useMemo, useState } from "react";
 import DocumentCard from "@/components/documents/DocumentCard";
 import { useDocuments } from "@/components/providers/DocumentsProvider";
 
@@ -12,8 +13,43 @@ export default function DocumentDetailPageClient({
   slug,
 }: DocumentDetailPageClientProps) {
   const { documents } = useDocuments();
+  const [copied, setCopied] = useState(false);
 
   const doc = documents.find((item) => item.slug === slug && item.published);
+
+  const sameTopicDocs = useMemo(() => {
+    if (!doc) return [];
+    return documents.filter(
+      (item) =>
+        item.published &&
+        item.slug !== doc.slug &&
+        item.topic === doc.topic
+    );
+  }, [documents, doc]);
+
+  const sameGradeDocs = useMemo(() => {
+    if (!doc) return [];
+    return documents.filter(
+      (item) =>
+        item.published &&
+        item.slug !== doc.slug &&
+        item.grade === doc.grade &&
+        item.topic !== doc.topic
+    );
+  }, [documents, doc]);
+
+  async function handleCopyLink() {
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      setCopied(true);
+
+      window.setTimeout(() => {
+        setCopied(false);
+      }, 2000);
+    } catch {
+      setCopied(false);
+    }
+  }
 
   if (!doc) {
     return (
@@ -51,17 +87,34 @@ export default function DocumentDetailPageClient({
     );
   }
 
-  const relatedDocs = documents.filter(
-    (item) =>
-      item.published &&
-      item.slug !== doc.slug &&
-      (item.grade === doc.grade || item.topic === doc.topic)
-  );
+  const topicArchiveHref = `/documents?grade=${doc.grade}&topic=${encodeURIComponent(
+    doc.topic
+  )}`;
+  const gradeArchiveHref = `/sinif/${doc.grade}`;
 
   return (
     <main className="min-h-screen bg-[linear-gradient(180deg,#f4f8ff_0%,#f8fafc_100%)]">
       <section className="border-b border-slate-200 bg-white/90">
         <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8 md:py-10">
+          <div className="mb-5 flex flex-wrap items-center gap-2 text-sm font-semibold text-slate-500">
+            <Link href="/" className="transition hover:text-blue-800">
+              Ana Sayfa
+            </Link>
+            <span>/</span>
+            <Link href="/documents" className="transition hover:text-blue-800">
+              Dökümanlar
+            </Link>
+            <span>/</span>
+            <Link
+              href={gradeArchiveHref}
+              className="transition hover:text-blue-800"
+            >
+              {doc.grade}. Sınıf
+            </Link>
+            <span>/</span>
+            <span className="text-slate-700">{doc.title}</span>
+          </div>
+
           <div className="mb-5 flex flex-wrap gap-3">
             <Link
               href="/"
@@ -76,6 +129,14 @@ export default function DocumentDetailPageClient({
             >
               Arşive Dön
             </Link>
+
+            <button
+              type="button"
+              onClick={handleCopyLink}
+              className="rounded-full bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-200"
+            >
+              {copied ? "Link Kopyalandı" : "Linki Kopyala"}
+            </button>
           </div>
 
           {doc.coverImageUrl ? (
@@ -86,7 +147,20 @@ export default function DocumentDetailPageClient({
                 className="h-[240px] w-full object-cover md:h-[360px]"
               />
             </div>
-          ) : null}
+          ) : (
+            <div className="mb-8 overflow-hidden rounded-[2rem] border border-slate-200 bg-[linear-gradient(135deg,#eff6ff_0%,#f8fafc_100%)] shadow-sm">
+              <div className="flex min-h-[240px] items-center justify-center px-8 text-center md:min-h-[320px]">
+                <div>
+                  <div className="text-xs font-black uppercase tracking-[0.2em] text-blue-800">
+                    premat
+                  </div>
+                  <h1 className="mt-4 max-w-3xl text-3xl font-black leading-tight text-slate-950 md:text-5xl">
+                    {doc.title}
+                  </h1>
+                </div>
+              </div>
+            </div>
+          )}
 
           <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr] lg:items-start lg:gap-8">
             <div>
@@ -152,6 +226,32 @@ export default function DocumentDetailPageClient({
                   </div>
                 </div>
               </div>
+
+              <div className="mt-8 grid gap-4 md:grid-cols-2">
+                <Link
+                  href={topicArchiveHref}
+                  className="rounded-[1.5rem] border border-slate-200 bg-white p-5 transition hover:border-blue-200 hover:bg-blue-50"
+                >
+                  <div className="text-sm font-bold text-slate-500">
+                    Aynı Konu
+                  </div>
+                  <div className="mt-2 text-lg font-black text-slate-950">
+                    Bu konuya ait diğer içerikleri aç
+                  </div>
+                </Link>
+
+                <Link
+                  href={gradeArchiveHref}
+                  className="rounded-[1.5rem] border border-slate-200 bg-white p-5 transition hover:border-blue-200 hover:bg-blue-50"
+                >
+                  <div className="text-sm font-bold text-slate-500">
+                    Aynı Sınıf
+                  </div>
+                  <div className="mt-2 text-lg font-black text-slate-950">
+                    {doc.grade}. sınıf arşivine git
+                  </div>
+                </Link>
+              </div>
             </div>
 
             <aside className="rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-xl shadow-slate-900/5 sm:rounded-[2rem] sm:p-6 md:p-8">
@@ -165,8 +265,8 @@ export default function DocumentDetailPageClient({
                 </h2>
 
                 <p className="mt-3 text-sm leading-7 text-slate-600">
-                  Dosya harici bağlantı üzerinden açılır. Uygunsa çözüm ve cevap
-                  anahtarına da doğrudan geçebilirsin.
+                  Dosya bağlantısını, çözümü ve cevap anahtarını tek yerden
+                  açabilirsin.
                 </p>
               </div>
 
@@ -233,6 +333,13 @@ export default function DocumentDetailPageClient({
                       {doc.grade}. Sınıf
                     </span>
                   </div>
+
+                  <div className="flex items-center justify-between gap-4">
+                    <span className="font-semibold text-slate-500">Konu</span>
+                    <span className="font-bold text-right text-slate-900">
+                      {doc.topic}
+                    </span>
+                  </div>
                 </div>
               </div>
             </aside>
@@ -241,31 +348,59 @@ export default function DocumentDetailPageClient({
       </section>
 
       <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-10 md:py-12">
-        <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <h2 className="text-xl font-black text-slate-900 sm:text-2xl md:text-3xl">
-              Benzer İçerikler
-            </h2>
-            <p className="mt-2 text-sm text-slate-600">
-              Aynı sınıf veya benzer konuya ait diğer kayıtlar
-            </p>
-          </div>
+        <div className="mb-6">
+          <h2 className="text-xl font-black text-slate-900 sm:text-2xl md:text-3xl">
+            Aynı Konudan Diğer İçerikler
+          </h2>
+          <p className="mt-2 text-sm text-slate-600">
+            Doğrudan bu konuya yakın içerikler
+          </p>
         </div>
 
-        {relatedDocs.length === 0 ? (
+        {sameTopicDocs.length === 0 ? (
           <div className="rounded-[1.75rem] border border-dashed border-slate-300 bg-white p-10 text-center shadow-sm sm:rounded-[2rem] sm:p-12">
             <div className="mx-auto max-w-xl">
               <h3 className="text-2xl font-black text-slate-900">
-                Benzer içerik bulunamadı
+                Aynı konuda başka içerik yok
               </h3>
               <p className="mt-3 text-sm leading-7 text-slate-600 md:text-base">
-                Bu kayıt için aynı sınıf veya konuya ait ek içerik görünmüyor.
+                Bu konu için şu an başka yayınlanmış kayıt görünmüyor.
               </p>
             </div>
           </div>
         ) : (
           <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
-            {relatedDocs.slice(0, 4).map((item) => (
+            {sameTopicDocs.slice(0, 4).map((item) => (
+              <DocumentCard key={item.id} doc={item} />
+            ))}
+          </div>
+        )}
+      </section>
+
+      <section className="mx-auto max-w-7xl px-4 pb-10 sm:px-6 sm:pb-12 md:pb-14">
+        <div className="mb-6">
+          <h2 className="text-xl font-black text-slate-900 sm:text-2xl md:text-3xl">
+            Aynı Sınıftan Diğer İçerikler
+          </h2>
+          <p className="mt-2 text-sm text-slate-600">
+            {doc.grade}. sınıf düzeyindeki diğer kayıtlar
+          </p>
+        </div>
+
+        {sameGradeDocs.length === 0 ? (
+          <div className="rounded-[1.75rem] border border-dashed border-slate-300 bg-white p-10 text-center shadow-sm sm:rounded-[2rem] sm:p-12">
+            <div className="mx-auto max-w-xl">
+              <h3 className="text-2xl font-black text-slate-900">
+                Aynı sınıfta ek içerik yok
+              </h3>
+              <p className="mt-3 text-sm leading-7 text-slate-600 md:text-base">
+                Bu sınıf için şu an ek yayın görünmüyor.
+              </p>
+            </div>
+          </div>
+        ) : (
+          <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
+            {sameGradeDocs.slice(0, 4).map((item) => (
               <DocumentCard key={item.id} doc={item} />
             ))}
           </div>
