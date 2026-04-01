@@ -3,7 +3,6 @@
 import { useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
 import Script from "next/script";
-import { useConsent } from "@/components/providers/ConsentProvider";
 
 declare global {
   interface Window {
@@ -15,15 +14,12 @@ declare global {
 const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
 
 export default function GoogleAnalytics() {
-  const { isReady, canTrack } = useConsent();
   const pathname = usePathname();
   const hasTrackedRouteChange = useRef(false);
 
   useEffect(() => {
     if (
       !GA_MEASUREMENT_ID ||
-      !isReady ||
-      !canTrack ||
       typeof window === "undefined" ||
       typeof window.gtag !== "function"
     ) {
@@ -40,9 +36,9 @@ export default function GoogleAnalytics() {
       page_location: window.location.href,
       page_path: pathname,
     });
-  }, [pathname, isReady, canTrack]);
+  }, [pathname]);
 
-  if (!GA_MEASUREMENT_ID || !isReady || !canTrack) {
+  if (!GA_MEASUREMENT_ID) {
     return null;
   }
 

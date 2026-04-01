@@ -4,7 +4,6 @@ import { usePathname } from "next/navigation";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import AdSlot from "@/components/common/AdSlot";
-import CookieBanner from "@/components/common/CookieBanner";
 
 export default function AppShell({
   children,
@@ -37,7 +36,6 @@ export default function AppShell({
       ) : null}
 
       {!isPanelRoute ? <Footer /> : null}
-      {!isPanelRoute ? <CookieBanner /> : null}
     </div>
   );
 }

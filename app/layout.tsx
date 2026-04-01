@@ -4,7 +4,6 @@ import "./globals.css";
 import AppShell from "@/components/layout/AppShell";
 import { AuthProvider } from "@/components/providers/AuthProvider";
 import { DocumentsProvider } from "@/components/providers/DocumentsProvider";
-import { ConsentProvider } from "@/components/providers/ConsentProvider";
 import GoogleAnalytics from "@/components/analytics/GoogleAnalytics";
 import AutoAdsLoader from "@/components/ads/AutoAdsLoader";
 
@@ -76,13 +75,11 @@ export default function RootLayout({
       <body>
         <AuthProvider>
           <DocumentsProvider>
-            <ConsentProvider>
-              <Suspense fallback={null}>
-                <GoogleAnalytics />
-              </Suspense>
-              <AutoAdsLoader />
-              <AppShell>{children}</AppShell>
-            </ConsentProvider>
+            <Suspense fallback={null}>
+              <GoogleAnalytics />
+            </Suspense>
+            <AutoAdsLoader />
+            <AppShell>{children}</AppShell>
           </DocumentsProvider>
         </AuthProvider>
       </body>

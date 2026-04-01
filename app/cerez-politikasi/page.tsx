@@ -1,11 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import CookiePreferencePanel from "@/components/common/CookiePreferencePanel";
 
 export const metadata: Metadata = {
   title: "Çerez Politikası",
   description:
-    "premat çerez politikası sayfası. Sitede kullanılan teknik ve işlevsel çerezlerin genel çerçevesi burada yer alır.",
+    "premat çerez politikası sayfası. Sitede kullanılan teknik, ölçüm ve reklam çerezlerinin genel çerçevesi burada yer alır.",
   alternates: {
     canonical: "/cerez-politikasi",
   },
@@ -26,30 +25,26 @@ export default function CookiePolicyPage() {
 
           <div className="mt-6 space-y-6 text-sm leading-8 text-slate-600 md:text-base">
             <p>
-              premat, sitenin teknik olarak düzgün çalışabilmesi ve temel
-              kullanıcı deneyiminin sürdürülebilmesi için çerez benzeri
-              teknolojiler kullanabilir.
+              premat, sitenin teknik olarak düzgün çalışabilmesi, temel kullanıcı
+              deneyiminin sürdürülebilmesi, site trafiğinin anlaşılması ve reklam
+              alanlarının yönetilebilmesi için çerez benzeri teknolojiler
+              kullanabilir.
+            </p>
+
+            <p>
+              Reklam ve kullanıcı rızası yönetimi, Google tarafından sunulan CMP
+              ve ilgili reklam teknolojileri üzerinden yürütülebilir.
             </p>
 
             <p>
               Kullanılan çerezler; oturum sürekliliği, tercihlerin korunması,
-              sayfa performansının anlaşılması ve temel sistem işleyişi gibi
-              amaçlara hizmet edebilir.
-            </p>
-
-            <p>
-              Reklam ve analiz sistemleri tam anlamıyla devreye alındığında bu
-              sayfa, kullanılan çerez türleri ve tercih yönetimi mantığına göre
-              genişletilecektir.
+              sayfa performansının anlaşılması, ölçümleme ve reklam gösterim
+              süreçlerinin yönetilmesi gibi amaçlara hizmet edebilir.
             </p>
 
             <p>
               Çerez yapısı ve kapsamı zaman içinde güncellenebilir.
             </p>
-          </div>
-
-          <div className="mt-8">
-            <CookiePreferencePanel />
           </div>
 
           <div className="mt-8">
