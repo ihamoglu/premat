@@ -7,6 +7,7 @@ import AdminDocumentsList from "@/components/admin/AdminDocumentsList";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { useDocuments } from "@/components/providers/DocumentsProvider";
 import { DocumentItem } from "@/types/document";
+import AdminBulkImport from "@/components/admin/AdminBulkImport";
 
 export default function PanelPage() {
   const router = useRouter();
@@ -136,6 +137,7 @@ export default function PanelPage() {
             onCancelEdit={() => setEditingDoc(null)}
             onFinish={() => setEditingDoc(null)}
           />
+          <AdminBulkImport />
           <AdminDocumentsList onEdit={(doc) => setEditingDoc(doc)} />
         </div>
       </section>

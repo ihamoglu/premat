@@ -13,6 +13,7 @@ import { DocumentItem } from "@/types/document";
 type DocumentsContextType = {
   documents: DocumentItem[];
   addDocument: (doc: DocumentItem) => Promise<void>;
+  bulkAddDocuments: (docs: DocumentItem[]) => Promise<void>;
   updateDocument: (doc: DocumentItem) => Promise<void>;
   deleteDocument: (id: string) => Promise<void>;
   refreshDocuments: () => Promise<void>;
@@ -115,6 +116,38 @@ export function DocumentsProvider({
     await refreshDocuments();
   }
 
+  async function bulkAddDocuments(docs: DocumentItem[]) {
+    if (docs.length === 0) {
+      return;
+    }
+
+    const insertPayload = docs.map((doc) => ({
+      slug: doc.slug,
+      title: doc.title,
+      description: doc.description,
+      grade: doc.grade,
+      topic: doc.topic,
+      subtopic: doc.subtopic || null,
+      type: doc.type,
+      source_type: doc.sourceType,
+      file_url: doc.fileUrl,
+      solution_url: doc.solutionUrl || null,
+      answer_key_url: doc.answerKeyUrl || null,
+      cover_image_url: doc.coverImageUrl || null,
+      featured: doc.featured,
+      published: doc.published,
+    }));
+
+    const { error } = await supabase.from("documents").insert(insertPayload);
+
+    if (error) {
+      console.error("Toplu kayıt eklenemedi:", error.message);
+      throw error;
+    }
+
+    await refreshDocuments();
+  }
+
   async function updateDocument(updatedDoc: DocumentItem) {
     const updatePayload = {
       slug: updatedDoc.slug,
@@ -161,6 +194,7 @@ export function DocumentsProvider({
     () => ({
       documents,
       addDocument,
+      bulkAddDocuments,
       updateDocument,
       deleteDocument,
       refreshDocuments,
