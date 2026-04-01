@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/providers/AuthProvider";
@@ -47,9 +48,15 @@ export default function PanelLoginPage() {
             </div>
 
             <div className="relative">
-              <div className="mb-6 inline-flex items-center gap-3 rounded-full bg-white/10 px-4 py-2 text-sm font-bold backdrop-blur">
-                <span className="text-xl">🦉</span>
-                premat.com
+              <div className="mb-8">
+                <Image
+                  src="/brand/logo-horizontal.png"
+                  alt="premat logo"
+                  width={300}
+                  height={90}
+                  className="h-auto w-[210px]"
+                  priority
+                />
               </div>
 
               <h1 className="max-w-md text-4xl font-black leading-tight">
@@ -58,8 +65,8 @@ export default function PanelLoginPage() {
               </h1>
 
               <p className="mt-5 max-w-md text-sm leading-7 text-blue-100 md:text-base">
-                Arşivdeki içeriklerin düzenlenmesi, yeni kayıt eklenmesi ve seçili
-                dokümanların yönetimi bu alandan yapılır.
+                Arşivdeki içeriklerin düzenlenmesi, yeni kayıt eklenmesi ve
+                seçili dökümanların yönetimi bu alandan yapılır.
               </p>
 
               <div className="mt-8 space-y-3">
@@ -81,12 +88,19 @@ export default function PanelLoginPage() {
 
           <div className="p-8 md:p-10">
             <div className="mb-8 text-center lg:text-left">
-              <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-700 to-orange-500 text-xl text-white shadow-lg lg:mx-0">
-                🦉
+              <div className="mx-auto mb-5 lg:mx-0">
+                <Image
+                  src="/brand/logo-square.png"
+                  alt="premat kare logo"
+                  width={140}
+                  height={140}
+                  className="h-auto w-[80px] md:w-[92px]"
+                  priority
+                />
               </div>
 
               <h2 className="text-3xl font-black text-slate-900">
-                Yönetim Girişi
+                İçerik Girişi
               </h2>
 
               <p className="mt-3 text-sm leading-6 text-slate-600">
