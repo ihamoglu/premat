@@ -6,6 +6,7 @@ import { AuthProvider } from "@/components/providers/AuthProvider";
 import { DocumentsProvider } from "@/components/providers/DocumentsProvider";
 import { ConsentProvider } from "@/components/providers/ConsentProvider";
 import GoogleAnalytics from "@/components/analytics/GoogleAnalytics";
+import AutoAdsLoader from "@/components/ads/AutoAdsLoader";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://www.premat.com.tr"),
@@ -79,6 +80,7 @@ export default function RootLayout({
               <Suspense fallback={null}>
                 <GoogleAnalytics />
               </Suspense>
+              <AutoAdsLoader />
               <AppShell>{children}</AppShell>
             </ConsentProvider>
           </DocumentsProvider>
