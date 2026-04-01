@@ -19,6 +19,7 @@ export type ServerDocumentRow = {
   file_url: string;
   solution_url: string | null;
   answer_key_url: string | null;
+  cover_image_url: string | null;
   featured: boolean;
   published: boolean;
   created_at: string;

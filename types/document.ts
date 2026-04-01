@@ -17,6 +17,7 @@ export type DocumentItem = {
   fileUrl: string;
   solutionUrl?: string;
   answerKeyUrl?: string;
+  coverImageUrl?: string;
   featured: boolean;
   published: boolean;
   createdAt: string;

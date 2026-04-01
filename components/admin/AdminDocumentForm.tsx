@@ -2,12 +2,12 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useDocuments } from "@/components/providers/DocumentsProvider";
-import { documentTypeCatalog, getTopicsByGrade, sourceTypeCatalog } from "@/data/catalog";
 import {
-  DocumentItem,
-  GradeLevel,
-  SourceType,
-} from "@/types/document";
+  documentTypeCatalog,
+  getTopicsByGrade,
+  sourceTypeCatalog,
+} from "@/data/catalog";
+import { DocumentItem, GradeLevel, SourceType } from "@/types/document";
 
 const gradeOptions: GradeLevel[] = ["5", "6", "7", "8"];
 
@@ -22,6 +22,7 @@ type FormState = {
   fileUrl: string;
   solutionUrl: string;
   answerKeyUrl: string;
+  coverImageUrl: string;
   featured: boolean;
   published: boolean;
 };
@@ -43,6 +44,7 @@ const initialState: FormState = {
   fileUrl: "",
   solutionUrl: "",
   answerKeyUrl: "",
+  coverImageUrl: "",
   featured: false,
   published: true,
 };
@@ -94,6 +96,7 @@ export default function AdminDocumentForm({
       fileUrl: editingDoc.fileUrl,
       solutionUrl: editingDoc.solutionUrl || "",
       answerKeyUrl: editingDoc.answerKeyUrl || "",
+      coverImageUrl: editingDoc.coverImageUrl || "",
       featured: editingDoc.featured,
       published: editingDoc.published,
     });
@@ -136,6 +139,7 @@ export default function AdminDocumentForm({
           fileUrl: form.fileUrl,
           solutionUrl: form.solutionUrl || undefined,
           answerKeyUrl: form.answerKeyUrl || undefined,
+          coverImageUrl: form.coverImageUrl || undefined,
           featured: form.featured,
           published: form.published,
         };
@@ -164,6 +168,7 @@ export default function AdminDocumentForm({
         fileUrl: form.fileUrl,
         solutionUrl: form.solutionUrl || undefined,
         answerKeyUrl: form.answerKeyUrl || undefined,
+        coverImageUrl: form.coverImageUrl || undefined,
         featured: form.featured,
         published: form.published,
         createdAt: new Date().toISOString().slice(0, 10),
@@ -185,6 +190,8 @@ export default function AdminDocumentForm({
     }
   }
 
+  const livePreviewImage = form.coverImageUrl || createdDoc?.coverImageUrl;
+
   return (
     <div className="grid gap-8 lg:grid-cols-[1.18fr_0.82fr]">
       <form
@@ -201,8 +208,9 @@ export default function AdminDocumentForm({
           </h2>
 
           <p className="mt-3 max-w-2xl text-sm leading-7 text-slate-600">
-            Başlık, açıklama, bağlantı ve görünürlük bilgilerini düzenleyerek
-            arşivdeki kaydı oluşturabilir ya da güncelleyebilirsin.
+            Başlık, açıklama, bağlantı, tanıtım görseli ve görünürlük
+            bilgilerini düzenleyerek arşivdeki kaydı oluşturabilir ya da
+            güncelleyebilirsin.
           </p>
         </div>
 
@@ -336,9 +344,22 @@ export default function AdminDocumentForm({
               type="url"
               value={form.fileUrl}
               onChange={(e) => updateField("fileUrl", e.target.value)}
-              placeholder="https://drive.google.com/..."
+              placeholder="https://..."
               className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-blue-400"
               required
+            />
+          </div>
+
+          <div>
+            <label className="mb-2 block text-sm font-bold text-slate-700">
+              Tanıtım Görseli URL
+            </label>
+            <input
+              type="url"
+              value={form.coverImageUrl}
+              onChange={(e) => updateField("coverImageUrl", e.target.value)}
+              placeholder="https://...jpg / png / webp"
+              className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-blue-400"
             />
           </div>
 
@@ -446,56 +467,67 @@ export default function AdminDocumentForm({
           </p>
         </div>
 
-        {!createdDoc ? (
-          <div className="rounded-[1.5rem] border border-dashed border-slate-300 bg-slate-50 p-8 text-center text-sm text-slate-500">
-            Henüz önizleme oluşturulmadı.
-          </div>
-        ) : (
-          <div className="space-y-4">
-            <div className="rounded-[1.5rem] bg-gradient-to-br from-blue-600 to-sky-500 p-5 text-white">
-              <div className="mb-3 inline-block rounded-full bg-orange-400 px-3 py-1 text-xs font-bold">
-                {createdDoc.grade}. Sınıf
-              </div>
+        <div className="space-y-4">
+          {livePreviewImage ? (
+            <div className="overflow-hidden rounded-[1.5rem] border border-slate-200 bg-slate-50">
+              <img
+                src={livePreviewImage}
+                alt={form.title || "Tanıtım görseli"}
+                className="h-[210px] w-full object-cover"
+              />
+            </div>
+          ) : (
+            <div className="rounded-[1.5rem] border border-dashed border-slate-300 bg-slate-50 p-8 text-center text-sm text-slate-500">
+              Tanıtım görseli henüz eklenmedi.
+            </div>
+          )}
 
-              <h3 className="text-xl font-black leading-tight">
-                {createdDoc.title}
-              </h3>
-
-              <p className="mt-3 text-sm text-blue-50">
-                {createdDoc.topic}
-                {createdDoc.subtopic ? ` • ${createdDoc.subtopic}` : ""}
-              </p>
+          <div className="rounded-[1.5rem] bg-gradient-to-br from-blue-600 to-sky-500 p-5 text-white">
+            <div className="mb-3 inline-block rounded-full bg-orange-400 px-3 py-1 text-xs font-bold">
+              {form.grade}. Sınıf
             </div>
 
-            <div className="rounded-[1.5rem] border border-slate-200 bg-slate-50 p-5">
-              <div className="space-y-3 text-sm text-slate-700">
-                <div>
-                  <span className="font-bold">Bağlantı Adresi:</span>{" "}
-                  {createdDoc.slug}
-                </div>
-                <div>
-                  <span className="font-bold">Tür:</span> {createdDoc.type}
-                </div>
-                <div>
-                  <span className="font-bold">Kaynak:</span>{" "}
-                  {createdDoc.sourceType}
-                </div>
-                <div>
-                  <span className="font-bold">Çözüm:</span>{" "}
-                  {createdDoc.solutionUrl ? "Var" : "Yok"}
-                </div>
-                <div>
-                  <span className="font-bold">Cevap Anahtarı:</span>{" "}
-                  {createdDoc.answerKeyUrl ? "Var" : "Yok"}
-                </div>
-                <div>
-                  <span className="font-bold">Görünürlük:</span>{" "}
-                  {createdDoc.published ? "Yayında" : "Taslak"}
-                </div>
+            <h3 className="text-xl font-black leading-tight">
+              {form.title || "Başlık burada görünecek"}
+            </h3>
+
+            <p className="mt-3 text-sm text-blue-50">
+              {form.topic || "Konu seçilmedi"}
+              {form.subtopic ? ` • ${form.subtopic}` : ""}
+            </p>
+          </div>
+
+          <div className="rounded-[1.5rem] border border-slate-200 bg-slate-50 p-5">
+            <div className="space-y-3 text-sm text-slate-700">
+              <div>
+                <span className="font-bold">Bağlantı Adresi:</span>{" "}
+                {form.title ? slugifyTr(form.title) : "slug-olusturulmadi"}
+              </div>
+              <div>
+                <span className="font-bold">Tür:</span> {form.type}
+              </div>
+              <div>
+                <span className="font-bold">Kaynak:</span> {form.sourceType}
+              </div>
+              <div>
+                <span className="font-bold">Çözüm:</span>{" "}
+                {form.solutionUrl ? "Var" : "Yok"}
+              </div>
+              <div>
+                <span className="font-bold">Cevap Anahtarı:</span>{" "}
+                {form.answerKeyUrl ? "Var" : "Yok"}
+              </div>
+              <div>
+                <span className="font-bold">Tanıtım Görseli:</span>{" "}
+                {form.coverImageUrl ? "Var" : "Yok"}
+              </div>
+              <div>
+                <span className="font-bold">Görünürlük:</span>{" "}
+                {form.published ? "Yayında" : "Taslak"}
               </div>
             </div>
           </div>
-        )}
+        </div>
       </aside>
     </div>
   );

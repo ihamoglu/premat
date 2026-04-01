@@ -136,7 +136,7 @@ export default function HomePageClient() {
                 <div className="mt-6 flex flex-wrap gap-3">
                   <Link
                     href="/documents"
-                    className="w-full rounded-2xl bg-blue-800 px-5 py-3 text-center text-sm font-bold text-white shadow-lg shadow-blue-900/15 transition hover:bg-blue-900 sm:w-auto"
+                    className="w-full rounded-2xl border border-blue-200 bg-white px-5 py-3 text-center text-sm font-bold text-blue-900 shadow-lg shadow-blue-900/10 transition hover:bg-blue-50 sm:w-auto"
                   >
                     Arşivi İncele
                   </Link>
@@ -305,9 +305,9 @@ export default function HomePageClient() {
 
             <Link
               href="/documents"
-              className="rounded-2xl border border-slate-300 bg-white px-5 py-3 text-center text-sm font-bold text-slate-700 transition hover:border-blue-300 hover:text-blue-800"
+              className="rounded-2xl border border-blue-200 bg-white px-5 py-3 text-center text-sm font-bold text-blue-900 transition hover:bg-blue-50"
             >
-              Tüm Arşivi Gör
+              Dökümanları İncele
             </Link>
           </div>
 
@@ -337,9 +337,9 @@ export default function HomePageClient() {
 
             <Link
               href="/documents"
-              className="rounded-2xl border border-slate-300 bg-white px-5 py-3 text-center text-sm font-bold text-slate-700 transition hover:border-blue-300 hover:text-blue-800"
+              className="rounded-2xl border border-blue-200 bg-white px-5 py-3 text-center text-sm font-bold text-blue-900 transition hover:bg-blue-50"
             >
-              Tümünü Aç
+              Dökümanları İncele
             </Link>
           </div>
 

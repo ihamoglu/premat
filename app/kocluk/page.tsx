@@ -78,7 +78,7 @@ export default function KoclukPage() {
                 <div className="mt-8 flex flex-wrap gap-3">
                   <Link
                     href="/documents"
-                    className="rounded-2xl bg-blue-800 px-5 py-3 text-sm font-bold text-white shadow-lg shadow-blue-800/20 transition hover:bg-blue-900"
+                    className="rounded-2xl border border-blue-200 bg-white px-5 py-3 text-sm font-bold text-blue-900 shadow-lg shadow-blue-900/10 transition hover:bg-blue-50"
                   >
                     Dökümanları İncele
                   </Link>

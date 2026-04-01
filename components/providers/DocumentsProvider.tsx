@@ -35,6 +35,7 @@ type SupabaseDocumentRow = {
   file_url: string;
   solution_url: string | null;
   answer_key_url: string | null;
+  cover_image_url: string | null;
   featured: boolean;
   published: boolean;
   created_at: string;
@@ -49,11 +50,12 @@ function mapRowToDocument(row: SupabaseDocumentRow): DocumentItem {
     grade: row.grade as DocumentItem["grade"],
     topic: row.topic,
     subtopic: row.subtopic || undefined,
-    type: row.type as DocumentItem["type"],
+    type: row.type,
     sourceType: row.source_type as DocumentItem["sourceType"],
     fileUrl: row.file_url,
     solutionUrl: row.solution_url || undefined,
     answerKeyUrl: row.answer_key_url || undefined,
+    coverImageUrl: row.cover_image_url || undefined,
     featured: row.featured,
     published: row.published,
     createdAt: row.created_at.slice(0, 10),
@@ -98,6 +100,7 @@ export function DocumentsProvider({
       file_url: doc.fileUrl,
       solution_url: doc.solutionUrl || null,
       answer_key_url: doc.answerKeyUrl || null,
+      cover_image_url: doc.coverImageUrl || null,
       featured: doc.featured,
       published: doc.published,
     };
@@ -125,6 +128,7 @@ export function DocumentsProvider({
       file_url: updatedDoc.fileUrl,
       solution_url: updatedDoc.solutionUrl || null,
       answer_key_url: updatedDoc.answerKeyUrl || null,
+      cover_image_url: updatedDoc.coverImageUrl || null,
       featured: updatedDoc.featured,
       published: updatedDoc.published,
     };

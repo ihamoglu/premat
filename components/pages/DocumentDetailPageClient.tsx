@@ -78,6 +78,16 @@ export default function DocumentDetailPageClient({
             </Link>
           </div>
 
+          {doc.coverImageUrl ? (
+            <div className="mb-8 overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-sm">
+              <img
+                src={doc.coverImageUrl}
+                alt={doc.title}
+                className="h-[240px] w-full object-cover md:h-[360px]"
+              />
+            </div>
+          ) : null}
+
           <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr] lg:items-start lg:gap-8">
             <div>
               <div className="mb-4 flex flex-wrap gap-2">
