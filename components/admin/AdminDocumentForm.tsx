@@ -92,6 +92,8 @@ export default function AdminDocumentForm({
   const [fileInputKey, setFileInputKey] = useState(0);
 
   const topicOptions = useMemo(() => getTopicsByGrade(form.grade), [form.grade]);
+  const isEditing = Boolean(editingDoc);
+  const generatedSlug = form.title ? slugifyTr(form.title) : "slug-olusturulmadi";
 
   useEffect(() => {
     return () => {
@@ -130,7 +132,7 @@ export default function AdminDocumentForm({
       featured: editingDoc.featured,
       published: editingDoc.published,
     });
-  }, [editingDoc]);
+  }, [editingDoc, localCoverPreviewUrl]);
 
   function updateField<K extends keyof FormState>(key: K, value: FormState[K]) {
     setForm((prev) => ({
@@ -150,6 +152,7 @@ export default function AdminDocumentForm({
     setFileInputKey((prev) => prev + 1);
     setStatusMessage("");
     setStatusType("");
+    setCreatedDoc(null);
     onCancelEdit();
   }
 
@@ -254,9 +257,11 @@ export default function AdminDocumentForm({
         setCreatedDoc(updatedDoc);
         setForm(initialState);
         setCoverImageFile(null);
+
         if (localCoverPreviewUrl) {
           URL.revokeObjectURL(localCoverPreviewUrl);
         }
+
         setLocalCoverPreviewUrl("");
         setFileInputKey((prev) => prev + 1);
         setStatusType("success");
@@ -290,9 +295,11 @@ export default function AdminDocumentForm({
       setCreatedDoc(newDoc);
       setForm(initialState);
       setCoverImageFile(null);
+
       if (localCoverPreviewUrl) {
         URL.revokeObjectURL(localCoverPreviewUrl);
       }
+
       setLocalCoverPreviewUrl("");
       setFileInputKey((prev) => prev + 1);
       setStatusType("success");
@@ -310,239 +317,282 @@ export default function AdminDocumentForm({
     localCoverPreviewUrl || form.coverImageUrl || createdDoc?.coverImageUrl;
 
   return (
-    <div className="grid gap-8 lg:grid-cols-[1.18fr_0.82fr]">
+    <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr]">
       <form
         onSubmit={handleSubmit}
-        className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-xl shadow-slate-900/5 md:p-8"
+        className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-[0_18px_60px_rgba(15,23,42,0.05)] md:p-8"
       >
-        <div className="mb-6">
-          <div className="mb-4 inline-flex rounded-full bg-blue-50 px-4 py-2 text-xs font-black uppercase tracking-wide text-blue-800">
-            {editingDoc ? "Düzenleme Modu" : "Yeni Kayıt"}
+        <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+          <div>
+            <div className="mb-4 inline-flex rounded-full border border-blue-100 bg-blue-50 px-4 py-2 text-xs font-semibold tracking-[0.08em] text-blue-800">
+              {isEditing ? "DÜZENLEME MODU" : "YENİ KAYIT"}
+            </div>
+
+            <h2 className="text-2xl font-black tracking-[-0.03em] text-slate-950 md:text-3xl">
+              {isEditing ? "İçeriği düzenle" : "Yeni içerik ekle"}
+            </h2>
+
+            <p className="mt-3 max-w-2xl text-sm leading-7 text-slate-600">
+              Başlık, açıklama, bağlantılar, görsel ve görünürlük durumunu tek
+              form üzerinden düzenle.
+            </p>
           </div>
 
-          <h2 className="text-2xl font-black text-slate-950 md:text-3xl">
-            {editingDoc ? "İçeriği Düzenle" : "Yeni İçerik Ekle"}
-          </h2>
+          <div className="flex flex-wrap gap-2.5">
+            <span className="rounded-full border border-slate-200 bg-slate-50 px-4 py-2 text-xs font-semibold text-slate-600">
+              Slug: {generatedSlug}
+            </span>
 
-          <p className="mt-3 max-w-2xl text-sm leading-7 text-slate-600">
-            Başlık, açıklama, bağlantı, tanıtım görseli ve görünürlük
-            bilgilerini düzenleyerek arşivdeki kaydı oluşturabilir ya da
-            güncelleyebilirsin.
-          </p>
+            <span
+              className={`rounded-full px-4 py-2 text-xs font-semibold ${
+                form.published
+                  ? "border border-emerald-200 bg-emerald-50 text-emerald-700"
+                  : "border border-amber-200 bg-amber-50 text-amber-700"
+              }`}
+            >
+              {form.published ? "Yayında" : "Taslak"}
+            </span>
+          </div>
         </div>
 
-        <div className="grid gap-5">
-          <div>
-            <label className="mb-2 block text-sm font-bold text-slate-700">
-              Başlık
-            </label>
-            <input
-              type="text"
-              value={form.title}
-              onChange={(e) => updateField("title", e.target.value)}
-              placeholder="Örn: 7. Sınıf Oran Orantı Yaprak Test"
-              className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-blue-400"
-              required
-            />
-          </div>
+        <div className="grid gap-6">
+          <div className="rounded-[1.6rem] border border-slate-200 bg-[linear-gradient(180deg,#f8fbff_0%,#ffffff_100%)] p-5">
+            <h3 className="text-lg font-black tracking-[-0.02em] text-slate-950">
+              Temel bilgiler
+            </h3>
 
-          <div>
-            <label className="mb-2 block text-sm font-bold text-slate-700">
-              Açıklama
-            </label>
-            <textarea
-              value={form.description}
-              onChange={(e) => updateField("description", e.target.value)}
-              placeholder="İçeriğin ne sunduğunu kısa ve net şekilde yaz."
-              rows={4}
-              className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-blue-400"
-              required
-            />
-          </div>
+            <div className="mt-5 grid gap-5">
+              <div>
+                <label className="mb-2 block text-sm font-semibold text-slate-700">
+                  Başlık
+                </label>
+                <input
+                  type="text"
+                  value={form.title}
+                  onChange={(e) => updateField("title", e.target.value)}
+                  placeholder="Örn: 7. Sınıf Oran Orantı Yaprak Test"
+                  className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-blue-400"
+                  required
+                />
+              </div>
 
-          <div className="grid gap-5 md:grid-cols-2">
-            <div>
-              <label className="mb-2 block text-sm font-bold text-slate-700">
-                Sınıf
-              </label>
-              <select
-                value={form.grade}
-                onChange={(e) => {
-                  const value = e.target.value as GradeLevel;
-                  updateField("grade", value);
-                  updateField("topic", "");
-                }}
-                className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-blue-400"
-              >
-                {gradeOptions.map((grade) => (
-                  <option key={grade} value={grade}>
-                    {grade}. Sınıf
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="mb-2 block text-sm font-bold text-slate-700">
-                Tür
-              </label>
-              <select
-                value={form.type}
-                onChange={(e) => updateField("type", e.target.value)}
-                className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-blue-400"
-              >
-                {documentTypeCatalog.map((item) => (
-                  <option key={item} value={item}>
-                    {item}
-                  </option>
-                ))}
-              </select>
+              <div>
+                <label className="mb-2 block text-sm font-semibold text-slate-700">
+                  Açıklama
+                </label>
+                <textarea
+                  value={form.description}
+                  onChange={(e) => updateField("description", e.target.value)}
+                  placeholder="İçeriğin ne sunduğunu kısa ve net şekilde yaz."
+                  rows={4}
+                  className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-blue-400"
+                  required
+                />
+              </div>
             </div>
           </div>
 
-          <div className="grid gap-5 md:grid-cols-2">
-            <div>
-              <label className="mb-2 block text-sm font-bold text-slate-700">
-                Konu
-              </label>
-              <select
-                value={form.topic}
-                onChange={(e) => updateField("topic", e.target.value)}
-                className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-blue-400"
-                required
-              >
-                <option value="">Konu seç</option>
-                {topicOptions.map((item) => (
-                  <option key={item} value={item}>
-                    {item}
-                  </option>
-                ))}
-              </select>
-            </div>
+          <div className="rounded-[1.6rem] border border-slate-200 bg-[linear-gradient(180deg,#f8fbff_0%,#ffffff_100%)] p-5">
+            <h3 className="text-lg font-black tracking-[-0.02em] text-slate-950">
+              Sınıf ve kategori
+            </h3>
 
-            <div>
-              <label className="mb-2 block text-sm font-bold text-slate-700">
-                Alt Konu
-              </label>
-              <input
-                type="text"
-                value={form.subtopic}
-                onChange={(e) => updateField("subtopic", e.target.value)}
-                placeholder="Örn: Kesir Problemleri"
-                className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-blue-400"
-              />
-            </div>
-          </div>
+            <div className="mt-5 grid gap-5 md:grid-cols-2">
+              <div>
+                <label className="mb-2 block text-sm font-semibold text-slate-700">
+                  Sınıf
+                </label>
+                <select
+                  value={form.grade}
+                  onChange={(e) => {
+                    const value = e.target.value as GradeLevel;
+                    updateField("grade", value);
+                    updateField("topic", "");
+                  }}
+                  className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-blue-400"
+                >
+                  {gradeOptions.map((grade) => (
+                    <option key={grade} value={grade}>
+                      {grade}. Sınıf
+                    </option>
+                  ))}
+                </select>
+              </div>
 
-          <div>
-            <label className="mb-2 block text-sm font-bold text-slate-700">
-              Kaynak Türü
-            </label>
-            <select
-              value={form.sourceType}
-              onChange={(e) =>
-                updateField("sourceType", e.target.value as SourceType)
-              }
-              className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-blue-400"
-            >
-              {sourceTypeCatalog.map((item) => (
-                <option key={item} value={item}>
-                  {item}
-                </option>
-              ))}
-            </select>
-          </div>
+              <div>
+                <label className="mb-2 block text-sm font-semibold text-slate-700">
+                  Tür
+                </label>
+                <select
+                  value={form.type}
+                  onChange={(e) => updateField("type", e.target.value)}
+                  className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-blue-400"
+                >
+                  {documentTypeCatalog.map((item) => (
+                    <option key={item} value={item}>
+                      {item}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
-          <div>
-            <label className="mb-2 block text-sm font-bold text-slate-700">
-              İçerik Bağlantısı
-            </label>
-            <input
-              type="url"
-              value={form.fileUrl}
-              onChange={(e) => updateField("fileUrl", e.target.value)}
-              placeholder="https://..."
-              className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-blue-400"
-              required
-            />
-          </div>
+              <div>
+                <label className="mb-2 block text-sm font-semibold text-slate-700">
+                  Konu
+                </label>
+                <select
+                  value={form.topic}
+                  onChange={(e) => updateField("topic", e.target.value)}
+                  className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-blue-400"
+                  required
+                >
+                  <option value="">Konu seç</option>
+                  {topicOptions.map((item) => (
+                    <option key={item} value={item}>
+                      {item}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
-          <div className="rounded-[1.5rem] border border-slate-200 bg-slate-50 p-4">
-            <label className="mb-2 block text-sm font-bold text-slate-700">
-              Tanıtım Görseli Yükle
-            </label>
+              <div>
+                <label className="mb-2 block text-sm font-semibold text-slate-700">
+                  Alt Konu
+                </label>
+                <input
+                  type="text"
+                  value={form.subtopic}
+                  onChange={(e) => updateField("subtopic", e.target.value)}
+                  placeholder="Örn: Kesir Problemleri"
+                  className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-blue-400"
+                />
+              </div>
 
-            <input
-              key={fileInputKey}
-              type="file"
-              accept="image/png,image/jpeg,image/webp,image/jpg"
-              onChange={handleCoverImageChange}
-              className="block w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 file:mr-4 file:rounded-xl file:border-0 file:bg-blue-800 file:px-4 file:py-2 file:text-sm file:font-bold file:text-white hover:file:bg-blue-900"
-            />
-
-            <p className="mt-3 text-xs leading-6 text-slate-500">
-              PNG, JPG veya WEBP yükle. Maksimum 5 MB.
-            </p>
-
-            {(form.coverImageUrl || localCoverPreviewUrl) ? (
-              <button
-                type="button"
-                onClick={clearCoverImage}
-                className="mt-3 rounded-2xl border border-red-300 bg-red-50 px-4 py-2 text-sm font-bold text-red-700 transition hover:bg-red-100"
-              >
-                Görseli Kaldır
-              </button>
-            ) : null}
-          </div>
-
-          <div className="grid gap-5 md:grid-cols-2">
-            <div>
-              <label className="mb-2 block text-sm font-bold text-slate-700">
-                Çözüm Bağlantısı
-              </label>
-              <input
-                type="url"
-                value={form.solutionUrl}
-                onChange={(e) => updateField("solutionUrl", e.target.value)}
-                placeholder="Opsiyonel çözüm bağlantısı"
-                className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-blue-400"
-              />
-            </div>
-
-            <div>
-              <label className="mb-2 block text-sm font-bold text-slate-700">
-                Cevap Anahtarı Bağlantısı
-              </label>
-              <input
-                type="url"
-                value={form.answerKeyUrl}
-                onChange={(e) => updateField("answerKeyUrl", e.target.value)}
-                placeholder="Opsiyonel cevap anahtarı bağlantısı"
-                className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-blue-400"
-              />
+              <div className="md:col-span-2">
+                <label className="mb-2 block text-sm font-semibold text-slate-700">
+                  Kaynak Türü
+                </label>
+                <select
+                  value={form.sourceType}
+                  onChange={(e) =>
+                    updateField("sourceType", e.target.value as SourceType)
+                  }
+                  className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-blue-400"
+                >
+                  {sourceTypeCatalog.map((item) => (
+                    <option key={item} value={item}>
+                      {item}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
           </div>
 
-          <div className="grid gap-3 rounded-[1.5rem] border border-slate-200 bg-slate-50 p-4 md:grid-cols-2">
-            <label className="flex items-center gap-3 text-sm font-bold text-slate-700">
-              <input
-                type="checkbox"
-                checked={form.featured}
-                onChange={(e) => updateField("featured", e.target.checked)}
-                className="h-4 w-4"
-              />
-              Öne çıkarılsın
-            </label>
+          <div className="rounded-[1.6rem] border border-slate-200 bg-[linear-gradient(180deg,#f8fbff_0%,#ffffff_100%)] p-5">
+            <h3 className="text-lg font-black tracking-[-0.02em] text-slate-950">
+              Bağlantılar ve görsel
+            </h3>
 
-            <label className="flex items-center gap-3 text-sm font-bold text-slate-700">
-              <input
-                type="checkbox"
-                checked={form.published}
-                onChange={(e) => updateField("published", e.target.checked)}
-                className="h-4 w-4"
-              />
-              Yayında görünsün
-            </label>
+            <div className="mt-5 grid gap-5">
+              <div>
+                <label className="mb-2 block text-sm font-semibold text-slate-700">
+                  İçerik Bağlantısı
+                </label>
+                <input
+                  type="url"
+                  value={form.fileUrl}
+                  onChange={(e) => updateField("fileUrl", e.target.value)}
+                  placeholder="https://..."
+                  className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-blue-400"
+                  required
+                />
+              </div>
+
+              <div className="grid gap-5 md:grid-cols-2">
+                <div>
+                  <label className="mb-2 block text-sm font-semibold text-slate-700">
+                    Çözüm Bağlantısı
+                  </label>
+                  <input
+                    type="url"
+                    value={form.solutionUrl}
+                    onChange={(e) => updateField("solutionUrl", e.target.value)}
+                    placeholder="Opsiyonel çözüm bağlantısı"
+                    className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-blue-400"
+                  />
+                </div>
+
+                <div>
+                  <label className="mb-2 block text-sm font-semibold text-slate-700">
+                    Cevap Anahtarı Bağlantısı
+                  </label>
+                  <input
+                    type="url"
+                    value={form.answerKeyUrl}
+                    onChange={(e) => updateField("answerKeyUrl", e.target.value)}
+                    placeholder="Opsiyonel cevap anahtarı bağlantısı"
+                    className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-blue-400"
+                  />
+                </div>
+              </div>
+
+              <div className="rounded-[1.5rem] border border-slate-200 bg-slate-50 p-4">
+                <label className="mb-2 block text-sm font-semibold text-slate-700">
+                  Tanıtım Görseli Yükle
+                </label>
+
+                <input
+                  key={fileInputKey}
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp,image/jpg"
+                  onChange={handleCoverImageChange}
+                  className="block w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 file:mr-4 file:rounded-xl file:border-0 file:bg-blue-800 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-blue-900"
+                />
+
+                <p className="mt-3 text-xs leading-6 text-slate-500">
+                  PNG, JPG veya WEBP yükle. Maksimum 5 MB.
+                </p>
+
+                {(form.coverImageUrl || localCoverPreviewUrl) ? (
+                  <button
+                    type="button"
+                    onClick={clearCoverImage}
+                    className="mt-3 rounded-2xl border border-red-300 bg-red-50 px-4 py-2 text-sm font-semibold text-red-700 transition hover:bg-red-100"
+                  >
+                    Görseli Kaldır
+                  </button>
+                ) : null}
+              </div>
+            </div>
+          </div>
+
+          <div className="rounded-[1.6rem] border border-slate-200 bg-[linear-gradient(180deg,#f8fbff_0%,#ffffff_100%)] p-5">
+            <h3 className="text-lg font-black tracking-[-0.02em] text-slate-950">
+              Yayın ayarları
+            </h3>
+
+            <div className="mt-5 grid gap-3 md:grid-cols-2">
+              <label className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-4 text-sm font-semibold text-slate-700">
+                <input
+                  type="checkbox"
+                  checked={form.featured}
+                  onChange={(e) => updateField("featured", e.target.checked)}
+                  className="h-4 w-4"
+                />
+                Öne çıkarılsın
+              </label>
+
+              <label className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-4 text-sm font-semibold text-slate-700">
+                <input
+                  type="checkbox"
+                  checked={form.published}
+                  onChange={(e) => updateField("published", e.target.checked)}
+                  className="h-4 w-4"
+                />
+                Yayında görünsün
+              </label>
+            </div>
           </div>
 
           {statusMessage ? (
@@ -561,103 +611,142 @@ export default function AdminDocumentForm({
             <button
               type="submit"
               disabled={submitting}
-              className="rounded-2xl bg-blue-800 px-5 py-4 text-sm font-bold text-white shadow-lg shadow-blue-800/20 transition hover:bg-blue-900 disabled:cursor-not-allowed disabled:opacity-70"
+              className="rounded-2xl bg-[linear-gradient(135deg,#1d4f91_0%,#2f6eb7_55%,#3b82f6_100%)] px-5 py-4 text-sm font-semibold text-white shadow-lg shadow-blue-900/20 transition hover:-translate-y-0.5 hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-70"
             >
               {submitting
                 ? "İşleniyor..."
-                : editingDoc
+                : isEditing
                 ? "Kaydı Güncelle"
                 : "Kaydı Oluştur"}
             </button>
 
-            {editingDoc ? (
-              <button
-                type="button"
-                onClick={resetFormCompletely}
-                disabled={submitting}
-                className="rounded-2xl border border-slate-300 bg-white px-5 py-4 text-sm font-bold text-slate-700 transition hover:border-blue-300 hover:text-blue-800 disabled:cursor-not-allowed disabled:opacity-70"
-              >
-                Düzenlemeyi İptal Et
-              </button>
-            ) : null}
+            <button
+              type="button"
+              onClick={resetFormCompletely}
+              disabled={submitting}
+              className="rounded-2xl border border-slate-300 bg-white px-5 py-4 text-sm font-semibold text-slate-700 transition hover:border-blue-300 hover:text-blue-800 disabled:cursor-not-allowed disabled:opacity-70"
+            >
+              {isEditing ? "Düzenlemeyi İptal Et" : "Formu Temizle"}
+            </button>
           </div>
         </div>
       </form>
 
-      <aside className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-xl shadow-slate-900/5 md:p-8">
-        <div className="mb-5">
-          <div className="inline-flex rounded-full bg-blue-50 px-4 py-2 text-xs font-black uppercase tracking-wide text-blue-800">
-            Önizleme
-          </div>
-
-          <h2 className="mt-4 text-2xl font-black text-slate-950">
-            Canlı Görünüm
-          </h2>
-
-          <p className="mt-3 text-sm leading-7 text-slate-600">
-            Formdan çıkan içerik burada özet olarak görünür.
-          </p>
-        </div>
-
-        <div className="space-y-4">
-          {livePreviewImage ? (
-            <div className="overflow-hidden rounded-[1.5rem] border border-slate-200 bg-slate-50">
-              <img
-                src={livePreviewImage}
-                alt={form.title || "Tanıtım görseli"}
-                className="h-[210px] w-full object-cover"
-              />
-            </div>
-          ) : (
-            <div className="rounded-[1.5rem] border border-dashed border-slate-300 bg-slate-50 p-8 text-center text-sm text-slate-500">
-              Tanıtım görseli henüz eklenmedi.
-            </div>
-          )}
-
-          <div className="rounded-[1.5rem] bg-gradient-to-br from-blue-600 to-sky-500 p-5 text-white">
-            <div className="mb-3 inline-block rounded-full bg-orange-400 px-3 py-1 text-xs font-bold">
-              {form.grade}. Sınıf
+      <aside className="space-y-6">
+        <div className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-[0_18px_60px_rgba(15,23,42,0.05)] md:p-8">
+          <div className="mb-5">
+            <div className="inline-flex rounded-full border border-blue-100 bg-blue-50 px-4 py-2 text-xs font-semibold tracking-[0.08em] text-blue-800">
+              CANLI ÖNİZLEME
             </div>
 
-            <h3 className="text-xl font-black leading-tight">
-              {form.title || "Başlık burada görünecek"}
-            </h3>
+            <h2 className="mt-4 text-2xl font-black tracking-[-0.03em] text-slate-950">
+              İçerik kartı özeti
+            </h2>
 
-            <p className="mt-3 text-sm text-blue-50">
-              {form.topic || "Konu seçilmedi"}
-              {form.subtopic ? ` • ${form.subtopic}` : ""}
+            <p className="mt-3 text-sm leading-7 text-slate-600">
+              Form alanlarının dışarıya nasıl yansıdığını burada hızlıca gör.
             </p>
           </div>
 
-          <div className="rounded-[1.5rem] border border-slate-200 bg-slate-50 p-5">
-            <div className="space-y-3 text-sm text-slate-700">
-              <div>
-                <span className="font-bold">Bağlantı Adresi:</span>{" "}
-                {form.title ? slugifyTr(form.title) : "slug-olusturulmadi"}
+          <div className="space-y-4">
+            {livePreviewImage ? (
+              <div className="overflow-hidden rounded-[1.5rem] border border-slate-200 bg-slate-50">
+                <img
+                  src={livePreviewImage}
+                  alt={form.title || "Tanıtım görseli"}
+                  className="h-[240px] w-full object-cover"
+                />
               </div>
-              <div>
-                <span className="font-bold">Tür:</span> {form.type}
+            ) : (
+              <div className="rounded-[1.5rem] border border-dashed border-slate-300 bg-slate-50 p-10 text-center text-sm text-slate-500">
+                Tanıtım görseli henüz eklenmedi.
               </div>
-              <div>
-                <span className="font-bold">Kaynak:</span> {form.sourceType}
+            )}
+
+            <div className="rounded-[1.6rem] bg-[linear-gradient(135deg,#1d4f91_0%,#2f6eb7_55%,#ea580c_100%)] p-5 text-white">
+              <div className="mb-3 flex flex-wrap gap-2">
+                <span className="rounded-full bg-white/92 px-3 py-1 text-xs font-semibold text-blue-900">
+                  {form.grade}. Sınıf
+                </span>
+
+                <span className="rounded-full bg-white/20 px-3 py-1 text-xs font-semibold text-white">
+                  {form.type}
+                </span>
+
+                {form.featured ? (
+                  <span className="rounded-full bg-orange-400 px-3 py-1 text-xs font-semibold text-white">
+                    Öne Çıkan
+                  </span>
+                ) : null}
               </div>
-              <div>
-                <span className="font-bold">Çözüm:</span>{" "}
-                {form.solutionUrl ? "Var" : "Yok"}
-              </div>
-              <div>
-                <span className="font-bold">Cevap Anahtarı:</span>{" "}
-                {form.answerKeyUrl ? "Var" : "Yok"}
-              </div>
-              <div>
-                <span className="font-bold">Tanıtım Görseli:</span>{" "}
-                {livePreviewImage ? "Var" : "Yok"}
-              </div>
-              <div>
-                <span className="font-bold">Görünürlük:</span>{" "}
-                {form.published ? "Yayında" : "Taslak"}
+
+              <h3 className="text-xl font-black leading-tight tracking-[-0.02em]">
+                {form.title || "Başlık burada görünecek"}
+              </h3>
+
+              <p className="mt-3 text-sm leading-7 text-blue-50">
+                {form.description || "Açıklama burada görünecek."}
+              </p>
+
+              <div className="mt-4 text-sm font-semibold text-white/90">
+                {form.topic || "Konu seçilmedi"}
+                {form.subtopic ? ` • ${form.subtopic}` : ""}
               </div>
             </div>
+
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="rounded-[1.4rem] border border-slate-200 bg-slate-50 p-4">
+                <div className="text-xs font-medium text-slate-500">Slug</div>
+                <div className="mt-2 break-all text-sm font-semibold text-slate-800">
+                  {generatedSlug}
+                </div>
+              </div>
+
+              <div className="rounded-[1.4rem] border border-slate-200 bg-slate-50 p-4">
+                <div className="text-xs font-medium text-slate-500">Kaynak</div>
+                <div className="mt-2 text-sm font-semibold text-slate-800">
+                  {form.sourceType}
+                </div>
+              </div>
+
+              <div className="rounded-[1.4rem] border border-slate-200 bg-slate-50 p-4">
+                <div className="text-xs font-medium text-slate-500">Çözüm</div>
+                <div className="mt-2 text-sm font-semibold text-slate-800">
+                  {form.solutionUrl ? "Var" : "Yok"}
+                </div>
+              </div>
+
+              <div className="rounded-[1.4rem] border border-slate-200 bg-slate-50 p-4">
+                <div className="text-xs font-medium text-slate-500">
+                  Cevap Anahtarı
+                </div>
+                <div className="mt-2 text-sm font-semibold text-slate-800">
+                  {form.answerKeyUrl ? "Var" : "Yok"}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-[0_18px_60px_rgba(15,23,42,0.05)] md:p-8">
+          <div className="inline-flex rounded-full border border-orange-200 bg-orange-50 px-4 py-2 text-xs font-semibold tracking-[0.08em] text-orange-800">
+            KISA NOTLAR
+          </div>
+
+          <div className="mt-5 grid gap-3">
+            {[
+              "Başlık kısa ve aranabilir olursa arşiv kalitesi yükselir.",
+              "Konu seçimi sınıfa uygun olmalı; filtre mantığı buna dayanır.",
+              "Tanıtım görseli varsa kartlar daha güçlü görünür.",
+              "Her içeriğe çözüm koymak şart değil ama varsa değeri artar.",
+            ].map((item) => (
+              <div
+                key={item}
+                className="rounded-[1.4rem] border border-slate-200 bg-slate-50 px-4 py-4 text-sm leading-7 text-slate-600"
+              >
+                {item}
+              </div>
+            ))}
           </div>
         </div>
       </aside>
