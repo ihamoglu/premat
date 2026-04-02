@@ -4,7 +4,7 @@ import Link from "next/link";
 export default function Footer() {
   return (
     <footer className="border-t border-slate-200 bg-white">
-      <div className="mx-auto grid max-w-7xl gap-10 px-4 py-12 md:grid-cols-[1.1fr_0.9fr_0.9fr] md:px-6">
+      <div className="mx-auto grid max-w-7xl gap-10 px-4 py-12 md:grid-cols-[1fr_0.8fr_0.8fr_0.9fr] md:px-6">
         <div>
           <Image
             src="/brand/logo-horizontal.png"
@@ -47,6 +47,30 @@ export default function Footer() {
           </h3>
 
           <div className="mt-4 flex flex-col gap-3 text-sm font-semibold text-slate-600">
+            <Link href="/hakkimizda" className="transition hover:text-blue-800">
+              Hakkımızda
+            </Link>
+            <Link
+              href="/iletisim"
+              className="transition hover:text-blue-800"
+            >
+              İletişim
+            </Link>
+            <Link
+              href="/kullanim-kosullari"
+              className="transition hover:text-blue-800"
+            >
+              Kullanım Koşulları
+            </Link>
+          </div>
+        </div>
+
+        <div>
+          <h3 className="text-sm font-black uppercase tracking-wide text-slate-900">
+            Politikalar
+          </h3>
+
+          <div className="mt-4 flex flex-col gap-3 text-sm font-semibold text-slate-600">
             <Link
               href="/gizlilik-politikasi"
               className="transition hover:text-blue-800"
@@ -59,9 +83,6 @@ export default function Footer() {
             >
               Çerez Politikası
             </Link>
-            <Link href="/iletisim" className="transition hover:text-blue-800">
-              İletişim
-            </Link>
           </div>
         </div>
       </div>
@@ -71,9 +92,9 @@ export default function Footer() {
           <Image
             src="/brand/logo-square.png"
             alt="premat kare logo"
-            width={220}
-            height={220}
-            className="h-auto w-[70px] md:w-[85px]"
+            width={140}
+            height={140}
+            className="h-auto w-[95px] md:w-[120px]"
           />
         </div>
 
