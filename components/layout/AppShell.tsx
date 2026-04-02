@@ -73,7 +73,7 @@ export default function AppShell({
       >
         {!isPanelRoute ? <Navbar /> : null}
 
-        {!isPanelRoute ? (
+        {!isPanelRoute && !isHomeRoute ? (
           <div className="border-b border-slate-200 bg-[linear-gradient(180deg,#f7fbff_0%,#eef5ff_100%)] py-6">
             <AdSlot label="Üst Reklam Alanı" compact />
           </div>

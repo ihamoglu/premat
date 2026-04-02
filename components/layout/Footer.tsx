@@ -3,8 +3,8 @@ import Link from "next/link";
 
 export default function Footer() {
   return (
-    <footer className="border-t border-slate-200 bg-white">
-      <div className="mx-auto grid max-w-7xl gap-10 px-4 py-12 md:grid-cols-[1fr_0.8fr_0.8fr_0.9fr] md:px-6">
+    <footer className="border-t border-slate-200 bg-[linear-gradient(180deg,#ffffff_0%,#f8fbff_100%)]">
+      <div className="mx-auto grid max-w-7xl gap-10 px-4 py-12 md:grid-cols-[1.2fr_0.8fr_0.8fr_0.9fr] md:px-6 md:py-14">
         <div>
           <Image
             src="/brand/logo-horizontal.png"
@@ -16,16 +16,17 @@ export default function Footer() {
 
           <p className="mt-4 max-w-sm text-sm leading-7 text-slate-600">
             Matematik için düzenli, seçili ve güvenilir döküman arşivi.
-            Sade yapı, hızlı erişim ve temiz görünüm üzerine kuruldu.
+            Dağınık içerik yerine temiz hiyerarşi, hızlı erişim ve güçlü bir
+            kullanım deneyimi sunar.
           </p>
         </div>
 
         <div>
-          <h3 className="text-sm font-black uppercase tracking-wide text-slate-900">
+          <h3 className="text-sm font-semibold tracking-[0.08em] text-slate-900">
             Gezinme
           </h3>
 
-          <div className="mt-4 flex flex-col gap-3 text-sm font-semibold text-slate-600">
+          <div className="mt-4 flex flex-col gap-3 text-sm font-medium text-slate-600">
             <Link href="/" className="transition hover:text-blue-800">
               Ana Sayfa
             </Link>
@@ -42,18 +43,15 @@ export default function Footer() {
         </div>
 
         <div>
-          <h3 className="text-sm font-black uppercase tracking-wide text-slate-900">
+          <h3 className="text-sm font-semibold tracking-[0.08em] text-slate-900">
             Kurumsal
           </h3>
 
-          <div className="mt-4 flex flex-col gap-3 text-sm font-semibold text-slate-600">
+          <div className="mt-4 flex flex-col gap-3 text-sm font-medium text-slate-600">
             <Link href="/hakkimizda" className="transition hover:text-blue-800">
               Hakkımızda
             </Link>
-            <Link
-              href="/iletisim"
-              className="transition hover:text-blue-800"
-            >
+            <Link href="/iletisim" className="transition hover:text-blue-800">
               İletişim
             </Link>
             <Link
@@ -66,11 +64,11 @@ export default function Footer() {
         </div>
 
         <div>
-          <h3 className="text-sm font-black uppercase tracking-wide text-slate-900">
+          <h3 className="text-sm font-semibold tracking-[0.08em] text-slate-900">
             Politikalar
           </h3>
 
-          <div className="mt-4 flex flex-col gap-3 text-sm font-semibold text-slate-600">
+          <div className="mt-4 flex flex-col gap-3 text-sm font-medium text-slate-600">
             <Link
               href="/gizlilik-politikasi"
               className="transition hover:text-blue-800"
@@ -94,11 +92,11 @@ export default function Footer() {
             alt="premat kare logo"
             width={140}
             height={140}
-            className="h-auto w-[95px] md:w-[120px]"
+            className="h-auto w-[88px] md:w-[110px]"
           />
         </div>
 
-        <div className="text-xs font-semibold tracking-wide text-slate-500">
+        <div className="text-xs font-medium tracking-[0.08em] text-slate-500">
           © 2026 premat
         </div>
       </div>
