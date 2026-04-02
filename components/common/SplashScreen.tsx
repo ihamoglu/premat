@@ -13,7 +13,30 @@ interface Particle {
   symbol: string;
 }
 
-const SYMBOLS = ["⭐", "✨", "🌟", "💫", "🔢", "📐", "🎯", "➕", "✖️", "➗"];
+const SYMBOLS = [
+  "π",
+  "√",
+  "∑",
+  "∞",
+  "Δ",
+  "∫",
+  "θ",
+  "λ",
+  "μ",
+  "≠",
+  "≈",
+  "±",
+  "÷",
+  "×",
+  "∠",
+  "⊥",
+  "∥",
+  "ℕ",
+  "ℤ",
+  "ƒ",
+  "%",
+  "∴",
+];
 
 export default function SplashScreen({ onFinish }: { onFinish?: () => void }) {
   const [phase, setPhase] = useState<"enter" | "hold" | "exit">("enter");
@@ -23,13 +46,13 @@ export default function SplashScreen({ onFinish }: { onFinish?: () => void }) {
 
   useEffect(() => {
     setParticles(
-      Array.from({ length: 18 }, (_, index) => ({
+      Array.from({ length: 24 }, (_, index) => ({
         id: index,
         x: Math.random() * 100,
         y: Math.random() * 100,
-        size: 18 + Math.random() * 18,
-        duration: 3 + Math.random() * 3,
-        delay: Math.random() * 2,
+        size: 30 + Math.random() * 26,
+        duration: 3.2 + Math.random() * 2.6,
+        delay: Math.random() * 2.2,
         symbol: SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)],
       }))
     );
@@ -45,9 +68,9 @@ export default function SplashScreen({ onFinish }: { onFinish?: () => void }) {
           return 100;
         }
 
-        return current + 1.2;
+        return current + 0.95;
       });
-    }, 24);
+    }, 34);
 
     return () => {
       if (timerRef.current) {
@@ -57,9 +80,9 @@ export default function SplashScreen({ onFinish }: { onFinish?: () => void }) {
   }, []);
 
   useEffect(() => {
-    const enterTimer = setTimeout(() => setPhase("hold"), 250);
-    const exitTimer = setTimeout(() => setPhase("exit"), 2200);
-    const finishTimer = setTimeout(() => onFinish?.(), 2800);
+    const enterTimer = setTimeout(() => setPhase("hold"), 300);
+    const exitTimer = setTimeout(() => setPhase("exit"), 3200);
+    const finishTimer = setTimeout(() => onFinish?.(), 4000);
 
     return () => {
       clearTimeout(enterTimer);
@@ -80,33 +103,44 @@ export default function SplashScreen({ onFinish }: { onFinish?: () => void }) {
           justify-content: center;
           overflow: hidden;
           background:
-            radial-gradient(circle at top left, rgba(255,255,255,0.2), transparent 32%),
-            radial-gradient(circle at bottom right, rgba(249,115,22,0.18), transparent 28%),
-            linear-gradient(135deg, #1d4f91 0%, #2f6eb7 32%, #3b82c4 55%, #f59e0b 78%, #ea580c 100%);
-          background-size: 160% 160%;
-          animation: prematSplashBg 9s ease-in-out infinite;
+            radial-gradient(circle at 14% 18%, rgba(255,255,255,0.18), transparent 24%),
+            radial-gradient(circle at 82% 82%, rgba(249,115,22,0.22), transparent 28%),
+            linear-gradient(
+              135deg,
+              #0f4c97 0%,
+              #1d66b7 18%,
+              #2f7fca 34%,
+              #3b82f6 46%,
+              #f59e0b 68%,
+              #f97316 84%,
+              #ea580c 100%
+            );
+          background-size: 220% 220%;
+          animation: prematSplashBg 3.6s ease-in-out infinite alternate;
         }
 
         .premat-splash--exit {
-          animation: prematSplashFade 0.55s ease forwards;
+          animation: prematSplashFade 0.75s ease forwards !important;
         }
 
         .premat-splash__glow {
           position: absolute;
-          width: 36rem;
-          height: 36rem;
+          width: 42rem;
+          height: 42rem;
           border-radius: 999px;
-          background: rgba(255,255,255,0.14);
-          filter: blur(80px);
+          background: rgba(255,255,255,0.12);
+          filter: blur(90px);
           transform: scale(0.9);
-          animation: prematSplashPulse 3s ease-in-out infinite;
+          animation: prematSplashPulse 2.8s ease-in-out infinite;
         }
 
         .premat-splash__particle {
           position: absolute;
           font-size: var(--particle-size);
+          font-weight: 800;
+          color: rgba(255,255,255,0.78);
           opacity: 0;
-          filter: drop-shadow(0 10px 18px rgba(15, 23, 42, 0.16));
+          text-shadow: 0 10px 24px rgba(15, 23, 42, 0.2);
           animation: prematSplashFloat var(--particle-duration) ease-in-out var(--particle-delay) infinite;
           user-select: none;
           pointer-events: none;
@@ -115,7 +149,7 @@ export default function SplashScreen({ onFinish }: { onFinish?: () => void }) {
         .premat-splash__card {
           position: relative;
           z-index: 2;
-          width: min(92vw, 34rem);
+          width: min(92vw, 35rem);
           padding: 2rem 1.4rem;
           border: 1px solid rgba(255,255,255,0.28);
           border-radius: 2rem;
@@ -133,6 +167,12 @@ export default function SplashScreen({ onFinish }: { onFinish?: () => void }) {
           align-items: center;
           justify-content: center;
           margin-bottom: 1rem;
+          animation: prematSplashLogoFloat 2.6s ease-in-out infinite;
+        }
+
+        .premat-splash__logo-image {
+          filter: drop-shadow(0 12px 28px rgba(15, 23, 42, 0.2));
+          animation: prematSplashLogoIn 0.6s ease;
         }
 
         .premat-splash__title {
@@ -164,9 +204,9 @@ export default function SplashScreen({ onFinish }: { onFinish?: () => void }) {
         .premat-splash__bar-fill {
           height: 100%;
           border-radius: inherit;
-          background: linear-gradient(90deg, #ffffff 0%, #dbeafe 28%, #fde68a 68%, #fed7aa 100%);
+          background: linear-gradient(90deg, #ffffff 0%, #dbeafe 20%, #fde68a 60%, #fed7aa 100%);
           box-shadow: 0 0 18px rgba(255,255,255,0.4);
-          transition: width 0.18s linear;
+          transition: width 0.12s linear;
         }
 
         .premat-splash__footer {
@@ -203,8 +243,12 @@ export default function SplashScreen({ onFinish }: { onFinish?: () => void }) {
         }
 
         @keyframes prematSplashBg {
-          0%, 100% { background-position: 0% 50%; }
-          50% { background-position: 100% 50%; }
+          0% {
+            background-position: 0% 50%;
+          }
+          100% {
+            background-position: 100% 50%;
+          }
         }
 
         @keyframes prematSplashCardIn {
@@ -222,36 +266,68 @@ export default function SplashScreen({ onFinish }: { onFinish?: () => void }) {
           to {
             opacity: 0;
             visibility: hidden;
-            transform: scale(1.02);
+            transform: translateY(-4%) scale(1.02);
           }
         }
 
         @keyframes prematSplashPulse {
-          0%, 100% { transform: scale(0.9); opacity: 0.75; }
-          50% { transform: scale(1.08); opacity: 1; }
+          0%, 100% {
+            transform: scale(0.9);
+            opacity: 0.72;
+          }
+          50% {
+            transform: scale(1.08);
+            opacity: 1;
+          }
         }
 
         @keyframes prematSplashFloat {
           0% {
             opacity: 0;
-            transform: translate3d(0, 18px, 0) scale(0.92) rotate(0deg);
+            transform: translate3d(0, 22px, 0) scale(0.86) rotate(0deg);
           }
-          15% {
-            opacity: 0.9;
+          18% {
+            opacity: 0.78;
           }
-          50% {
+          52% {
             opacity: 1;
-            transform: translate3d(10px, -18px, 0) scale(1.05) rotate(6deg);
+            transform: translate3d(12px, -20px, 0) scale(1.08) rotate(8deg);
           }
           100% {
             opacity: 0;
-            transform: translate3d(-6px, -44px, 0) scale(0.96) rotate(-6deg);
+            transform: translate3d(-8px, -52px, 0) scale(0.96) rotate(-8deg);
+          }
+        }
+
+        @keyframes prematSplashLogoIn {
+          from {
+            opacity: 0;
+            transform: translateY(10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        @keyframes prematSplashLogoFloat {
+          0%, 100% {
+            transform: translateY(0);
+          }
+          50% {
+            transform: translateY(-10px);
           }
         }
 
         @keyframes prematSplashDot {
-          0%, 100% { transform: scale(0.9); opacity: 0.45; }
-          50% { transform: scale(1.3); opacity: 1; }
+          0%, 100% {
+            transform: scale(0.9);
+            opacity: 0.45;
+          }
+          50% {
+            transform: scale(1.3);
+            opacity: 1;
+          }
         }
 
         @media (max-width: 640px) {
@@ -271,6 +347,8 @@ export default function SplashScreen({ onFinish }: { onFinish?: () => void }) {
           .premat-splash__glow,
           .premat-splash__particle,
           .premat-splash__card,
+          .premat-splash__logo,
+          .premat-splash__logo-image,
           .premat-splash__dot {
             animation: none !important;
           }
@@ -310,6 +388,7 @@ export default function SplashScreen({ onFinish }: { onFinish?: () => void }) {
               width={260}
               height={86}
               priority
+              className="premat-splash__logo-image"
             />
           </div>
 

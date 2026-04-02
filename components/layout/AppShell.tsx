@@ -19,22 +19,29 @@ export default function AppShell({
     pathname === "/panel-giris" ||
     pathname.startsWith("/panel/");
 
+  const isHomeRoute = pathname === "/";
+
   const [hasCheckedSplash, setHasCheckedSplash] = useState(false);
   const [showSplash, setShowSplash] = useState(false);
 
   useEffect(() => {
-    if (isPanelRoute) {
-      setShowSplash(false);
-      setHasCheckedSplash(true);
+    if (typeof window === "undefined") {
       return;
     }
 
-    const alreadyShown =
-      window.sessionStorage.getItem("premat-splash-shown") === "1";
+    const tabAlreadyOpened =
+      window.sessionStorage.getItem("premat-tab-opened") === "1";
 
-    setShowSplash(!alreadyShown);
+    if (!tabAlreadyOpened) {
+      window.sessionStorage.setItem("premat-tab-opened", "1");
+
+      if (isHomeRoute) {
+        setShowSplash(true);
+      }
+    }
+
     setHasCheckedSplash(true);
-  }, [isPanelRoute]);
+  }, [isHomeRoute]);
 
   useEffect(() => {
     if (!showSplash) {
@@ -50,11 +57,10 @@ export default function AppShell({
   }, [showSplash]);
 
   function handleSplashFinish() {
-    window.sessionStorage.setItem("premat-splash-shown", "1");
     setShowSplash(false);
   }
 
-  const hideShellUntilChecked = !isPanelRoute && !hasCheckedSplash;
+  const hideShellUntilChecked = isHomeRoute && !hasCheckedSplash;
 
   return (
     <>
