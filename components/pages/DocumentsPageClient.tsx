@@ -172,7 +172,7 @@ export default function DocumentsPageClient() {
       </section>
 
       <section className="mx-auto max-w-7xl px-4 py-8 md:px-6 md:py-10">
-        <div className="rounded-[2rem] border border-slate-200 bg-white p-5 shadow-[0_18px_60px_rgba(15,23,42,0.05)] md:p-6">
+        <div className="overflow-hidden rounded-[2rem] border border-slate-200 bg-white p-5 shadow-[0_18px_60px_rgba(15,23,42,0.05)] md:p-6">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div>
               <h2 className="text-xl font-black tracking-[-0.03em] text-slate-950 md:text-2xl">
@@ -187,7 +187,7 @@ export default function DocumentsPageClient() {
             <button
               type="button"
               onClick={resetFilters}
-              className="rounded-2xl border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-blue-300 hover:text-blue-800"
+              className="w-full rounded-2xl border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-blue-300 hover:text-blue-800 lg:w-auto"
             >
               Filtreleri Temizle
             </button>
@@ -219,7 +219,7 @@ export default function DocumentsPageClient() {
             })}
           </div>
 
-          <div className="mt-5 grid gap-4 md:grid-cols-[1fr_1fr_1fr]">
+          <div className="mt-5 grid gap-4 md:grid-cols-3">
             <select
               value={selectedGrade}
               onChange={(e) =>
@@ -231,7 +231,7 @@ export default function DocumentsPageClient() {
                   topic: "",
                 })
               }
-              className="h-12 rounded-2xl border border-slate-200 bg-white px-4 text-sm font-medium text-slate-700 outline-none transition focus:border-blue-300"
+              className="w-full min-w-0 max-w-full appearance-none rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700 outline-none transition focus:border-blue-300"
             >
               <option value="Tümü">Tüm sınıflar</option>
               <option value="5">5. Sınıf</option>
@@ -247,7 +247,7 @@ export default function DocumentsPageClient() {
                   topic: e.target.value,
                 })
               }
-              className="h-12 rounded-2xl border border-slate-200 bg-white px-4 text-sm font-medium text-slate-700 outline-none transition focus:border-blue-300"
+              className="w-full min-w-0 max-w-full appearance-none rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700 outline-none transition focus:border-blue-300"
             >
               <option value="">Tüm konular</option>
               {topicOptions.map((topic) => (
@@ -264,7 +264,7 @@ export default function DocumentsPageClient() {
                   type: e.target.value,
                 })
               }
-              className="h-12 rounded-2xl border border-slate-200 bg-white px-4 text-sm font-medium text-slate-700 outline-none transition focus:border-blue-300"
+              className="w-full min-w-0 max-w-full appearance-none rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700 outline-none transition focus:border-blue-300"
             >
               <option value="">Tüm türler</option>
               {documentTypeCatalog.map((item) => (
