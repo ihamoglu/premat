@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
-import AdSlot from "@/components/common/AdSlot";
 import SplashScreen from "@/components/common/SplashScreen";
 
 export default function AppShell({
@@ -72,21 +71,7 @@ export default function AppShell({
         }`}
       >
         {!isPanelRoute ? <Navbar /> : null}
-
-        {!isPanelRoute && !isHomeRoute ? (
-          <div className="border-b border-slate-200 bg-[linear-gradient(180deg,#f7fbff_0%,#eef5ff_100%)] py-6">
-            <AdSlot label="Üst Reklam Alanı" compact />
-          </div>
-        ) : null}
-
         <div className="flex-1">{children}</div>
-
-        {!isPanelRoute ? (
-          <div className="bg-[linear-gradient(180deg,#f8fbff_0%,#f4f8ff_100%)] py-8">
-            <AdSlot label="Alt Reklam Alanı" />
-          </div>
-        ) : null}
-
         {!isPanelRoute ? <Footer /> : null}
       </div>
     </>
