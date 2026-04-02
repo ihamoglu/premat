@@ -1,10 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import SplashScreen from "@/components/common/SplashScreen";
+
+function NavbarFallback() {
+  return <div className="h-[74px] border-b border-slate-200 bg-white/90" />;
+}
 
 export default function AppShell({
   children,
@@ -70,8 +74,14 @@ export default function AppShell({
           hideShellUntilChecked ? "opacity-0" : "opacity-100"
         }`}
       >
-        {!isPanelRoute ? <Navbar /> : null}
+        {!isPanelRoute ? (
+          <Suspense fallback={<NavbarFallback />}>
+            <Navbar />
+          </Suspense>
+        ) : null}
+
         <div className="flex-1">{children}</div>
+
         {!isPanelRoute ? <Footer /> : null}
       </div>
     </>
