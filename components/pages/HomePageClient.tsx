@@ -134,14 +134,14 @@ export default function HomePageClient() {
               </p>
             </div>
 
-            <div className="grid gap-3 md:grid-cols-[1fr_1fr_1fr_auto]">
+            <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_auto]">
               <select
                 value={grade}
                 onChange={(e) => {
                   setGrade(e.target.value);
                   setTopic("");
                 }}
-                className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 outline-none transition focus:border-blue-300 sm:text-base"
+                className="min-w-0 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 outline-none transition focus:border-blue-300 sm:text-base"
               >
                 <option value="">Sınıf seç</option>
                 <option value="5">5. Sınıf</option>
@@ -153,7 +153,7 @@ export default function HomePageClient() {
               <select
                 value={topic}
                 onChange={(e) => setTopic(e.target.value)}
-                className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 outline-none transition focus:border-blue-300 sm:text-base"
+                className="min-w-0 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 outline-none transition focus:border-blue-300 sm:text-base"
               >
                 <option value="">Konu seç</option>
                 {topicOptions.map((item) => (
@@ -166,7 +166,7 @@ export default function HomePageClient() {
               <select
                 value={type}
                 onChange={(e) => setType(e.target.value)}
-                className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 outline-none transition focus:border-blue-300 sm:text-base"
+                className="min-w-0 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 outline-none transition focus:border-blue-300 sm:text-base"
               >
                 <option value="">İçerik türü</option>
                 {documentTypeCatalog.map((item) => (
@@ -179,7 +179,7 @@ export default function HomePageClient() {
               <button
                 type="button"
                 onClick={handleSearch}
-                className="rounded-2xl bg-[linear-gradient(135deg,#1d4f91_0%,#2f6eb7_55%,#3b82f6_100%)] px-8 py-3 text-base font-bold text-white shadow-lg shadow-blue-700/25 transition hover:-translate-y-0.5 hover:shadow-xl sm:text-lg"
+                className="w-full rounded-2xl bg-[linear-gradient(135deg,#1d4f91_0%,#2f6eb7_55%,#3b82f6_100%)] px-8 py-3 text-base font-bold text-white shadow-lg shadow-blue-700/25 transition hover:-translate-y-0.5 hover:shadow-xl md:w-auto sm:text-lg"
               >
                 Ara
               </button>
