@@ -2,8 +2,8 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { usePathname, useSearchParams } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
 import { documentTypeCatalog } from "@/data/catalog";
 
 const desktopNavItems = [
@@ -38,13 +38,21 @@ function isActive(pathname: string, href: string) {
 
 export default function Navbar() {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const searchKey = searchParams.toString();
+
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [openGrade, setOpenGrade] = useState<string | null>(null);
+
+  const locationKey = useMemo(
+    () => `${pathname}?${searchKey}`,
+    [pathname, searchKey]
+  );
 
   useEffect(() => {
     setMobileMenuOpen(false);
     setOpenGrade(null);
-  }, [pathname]);
+  }, [locationKey]);
 
   useEffect(() => {
     if (mobileMenuOpen) {
@@ -166,6 +174,10 @@ export default function Navbar() {
                     <Link
                       key={item.label}
                       href={item.href}
+                      onClick={() => {
+                        setMobileMenuOpen(false);
+                        setOpenGrade(null);
+                      }}
                       className={`flex items-center justify-between rounded-2xl px-4 py-3 text-sm font-semibold transition ${
                         active
                           ? "bg-blue-50 text-blue-900 ring-1 ring-blue-100"
@@ -223,6 +235,10 @@ export default function Navbar() {
                                     grade: item.grade,
                                     type,
                                   },
+                                }}
+                                onClick={() => {
+                                  setMobileMenuOpen(false);
+                                  setOpenGrade(null);
                                 }}
                                 className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 transition hover:border-blue-200 hover:text-blue-800"
                               >

@@ -26,20 +26,31 @@ export default function DocumentsPageClient() {
   const searchParams = useSearchParams();
   const { documents } = useDocuments();
 
-  const initialGrade = searchParams.get("grade");
-  const initialTopic = searchParams.get("topic") || "";
-  const initialType = searchParams.get("type") || "";
+  const searchKey = searchParams.toString();
 
   const [selectedGrade, setSelectedGrade] = useState<"Tümü" | GradeLevel>(
-    initialGrade === "5" ||
-      initialGrade === "6" ||
-      initialGrade === "7" ||
-      initialGrade === "8"
-      ? initialGrade
-      : "Tümü"
+    "Tümü"
   );
-  const [selectedTopic, setSelectedTopic] = useState(initialTopic);
-  const [selectedType, setSelectedType] = useState(initialType);
+  const [selectedTopic, setSelectedTopic] = useState("");
+  const [selectedType, setSelectedType] = useState("");
+
+  useEffect(() => {
+    const gradeParam = searchParams.get("grade");
+    const topicParam = searchParams.get("topic") || "";
+    const typeParam = searchParams.get("type") || "";
+
+    const nextGrade =
+      gradeParam === "5" ||
+      gradeParam === "6" ||
+      gradeParam === "7" ||
+      gradeParam === "8"
+        ? gradeParam
+        : "Tümü";
+
+    setSelectedGrade(nextGrade);
+    setSelectedTopic(topicParam);
+    setSelectedType(typeParam);
+  }, [searchKey, searchParams]);
 
   const publishedDocs = useMemo(
     () => documents.filter((doc) => doc.published),
@@ -58,16 +69,23 @@ export default function DocumentsPageClient() {
     });
   }, [publishedDocs, selectedGrade, selectedTopic, selectedType]);
 
-  useEffect(() => {
+  const nextQuery = useMemo(() => {
     const params = new URLSearchParams();
 
     if (selectedGrade !== "Tümü") params.set("grade", selectedGrade);
     if (selectedTopic) params.set("topic", selectedTopic);
     if (selectedType) params.set("type", selectedType);
 
-    const query = params.toString();
-    router.replace(query ? `${pathname}?${query}` : pathname);
-  }, [selectedGrade, selectedTopic, selectedType, pathname, router]);
+    return params.toString();
+  }, [selectedGrade, selectedTopic, selectedType]);
+
+  useEffect(() => {
+    if (nextQuery === searchKey) {
+      return;
+    }
+
+    router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname);
+  }, [nextQuery, searchKey, pathname, router]);
 
   const topicOptions = useMemo(() => {
     return selectedGrade === "Tümü"
