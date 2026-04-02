@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import DocumentCard from "@/components/documents/DocumentCard";
@@ -26,31 +26,17 @@ export default function DocumentsPageClient() {
   const searchParams = useSearchParams();
   const { documents } = useDocuments();
 
-  const searchKey = searchParams.toString();
+  const selectedGradeParam = searchParams.get("grade");
+  const selectedTopic = searchParams.get("topic") || "";
+  const selectedType = searchParams.get("type") || "";
 
-  const [selectedGrade, setSelectedGrade] = useState<"Tümü" | GradeLevel>(
-    "Tümü"
-  );
-  const [selectedTopic, setSelectedTopic] = useState("");
-  const [selectedType, setSelectedType] = useState("");
-
-  useEffect(() => {
-    const gradeParam = searchParams.get("grade");
-    const topicParam = searchParams.get("topic") || "";
-    const typeParam = searchParams.get("type") || "";
-
-    const nextGrade =
-      gradeParam === "5" ||
-      gradeParam === "6" ||
-      gradeParam === "7" ||
-      gradeParam === "8"
-        ? gradeParam
-        : "Tümü";
-
-    setSelectedGrade(nextGrade);
-    setSelectedTopic(topicParam);
-    setSelectedType(typeParam);
-  }, [searchKey, searchParams]);
+  const selectedGrade: "Tümü" | GradeLevel =
+    selectedGradeParam === "5" ||
+    selectedGradeParam === "6" ||
+    selectedGradeParam === "7" ||
+    selectedGradeParam === "8"
+      ? selectedGradeParam
+      : "Tümü";
 
   const publishedDocs = useMemo(
     () => documents.filter((doc) => doc.published),
@@ -69,24 +55,6 @@ export default function DocumentsPageClient() {
     });
   }, [publishedDocs, selectedGrade, selectedTopic, selectedType]);
 
-  const nextQuery = useMemo(() => {
-    const params = new URLSearchParams();
-
-    if (selectedGrade !== "Tümü") params.set("grade", selectedGrade);
-    if (selectedTopic) params.set("topic", selectedTopic);
-    if (selectedType) params.set("type", selectedType);
-
-    return params.toString();
-  }, [selectedGrade, selectedTopic, selectedType]);
-
-  useEffect(() => {
-    if (nextQuery === searchKey) {
-      return;
-    }
-
-    router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname);
-  }, [nextQuery, searchKey, pathname, router]);
-
   const topicOptions = useMemo(() => {
     return selectedGrade === "Tümü"
       ? getAllTopics()
@@ -104,10 +72,43 @@ export default function DocumentsPageClient() {
     selectedType || null,
   ].filter(Boolean);
 
+  function updateFilters(next: {
+    grade?: "Tümü" | GradeLevel;
+    topic?: string;
+    type?: string;
+  }) {
+    const params = new URLSearchParams(searchParams.toString());
+
+    const nextGrade = next.grade ?? selectedGrade;
+    const nextTopic = next.topic ?? selectedTopic;
+    const nextType = next.type ?? selectedType;
+
+    if (nextGrade === "Tümü") {
+      params.delete("grade");
+    } else {
+      params.set("grade", nextGrade);
+    }
+
+    if (nextTopic) {
+      params.set("topic", nextTopic);
+    } else {
+      params.delete("topic");
+    }
+
+    if (nextType) {
+      params.set("type", nextType);
+    } else {
+      params.delete("type");
+    }
+
+    const query = params.toString();
+    router.replace(query ? `${pathname}?${query}` : pathname, {
+      scroll: false,
+    });
+  }
+
   function resetFilters() {
-    setSelectedGrade("Tümü");
-    setSelectedTopic("");
-    setSelectedType("");
+    router.replace(pathname, { scroll: false });
   }
 
   return (
@@ -200,10 +201,12 @@ export default function DocumentsPageClient() {
                 <button
                   key={item.value}
                   type="button"
-                  onClick={() => {
-                    setSelectedGrade(item.value);
-                    setSelectedTopic("");
-                  }}
+                  onClick={() =>
+                    updateFilters({
+                      grade: item.value,
+                      topic: "",
+                    })
+                  }
                   className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
                     active
                       ? "bg-[linear-gradient(135deg,#1d4f91_0%,#2f6eb7_100%)] text-white shadow-md shadow-blue-900/20"
@@ -219,13 +222,15 @@ export default function DocumentsPageClient() {
           <div className="mt-5 grid gap-4 md:grid-cols-[1fr_1fr_1fr]">
             <select
               value={selectedGrade}
-              onChange={(e) => {
-                const value = e.target.value;
-                setSelectedGrade(
-                  value === "Tümü" ? "Tümü" : (value as GradeLevel)
-                );
-                setSelectedTopic("");
-              }}
+              onChange={(e) =>
+                updateFilters({
+                  grade:
+                    e.target.value === "Tümü"
+                      ? "Tümü"
+                      : (e.target.value as GradeLevel),
+                  topic: "",
+                })
+              }
               className="h-12 rounded-2xl border border-slate-200 bg-white px-4 text-sm font-medium text-slate-700 outline-none transition focus:border-blue-300"
             >
               <option value="Tümü">Tüm sınıflar</option>
@@ -237,7 +242,11 @@ export default function DocumentsPageClient() {
 
             <select
               value={selectedTopic}
-              onChange={(e) => setSelectedTopic(e.target.value)}
+              onChange={(e) =>
+                updateFilters({
+                  topic: e.target.value,
+                })
+              }
               className="h-12 rounded-2xl border border-slate-200 bg-white px-4 text-sm font-medium text-slate-700 outline-none transition focus:border-blue-300"
             >
               <option value="">Tüm konular</option>
@@ -250,7 +259,11 @@ export default function DocumentsPageClient() {
 
             <select
               value={selectedType}
-              onChange={(e) => setSelectedType(e.target.value)}
+              onChange={(e) =>
+                updateFilters({
+                  type: e.target.value,
+                })
+              }
               className="h-12 rounded-2xl border border-slate-200 bg-white px-4 text-sm font-medium text-slate-700 outline-none transition focus:border-blue-300"
             >
               <option value="">Tüm türler</option>
