@@ -218,124 +218,122 @@ export default function AdminBulkImport() {
     setStatusMessage("");
   }
 
-  function buildHeaderMap(cells: string[]) {
-    const map = new Map<CanonicalHeader, number>();
-
-    cells.forEach((cell, index) => {
-      const normalized = normalizeHeader(cell);
-
-      const matchedKey = (Object.keys(HEADER_ALIASES) as CanonicalHeader[]).find(
-        (key) => HEADER_ALIASES[key].includes(normalized)
-      );
-
-      if (matchedKey && !map.has(matchedKey)) {
-        map.set(matchedKey, index);
-      }
-    });
-
-    return map;
-  }
-
-  function getCell(
-    cells: string[],
-    headerMap: Map<CanonicalHeader, number>,
-    key: CanonicalHeader
-  ) {
-    const index = headerMap.get(key);
-    if (index === undefined) return "";
-    return (cells[index] || "").trim();
-  }
-
   function handlePreview() {
     setStatusMessage("");
     setStatusType("");
 
-    const normalizedText = rawText.trim();
+    const trimmed = rawText.trim();
 
-    if (!normalizedText) {
-      setPreviewRows([]);
+    if (!trimmed) {
       setStatusType("error");
-      setStatusMessage("Önce tablo verisini yapıştır.");
+      setStatusMessage("Önizleme için önce veri yapıştırmalısın.");
+      setPreviewRows([]);
       return;
     }
 
-    const lines = normalizedText
+    const lines = trimmed
       .split(/\r?\n/)
-      .map((line) => line.trimEnd())
+      .map((line) => line.trim())
       .filter(Boolean);
 
     if (lines.length < 2) {
-      setPreviewRows([]);
       setStatusType("error");
-      setStatusMessage("Başlık satırı ve en az bir veri satırı gerekli.");
+      setStatusMessage(
+        "En az bir başlık satırı ve bir veri satırı bulunmalı."
+      );
+      setPreviewRows([]);
       return;
     }
 
     const delimiter = detectDelimiter(lines[0]);
     const headerCells = lines[0].split(delimiter).map((cell) => cell.trim());
-    const headerMap = buildHeaderMap(headerCells);
 
-    const missingHeaders = REQUIRED_HEADERS.filter((key) => !headerMap.has(key));
+    const headerMap = new Map<CanonicalHeader, number>();
 
-    if (missingHeaders.length > 0) {
-      setPreviewRows([]);
+    headerCells.forEach((header, index) => {
+      const normalized = normalizeHeader(header);
+
+      (
+        Object.entries(HEADER_ALIASES) as Array<[CanonicalHeader, string[]]>
+      ).forEach(([canonical, aliases]) => {
+        if (aliases.includes(normalized)) {
+          headerMap.set(canonical, index);
+        }
+      });
+    });
+
+    const missingRequired = REQUIRED_HEADERS.filter(
+      (header) => !headerMap.has(header)
+    );
+
+    if (missingRequired.length > 0) {
       setStatusType("error");
       setStatusMessage(
-        `Başlık satırı eksik. Eksik alanlar: ${missingHeaders.join(", ")}`
+        `Eksik başlıklar var: ${missingRequired.join(", ")}`
       );
+      setPreviewRows([]);
       return;
     }
 
-    const reservedSlugs = new Set(documents.map((doc) => doc.slug));
+    const existingSlugs = new Set(documents.map((doc) => doc.slug));
     const parsed: ParsedRow[] = [];
 
-    lines.slice(1).forEach((line, index) => {
-      const rowNumber = index + 2;
+    lines.slice(1).forEach((line, lineIndex) => {
       const cells = line.split(delimiter).map((cell) => cell.trim());
 
-      const title = getCell(cells, headerMap, "title");
-      const description = getCell(cells, headerMap, "description");
-      const grade = getCell(cells, headerMap, "grade");
-      const topic = getCell(cells, headerMap, "topic");
-      const subtopic = getCell(cells, headerMap, "subtopic");
-      const type = getCell(cells, headerMap, "type");
-      const sourceType = getCell(cells, headerMap, "sourceType");
-      const fileUrl = getCell(cells, headerMap, "fileUrl");
-      const solutionUrl = getCell(cells, headerMap, "solutionUrl");
-      const answerKeyUrl = getCell(cells, headerMap, "answerKeyUrl");
-      const coverImageUrl = getCell(cells, headerMap, "coverImageUrl");
-      const featured = getCell(cells, headerMap, "featured");
-      const published = getCell(cells, headerMap, "published");
+      function getCell(header: CanonicalHeader) {
+        const index = headerMap.get(header);
+        return index === undefined ? "" : cells[index] || "";
+      }
+
+      const title = getCell("title");
+      const description = getCell("description");
+      const grade = getCell("grade");
+      const topic = getCell("topic");
+      const subtopic = getCell("subtopic");
+      const type = getCell("type");
+      const sourceType = getCell("sourceType");
+      const fileUrl = getCell("fileUrl");
+      const solutionUrl = getCell("solutionUrl");
+      const answerKeyUrl = getCell("answerKeyUrl");
+      const coverImageUrl = getCell("coverImageUrl");
+      const featured = getCell("featured");
+      const published = getCell("published");
 
       const errors: string[] = [];
 
       if (!title) errors.push("Başlık boş.");
       if (!description) errors.push("Açıklama boş.");
-      if (!["5", "6", "7", "8"].includes(grade)) {
-        errors.push("Sınıf yalnızca 5, 6, 7 veya 8 olabilir.");
-      }
 
-      const validTopics =
-        grade === "5" || grade === "6" || grade === "7" || grade === "8"
-          ? getTopicsByGrade(grade)
-          : [];
+      if (!["5", "6", "7", "8"].includes(grade)) {
+        errors.push("Sınıf 5, 6, 7 veya 8 olmalı.");
+      }
 
       if (!topic) {
         errors.push("Konu boş.");
-      } else if (validTopics.length > 0 && !validTopics.includes(topic)) {
-        errors.push("Konu, seçilen sınıfa uygun değil.");
+      } else if (
+        ["5", "6", "7", "8"].includes(grade) &&
+        !getTopicsByGrade(grade as GradeLevel).includes(topic)
+      ) {
+        errors.push("Konu seçilen sınıfla uyuşmuyor.");
       }
 
-      if (!documentTypeCatalog.includes(type)) {
-        errors.push("Tür geçersiz.");
+      if (!type) {
+        errors.push("Tür boş.");
+      } else if (!documentTypeCatalog.includes(type)) {
+        errors.push("Tür katalogda yok.");
       }
 
-      if (!sourceTypeCatalog.includes(sourceType as SourceType)) {
+      if (!sourceType) {
+        errors.push("Kaynak türü boş.");
+      } else if (!sourceTypeCatalog.includes(sourceType as SourceType)) {
         errors.push("Kaynak türü geçersiz.");
       }
 
-      if (!fileUrl || !isValidUrl(fileUrl)) {
-        errors.push("İçerik bağlantısı geçersiz.");
+      if (!fileUrl) {
+        errors.push("İçerik bağlantısı boş.");
+      } else if (!isValidUrl(fileUrl)) {
+        errors.push("İçerik bağlantısı geçerli bir URL değil.");
       }
 
       if (solutionUrl && !isValidUrl(solutionUrl)) {
@@ -347,13 +345,13 @@ export default function AdminBulkImport() {
       }
 
       if (coverImageUrl && !isValidUrl(coverImageUrl)) {
-        errors.push("Tanıtım görseli bağlantısı geçersiz.");
+        errors.push("Kapak görseli bağlantısı geçersiz.");
       }
 
-      const slug = buildUniqueSlug(slugifyTr(title), reservedSlugs);
+      const slug = buildUniqueSlug(slugifyTr(title), existingSlugs);
 
       parsed.push({
-        rowNumber,
+        rowNumber: lineIndex + 2,
         slug,
         errors,
         data: {
@@ -361,7 +359,7 @@ export default function AdminBulkImport() {
           slug,
           title,
           description,
-          grade: (grade || "5") as GradeLevel,
+          grade: grade as GradeLevel,
           topic,
           subtopic: subtopic || undefined,
           type,
@@ -380,7 +378,9 @@ export default function AdminBulkImport() {
     setPreviewRows(parsed);
     setStatusType("success");
     setStatusMessage(
-      `Önizleme hazır. Geçerli: ${parsed.filter((x) => x.errors.length === 0).length}, Hatalı: ${parsed.filter((x) => x.errors.length > 0).length}`
+      `Önizleme hazır. Geçerli: ${
+        parsed.filter((x) => x.errors.length === 0).length
+      }, Hatalı: ${parsed.filter((x) => x.errors.length > 0).length}`
     );
   }
 
@@ -410,14 +410,14 @@ export default function AdminBulkImport() {
   }
 
   return (
-    <section className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-xl shadow-slate-900/5 md:p-8">
+    <section className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-[0_18px_60px_rgba(15,23,42,0.05)] md:p-8">
       <div className="mb-6">
-        <div className="mb-4 inline-flex rounded-full bg-blue-50 px-4 py-2 text-xs font-black uppercase tracking-wide text-blue-800">
-          Toplu İçerik Girişi
+        <div className="mb-4 inline-flex rounded-full border border-blue-100 bg-blue-50 px-4 py-2 text-xs font-semibold tracking-[0.08em] text-blue-800">
+          TOPLU İÇERİK GİRİŞİ
         </div>
 
-        <h2 className="text-2xl font-black text-slate-950 md:text-3xl">
-          Excel / Sheets’ten Çoklu Kayıt Ekle
+        <h2 className="text-2xl font-black tracking-[-0.03em] text-slate-950 md:text-3xl">
+          Excel / Sheets’ten çoklu kayıt ekle
         </h2>
 
         <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-600">
@@ -426,21 +426,21 @@ export default function AdminBulkImport() {
         </p>
       </div>
 
-      <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
+      <div className="grid gap-6 xl:grid-cols-[1.08fr_0.92fr]">
         <div className="space-y-4">
           <textarea
             value={rawText}
             onChange={(e) => setRawText(e.target.value)}
             placeholder="Tabloyu burada yapıştır..."
             rows={16}
-            className="w-full rounded-[1.5rem] border border-slate-200 bg-slate-50 px-4 py-4 text-sm leading-7 text-slate-700 outline-none transition focus:border-blue-400"
+            className="w-full rounded-[1.6rem] border border-slate-200 bg-[linear-gradient(180deg,#f8fbff_0%,#ffffff_100%)] px-4 py-4 text-sm leading-7 text-slate-700 outline-none transition focus:border-blue-400"
           />
 
           <div className="flex flex-wrap gap-3">
             <button
               type="button"
               onClick={handlePreview}
-              className="rounded-2xl bg-blue-800 px-5 py-3 text-sm font-bold text-white shadow-md shadow-blue-800/20 transition hover:bg-blue-900"
+              className="rounded-2xl bg-[linear-gradient(135deg,#1d4f91_0%,#2f6eb7_55%,#3b82f6_100%)] px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-900/20 transition hover:-translate-y-0.5 hover:shadow-xl"
             >
               Önizle
             </button>
@@ -449,7 +449,7 @@ export default function AdminBulkImport() {
               type="button"
               onClick={handleBulkInsert}
               disabled={importing || validRows.length === 0}
-              className="rounded-2xl border border-emerald-300 bg-emerald-50 px-5 py-3 text-sm font-bold text-emerald-700 transition hover:bg-emerald-100 disabled:cursor-not-allowed disabled:opacity-60"
+              className="rounded-2xl border border-emerald-300 bg-emerald-50 px-5 py-3 text-sm font-semibold text-emerald-700 transition hover:bg-emerald-100 disabled:cursor-not-allowed disabled:opacity-60"
             >
               {importing ? "Ekleniyor..." : "Geçerli Kayıtları Ekle"}
             </button>
@@ -457,7 +457,7 @@ export default function AdminBulkImport() {
             <button
               type="button"
               onClick={copyTemplate}
-              className="rounded-2xl border border-slate-300 bg-white px-5 py-3 text-sm font-bold text-slate-700 transition hover:border-blue-300 hover:text-blue-800"
+              className="rounded-2xl border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-blue-300 hover:text-blue-800"
             >
               Şablonu Kopyala
             </button>
@@ -465,7 +465,7 @@ export default function AdminBulkImport() {
             <button
               type="button"
               onClick={clearAll}
-              className="rounded-2xl border border-slate-300 bg-white px-5 py-3 text-sm font-bold text-slate-700 transition hover:border-blue-300 hover:text-blue-800"
+              className="rounded-2xl border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-blue-300 hover:text-blue-800"
             >
               Alanı Temizle
             </button>
@@ -485,12 +485,12 @@ export default function AdminBulkImport() {
         </div>
 
         <div className="space-y-4">
-          <div className="rounded-[1.5rem] border border-slate-200 bg-slate-50 p-5">
-            <div className="text-sm font-black text-slate-900">
-              Beklenen Başlıklar
+          <div className="rounded-[1.6rem] border border-slate-200 bg-[linear-gradient(180deg,#f8fbff_0%,#ffffff_100%)] p-5">
+            <div className="text-sm font-semibold text-slate-900">
+              Beklenen başlıklar
             </div>
 
-            <div className="mt-3 rounded-2xl bg-white p-4 text-xs leading-7 text-slate-600">
+            <div className="mt-3 rounded-2xl border border-slate-200 bg-white p-4 text-xs leading-7 text-slate-600">
               title, description, grade, topic, subtopic, type, sourceType,
               fileUrl, solutionUrl, answerKeyUrl, coverImageUrl, featured,
               published
@@ -504,24 +504,24 @@ export default function AdminBulkImport() {
 
           <div className="grid gap-4 sm:grid-cols-3">
             <div className="rounded-[1.5rem] border border-slate-200 bg-white p-5">
-              <div className="text-sm font-semibold text-slate-500">
+              <div className="text-sm font-medium text-slate-500">
                 Önizlenen
               </div>
-              <div className="mt-2 text-3xl font-black text-slate-950">
+              <div className="mt-2 text-3xl font-black tracking-[-0.03em] text-slate-950">
                 {previewRows.length}
               </div>
             </div>
 
             <div className="rounded-[1.5rem] border border-slate-200 bg-white p-5">
-              <div className="text-sm font-semibold text-slate-500">Geçerli</div>
-              <div className="mt-2 text-3xl font-black text-emerald-700">
+              <div className="text-sm font-medium text-slate-500">Geçerli</div>
+              <div className="mt-2 text-3xl font-black tracking-[-0.03em] text-emerald-700">
                 {validRows.length}
               </div>
             </div>
 
             <div className="rounded-[1.5rem] border border-slate-200 bg-white p-5">
-              <div className="text-sm font-semibold text-slate-500">Hatalı</div>
-              <div className="mt-2 text-3xl font-black text-red-700">
+              <div className="text-sm font-medium text-slate-500">Hatalı</div>
+              <div className="mt-2 text-3xl font-black tracking-[-0.03em] text-red-700">
                 {invalidRows.length}
               </div>
             </div>
@@ -532,8 +532,8 @@ export default function AdminBulkImport() {
       {previewRows.length > 0 ? (
         <div className="mt-8 grid gap-8 lg:grid-cols-2">
           <div>
-            <h3 className="text-xl font-black text-slate-950">
-              Geçerli Satırlar
+            <h3 className="text-xl font-black tracking-[-0.03em] text-slate-950">
+              Geçerli satırlar
             </h3>
 
             <div className="mt-4 grid gap-4">
@@ -545,30 +545,35 @@ export default function AdminBulkImport() {
                 validRows.map((row) => (
                   <div
                     key={`${row.rowNumber}-${row.slug}`}
-                    className="rounded-[1.5rem] border border-emerald-200 bg-emerald-50 p-5"
+                    className="rounded-[1.6rem] border border-emerald-200 bg-emerald-50 p-5"
                   >
-                    <div className="mb-2 text-xs font-black uppercase tracking-wide text-emerald-700">
-                      Satır {row.rowNumber}
+                    <div className="mb-2 text-xs font-semibold tracking-[0.08em] text-emerald-700">
+                      SATIR {row.rowNumber}
                     </div>
-                    <div className="text-lg font-black text-slate-950">
+
+                    <div className="text-lg font-black tracking-[-0.02em] text-slate-950">
                       {row.data.title}
                     </div>
+
                     <div className="mt-2 text-sm leading-7 text-slate-600">
                       {row.data.description}
                     </div>
-                    <div className="mt-3 grid gap-2 text-sm text-slate-700">
+
+                    <div className="mt-4 grid gap-2 text-sm text-slate-700">
                       <div>
-                        <span className="font-bold">Slug:</span> {row.slug}
+                        <span className="font-semibold">Slug:</span> {row.slug}
                       </div>
                       <div>
-                        <span className="font-bold">Sınıf:</span> {row.data.grade}
-                        . Sınıf
+                        <span className="font-semibold">Sınıf:</span>{" "}
+                        {row.data.grade}. Sınıf
                       </div>
                       <div>
-                        <span className="font-bold">Konu:</span> {row.data.topic}
+                        <span className="font-semibold">Konu:</span>{" "}
+                        {row.data.topic}
                       </div>
                       <div>
-                        <span className="font-bold">Tür:</span> {row.data.type}
+                        <span className="font-semibold">Tür:</span>{" "}
+                        {row.data.type}
                       </div>
                     </div>
                   </div>
@@ -578,8 +583,8 @@ export default function AdminBulkImport() {
           </div>
 
           <div>
-            <h3 className="text-xl font-black text-slate-950">
-              Hatalı Satırlar
+            <h3 className="text-xl font-black tracking-[-0.03em] text-slate-950">
+              Hatalı satırlar
             </h3>
 
             <div className="mt-4 grid gap-4">
@@ -591,12 +596,13 @@ export default function AdminBulkImport() {
                 invalidRows.map((row) => (
                   <div
                     key={`${row.rowNumber}-${row.slug}`}
-                    className="rounded-[1.5rem] border border-red-200 bg-red-50 p-5"
+                    className="rounded-[1.6rem] border border-red-200 bg-red-50 p-5"
                   >
-                    <div className="mb-2 text-xs font-black uppercase tracking-wide text-red-700">
-                      Satır {row.rowNumber}
+                    <div className="mb-2 text-xs font-semibold tracking-[0.08em] text-red-700">
+                      SATIR {row.rowNumber}
                     </div>
-                    <div className="text-lg font-black text-slate-950">
+
+                    <div className="text-lg font-black tracking-[-0.02em] text-slate-950">
                       {row.data.title || "Başlık okunamadı"}
                     </div>
 
@@ -604,7 +610,7 @@ export default function AdminBulkImport() {
                       {row.errors.map((error) => (
                         <div
                           key={error}
-                          className="rounded-xl bg-white px-3 py-2 text-sm font-semibold text-red-700"
+                          className="rounded-xl border border-red-200 bg-white px-3 py-2 text-sm font-semibold text-red-700"
                         >
                           {error}
                         </div>

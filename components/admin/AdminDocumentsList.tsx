@@ -111,6 +111,21 @@ export default function AdminDocumentsList({
       });
   }, [documents, search, selectedGrade, selectedType, selectedTopic]);
 
+  const publishedCount = useMemo(
+    () => documents.filter((doc) => doc.published).length,
+    [documents]
+  );
+
+  const featuredCount = useMemo(
+    () => documents.filter((doc) => doc.featured).length,
+    [documents]
+  );
+
+  const draftCount = useMemo(
+    () => documents.filter((doc) => !doc.published).length,
+    [documents]
+  );
+
   async function handleDelete(doc: DocumentItem) {
     const confirmed = window.confirm(
       `"${doc.title}" kaydını silmek istediğine emin misin?`
@@ -226,39 +241,57 @@ export default function AdminDocumentsList({
   }
 
   return (
-    <section className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-xl shadow-slate-900/5 md:p-8">
+    <section className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-[0_18px_60px_rgba(15,23,42,0.05)] md:p-8">
       <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div>
-          <div className="mb-4 inline-flex rounded-full bg-blue-50 px-4 py-2 text-xs font-black uppercase tracking-wide text-blue-800">
-            Kayıt Yönetimi
+          <div className="mb-4 inline-flex rounded-full border border-blue-100 bg-blue-50 px-4 py-2 text-xs font-semibold tracking-[0.08em] text-blue-800">
+            KAYIT YÖNETİMİ
           </div>
 
-          <h2 className="text-2xl font-black text-slate-950 md:text-3xl">
-            Mevcut İçerikler
+          <h2 className="text-2xl font-black tracking-[-0.03em] text-slate-950 md:text-3xl">
+            Mevcut içerikler
           </h2>
 
           <p className="mt-3 max-w-2xl text-sm leading-7 text-slate-600">
-            Kayıtları ara, filtrele, hızlıca düzenle, kopyala veya yayın
-            durumlarını buradan yönet.
+            Kayıtları ara, filtrele, düzenle, kopyala veya yayın durumlarını
+            buradan yönet.
           </p>
         </div>
 
-        <div className="rounded-[1.5rem] border border-slate-200 bg-slate-50 px-5 py-4">
-          <div className="text-xs font-semibold text-slate-500">Toplam Kayıt</div>
-          <div className="mt-1 text-3xl font-black text-slate-950">
-            {documents.length}
+        <div className="grid gap-3 sm:grid-cols-3">
+          <div className="rounded-[1.4rem] border border-slate-200 bg-slate-50 px-5 py-4">
+            <div className="text-xs font-medium text-slate-500">
+              Toplam Kayıt
+            </div>
+            <div className="mt-1 text-3xl font-black tracking-[-0.03em] text-slate-950">
+              {documents.length}
+            </div>
+          </div>
+
+          <div className="rounded-[1.4rem] border border-slate-200 bg-slate-50 px-5 py-4">
+            <div className="text-xs font-medium text-slate-500">Yayında</div>
+            <div className="mt-1 text-3xl font-black tracking-[-0.03em] text-emerald-700">
+              {publishedCount}
+            </div>
+          </div>
+
+          <div className="rounded-[1.4rem] border border-slate-200 bg-slate-50 px-5 py-4">
+            <div className="text-xs font-medium text-slate-500">Taslak</div>
+            <div className="mt-1 text-3xl font-black tracking-[-0.03em] text-amber-700">
+              {draftCount}
+            </div>
           </div>
         </div>
       </div>
 
-      <div className="rounded-[1.75rem] border border-slate-200 bg-slate-50 p-4 md:p-5">
+      <div className="rounded-[1.75rem] border border-slate-200 bg-[linear-gradient(180deg,#f8fbff_0%,#f8fafc_100%)] p-4 md:p-5">
         <div className="grid gap-3 xl:grid-cols-[1.2fr_0.8fr_0.9fr_0.9fr_auto]">
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Başlık, konu, açıklama veya slug ile ara"
-            className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 outline-none transition focus:border-blue-400"
+            className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700 outline-none transition focus:border-blue-400"
           />
 
           <select
@@ -270,7 +303,7 @@ export default function AdminDocumentsList({
               );
               setSelectedTopic("");
             }}
-            className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 outline-none transition focus:border-blue-400"
+            className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700 outline-none transition focus:border-blue-400"
           >
             <option value="Tümü">Tüm sınıflar</option>
             <option value="5">5. Sınıf</option>
@@ -282,7 +315,7 @@ export default function AdminDocumentsList({
           <select
             value={selectedTopic}
             onChange={(e) => setSelectedTopic(e.target.value)}
-            className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 outline-none transition focus:border-blue-400"
+            className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700 outline-none transition focus:border-blue-400"
           >
             <option value="">Tüm konular</option>
             {topicOptions.map((topic) => (
@@ -295,7 +328,7 @@ export default function AdminDocumentsList({
           <select
             value={selectedType}
             onChange={(e) => setSelectedType(e.target.value)}
-            className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 outline-none transition focus:border-blue-400"
+            className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700 outline-none transition focus:border-blue-400"
           >
             <option value="">Tüm türler</option>
             {documentTypeCatalog.map((item) => (
@@ -308,31 +341,35 @@ export default function AdminDocumentsList({
           <button
             type="button"
             onClick={resetFilters}
-            className="rounded-2xl border border-slate-300 bg-white px-5 py-3 text-sm font-bold text-slate-700 transition hover:border-blue-300 hover:text-blue-800"
+            className="rounded-2xl border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-blue-300 hover:text-blue-800"
           >
             Temizle
           </button>
         </div>
 
-        <div className="mt-4 flex flex-wrap gap-2">
-          <span className="rounded-full bg-white px-4 py-2 text-xs font-bold text-slate-600 ring-1 ring-slate-200">
+        <div className="mt-4 flex flex-wrap gap-2.5">
+          <span className="rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-600 shadow-sm">
             Gösterilen kayıt: {filteredDocuments.length}
           </span>
 
+          <span className="rounded-full border border-orange-200 bg-orange-50 px-4 py-2 text-xs font-semibold text-orange-800">
+            Öne çıkan: {featuredCount}
+          </span>
+
           {selectedGrade !== "Tümü" ? (
-            <span className="rounded-full bg-blue-50 px-4 py-2 text-xs font-bold text-blue-800 ring-1 ring-blue-100">
+            <span className="rounded-full border border-blue-200 bg-blue-50 px-4 py-2 text-xs font-semibold text-blue-800">
               {selectedGrade}. Sınıf
             </span>
           ) : null}
 
           {selectedTopic ? (
-            <span className="rounded-full bg-emerald-50 px-4 py-2 text-xs font-bold text-emerald-700 ring-1 ring-emerald-100">
+            <span className="rounded-full border border-emerald-200 bg-emerald-50 px-4 py-2 text-xs font-semibold text-emerald-700">
               {selectedTopic}
             </span>
           ) : null}
 
           {selectedType ? (
-            <span className="rounded-full bg-orange-50 px-4 py-2 text-xs font-bold text-orange-700 ring-1 ring-orange-100">
+            <span className="rounded-full border border-slate-200 bg-slate-100 px-4 py-2 text-xs font-semibold text-slate-700">
               {selectedType}
             </span>
           ) : null}
@@ -363,83 +400,114 @@ export default function AdminDocumentsList({
             return (
               <article
                 key={doc.id}
-                className="rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-sm"
+                className="overflow-hidden rounded-[1.9rem] border border-slate-200 bg-white shadow-sm transition hover:border-blue-200 hover:shadow-[0_18px_50px_rgba(37,99,235,0.08)]"
               >
-                <div className="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
-                  <div className="min-w-0 flex-1">
-                    <div className="mb-3 flex flex-wrap gap-2">
-                      <span className="rounded-full bg-blue-100 px-3 py-1 text-xs font-bold text-blue-800">
-                        {doc.grade}. Sınıf
-                      </span>
-                      <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-700">
-                        {doc.type}
-                      </span>
-                      <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-700">
-                        {doc.topic}
-                      </span>
-                      <span
-                        className={`rounded-full px-3 py-1 text-xs font-bold ${
-                          doc.published
-                            ? "bg-emerald-100 text-emerald-700"
-                            : "bg-amber-100 text-amber-700"
-                        }`}
-                      >
-                        {doc.published ? "Yayında" : "Taslak"}
-                      </span>
-                      {doc.featured ? (
-                        <span className="rounded-full bg-orange-100 px-3 py-1 text-xs font-bold text-orange-700">
-                          Öne Çıkan
-                        </span>
-                      ) : null}
-                    </div>
+                <div className="border-b border-slate-200 bg-[linear-gradient(180deg,#ffffff_0%,#f8fbff_100%)] px-5 py-4">
+                  <div className="flex flex-wrap gap-2">
+                    <span className="rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-800">
+                      {doc.grade}. Sınıf
+                    </span>
 
-                    <h3 className="text-xl font-black text-slate-950">
+                    <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">
+                      {doc.type}
+                    </span>
+
+                    <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">
+                      {doc.topic}
+                    </span>
+
+                    <span
+                      className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                        doc.published
+                          ? "bg-emerald-100 text-emerald-700"
+                          : "bg-amber-100 text-amber-700"
+                      }`}
+                    >
+                      {doc.published ? "Yayında" : "Taslak"}
+                    </span>
+
+                    {doc.featured ? (
+                      <span className="rounded-full bg-orange-100 px-3 py-1 text-xs font-semibold text-orange-700">
+                        Öne Çıkan
+                      </span>
+                    ) : null}
+                  </div>
+                </div>
+
+                <div className="grid gap-5 p-5 xl:grid-cols-[1.15fr_0.85fr]">
+                  <div className="min-w-0">
+                    <h3 className="text-2xl font-black tracking-[-0.03em] text-slate-950">
                       {doc.title}
                     </h3>
 
-                    <p className="mt-2 text-sm leading-7 text-slate-600">
+                    <p className="mt-3 text-sm leading-7 text-slate-600">
                       {doc.description}
                     </p>
 
-                    <div className="mt-4 grid gap-3 text-sm text-slate-600 md:grid-cols-2 xl:grid-cols-3">
-                      <div>
-                        <span className="font-bold text-slate-800">Slug:</span>{" "}
-                        {doc.slug}
+                    <div className="mt-5 grid gap-3 md:grid-cols-2 2xl:grid-cols-3">
+                      <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                        <div className="text-xs font-medium text-slate-500">
+                          Slug
+                        </div>
+                        <div className="mt-2 break-all text-sm font-semibold text-slate-800">
+                          {doc.slug}
+                        </div>
                       </div>
-                      <div>
-                        <span className="font-bold text-slate-800">Alt konu:</span>{" "}
-                        {doc.subtopic || "Yok"}
+
+                      <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                        <div className="text-xs font-medium text-slate-500">
+                          Alt Konu
+                        </div>
+                        <div className="mt-2 text-sm font-semibold text-slate-800">
+                          {doc.subtopic || "Yok"}
+                        </div>
                       </div>
-                      <div>
-                        <span className="font-bold text-slate-800">Kaynak:</span>{" "}
-                        {doc.sourceType}
+
+                      <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                        <div className="text-xs font-medium text-slate-500">
+                          Kaynak
+                        </div>
+                        <div className="mt-2 text-sm font-semibold text-slate-800">
+                          {doc.sourceType}
+                        </div>
                       </div>
-                      <div>
-                        <span className="font-bold text-slate-800">
-                          Çözüm linki:
-                        </span>{" "}
-                        {doc.solutionUrl ? "Var" : "Yok"}
+
+                      <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                        <div className="text-xs font-medium text-slate-500">
+                          Çözüm
+                        </div>
+                        <div className="mt-2 text-sm font-semibold text-slate-800">
+                          {doc.solutionUrl ? "Var" : "Yok"}
+                        </div>
                       </div>
-                      <div>
-                        <span className="font-bold text-slate-800">
-                          Cevap anahtarı:
-                        </span>{" "}
-                        {doc.answerKeyUrl ? "Var" : "Yok"}
+
+                      <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                        <div className="text-xs font-medium text-slate-500">
+                          Cevap Anahtarı
+                        </div>
+                        <div className="mt-2 text-sm font-semibold text-slate-800">
+                          {doc.answerKeyUrl ? "Var" : "Yok"}
+                        </div>
                       </div>
-                      <div>
-                        <span className="font-bold text-slate-800">Tarih:</span>{" "}
-                        {doc.createdAt}
+
+                      <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                        <div className="text-xs font-medium text-slate-500">
+                          Tarih
+                        </div>
+                        <div className="mt-2 text-sm font-semibold text-slate-800">
+                          {doc.createdAt}
+                        </div>
                       </div>
                     </div>
                   </div>
 
-                  <div className="w-full xl:w-[320px]">
+                  <div className="w-full">
                     <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-1">
                       <button
                         type="button"
                         onClick={() => onEdit(doc)}
                         disabled={isWorking}
-                        className="rounded-2xl bg-blue-800 px-4 py-3 text-sm font-bold text-white shadow-md shadow-blue-800/20 transition hover:bg-blue-900 disabled:cursor-not-allowed disabled:opacity-70"
+                        className="rounded-2xl bg-[linear-gradient(135deg,#1d4f91_0%,#2f6eb7_55%,#3b82f6_100%)] px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-900/20 transition hover:-translate-y-0.5 hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-70"
                       >
                         Düzenle
                       </button>
@@ -448,7 +516,7 @@ export default function AdminDocumentsList({
                         type="button"
                         onClick={() => handleDuplicate(doc)}
                         disabled={isWorking}
-                        className="rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm font-bold text-slate-700 transition hover:border-blue-300 hover:text-blue-800 disabled:cursor-not-allowed disabled:opacity-70"
+                        className="rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition hover:border-blue-300 hover:text-blue-800 disabled:cursor-not-allowed disabled:opacity-70"
                       >
                         Kopyala
                       </button>
@@ -457,7 +525,7 @@ export default function AdminDocumentsList({
                         type="button"
                         onClick={() => handleTogglePublished(doc)}
                         disabled={isWorking}
-                        className={`rounded-2xl px-4 py-3 text-sm font-bold transition disabled:cursor-not-allowed disabled:opacity-70 ${
+                        className={`rounded-2xl px-4 py-3 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-70 ${
                           doc.published
                             ? "border border-amber-300 bg-amber-50 text-amber-700 hover:bg-amber-100"
                             : "border border-emerald-300 bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
@@ -470,7 +538,7 @@ export default function AdminDocumentsList({
                         type="button"
                         onClick={() => handleToggleFeatured(doc)}
                         disabled={isWorking}
-                        className={`rounded-2xl px-4 py-3 text-sm font-bold transition disabled:cursor-not-allowed disabled:opacity-70 ${
+                        className={`rounded-2xl px-4 py-3 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-70 ${
                           doc.featured
                             ? "border border-slate-300 bg-slate-100 text-slate-700 hover:bg-slate-200"
                             : "border border-orange-300 bg-orange-50 text-orange-700 hover:bg-orange-100"
@@ -485,7 +553,7 @@ export default function AdminDocumentsList({
                         type="button"
                         onClick={() => handleDelete(doc)}
                         disabled={isWorking}
-                        className="rounded-2xl border border-red-300 bg-red-50 px-4 py-3 text-sm font-bold text-red-700 transition hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-70 sm:col-span-2 xl:col-span-1"
+                        className="rounded-2xl border border-red-300 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700 transition hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-70 sm:col-span-2 xl:col-span-1"
                       >
                         Sil
                       </button>
