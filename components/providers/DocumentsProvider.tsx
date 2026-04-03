@@ -10,6 +10,7 @@ import {
 import { supabase } from "@/lib/supabase";
 import { DocumentItem } from "@/types/document";
 import { useAuth } from "@/components/providers/AuthProvider";
+import { extractPublicStoragePath } from "@/lib/storage-paths";
 
 type DocumentsScope = "public" | "admin";
 
@@ -25,6 +26,8 @@ type DocumentsContextType = {
 const DocumentsContext = createContext<DocumentsContextType | undefined>(
   undefined
 );
+
+const COVER_BUCKET = "document-covers";
 
 type SupabaseDocumentRow = {
   id: string;
@@ -80,6 +83,20 @@ async function revalidatePublicContent(payload?: {
     });
   } catch (error) {
     console.error("Public içerik revalidate çağrısı başarısız:", error);
+  }
+}
+
+async function removeCoverImageByPublicUrl(publicUrl?: string | null) {
+  const path = extractPublicStoragePath(COVER_BUCKET, publicUrl);
+
+  if (!path) {
+    return;
+  }
+
+  const { error } = await supabase.storage.from(COVER_BUCKET).remove([path]);
+
+  if (error) {
+    console.error("Eski kapak görseli silinemedi:", error.message);
   }
 }
 
@@ -213,6 +230,8 @@ export function DocumentsProvider({
   async function updateDocument(updatedDoc: DocumentItem) {
     ensureAdminAccess();
 
+    const existingDoc = documents.find((doc) => doc.id === updatedDoc.id);
+
     const updatePayload = {
       slug: updatedDoc.slug,
       title: updatedDoc.title,
@@ -240,6 +259,13 @@ export function DocumentsProvider({
       throw error;
     }
 
+    const oldCoverUrl = existingDoc?.coverImageUrl || null;
+    const newCoverUrl = updatedDoc.coverImageUrl || null;
+
+    if (oldCoverUrl && oldCoverUrl !== newCoverUrl) {
+      await removeCoverImageByPublicUrl(oldCoverUrl);
+    }
+
     await refreshDocuments();
     await revalidatePublicContent({
       slug: updatedDoc.slug,
@@ -257,6 +283,10 @@ export function DocumentsProvider({
     if (error) {
       console.error("Kayıt silinemedi:", error.message);
       throw error;
+    }
+
+    if (targetDoc?.coverImageUrl) {
+      await removeCoverImageByPublicUrl(targetDoc.coverImageUrl);
     }
 
     await refreshDocuments();
