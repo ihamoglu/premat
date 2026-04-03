@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import HomePageClient from "@/components/pages/HomePageClient";
 import StructuredData from "@/components/seo/StructuredData";
+import { getPublishedDocuments } from "@/lib/server-documents";
 
 export const metadata: Metadata = {
   title: "Matematik İçin Düzenli ve Güvenilir Dökümanlar",
@@ -17,7 +18,9 @@ export const metadata: Metadata = {
   },
 };
 
-export default function HomePage() {
+export default async function HomePage() {
+  const documents = await getPublishedDocuments();
+
   const structuredData = [
     {
       "@context": "https://schema.org",
@@ -42,7 +45,7 @@ export default function HomePage() {
   return (
     <>
       <StructuredData data={structuredData} />
-      <HomePageClient />
+      <HomePageClient documents={documents} />
     </>
   );
 }

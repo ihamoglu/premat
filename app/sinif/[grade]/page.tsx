@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import GradePageClient from "@/components/pages/GradePageClient";
 import StructuredData from "@/components/seo/StructuredData";
+import { getPublishedDocumentsByGrade } from "@/lib/server-documents";
 
 const validGrades = ["5", "6", "7", "8"] as const;
 
@@ -44,6 +45,8 @@ export default async function GradePage({ params }: PageProps) {
     notFound();
   }
 
+  const documents = await getPublishedDocumentsByGrade(grade as "5" | "6" | "7" | "8");
+
   const structuredData = {
     "@context": "https://schema.org",
     "@type": "CollectionPage",
@@ -60,7 +63,7 @@ export default async function GradePage({ params }: PageProps) {
   return (
     <>
       <StructuredData data={structuredData} />
-      <GradePageClient grade={grade} />
+      <GradePageClient grade={grade} documents={documents} />
     </>
   );
 }

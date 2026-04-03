@@ -4,8 +4,7 @@ import { useMemo } from "react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import DocumentCard from "@/components/documents/DocumentCard";
-import { useDocuments } from "@/components/providers/DocumentsProvider";
-import { GradeLevel } from "@/types/document";
+import { DocumentItem, GradeLevel } from "@/types/document";
 import {
   documentTypeCatalog,
   getAllTopics,
@@ -20,11 +19,14 @@ const gradePills: Array<{ value: "Tümü" | GradeLevel; label: string }> = [
   { value: "8", label: "8. Sınıf" },
 ];
 
-export default function DocumentsPageClient() {
+export default function DocumentsPageClient({
+  documents,
+}: {
+  documents: DocumentItem[];
+}) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const { documents } = useDocuments();
 
   const selectedGradeParam = searchParams.get("grade");
   const selectedTopic = searchParams.get("topic") || "";
@@ -38,13 +40,8 @@ export default function DocumentsPageClient() {
       ? selectedGradeParam
       : "Tümü";
 
-  const publishedDocs = useMemo(
-    () => documents.filter((doc) => doc.published),
-    [documents]
-  );
-
   const filteredDocs = useMemo(() => {
-    return publishedDocs.filter((doc) => {
+    return documents.filter((doc) => {
       const matchesGrade =
         selectedGrade === "Tümü" ? true : doc.grade === selectedGrade;
 
@@ -53,7 +50,7 @@ export default function DocumentsPageClient() {
 
       return matchesGrade && matchesTopic && matchesType;
     });
-  }, [publishedDocs, selectedGrade, selectedTopic, selectedType]);
+  }, [documents, selectedGrade, selectedTopic, selectedType]);
 
   const topicOptions = useMemo(() => {
     return selectedGrade === "Tümü"
@@ -145,7 +142,7 @@ export default function DocumentsPageClient() {
                   Toplam Kayıt
                 </div>
                 <div className="mt-2 text-3xl font-black tracking-[-0.03em] text-slate-950">
-                  {publishedDocs.length}
+                  {documents.length}
                 </div>
               </div>
 

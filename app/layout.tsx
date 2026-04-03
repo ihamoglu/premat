@@ -3,7 +3,6 @@ import { Suspense } from "react";
 import "./globals.css";
 import AppShell from "@/components/layout/AppShell";
 import { AuthProvider } from "@/components/providers/AuthProvider";
-import { DocumentsProvider } from "@/components/providers/DocumentsProvider";
 import GoogleAnalytics from "@/components/analytics/GoogleAnalytics";
 import AutoAdsLoader from "@/components/ads/AutoAdsLoader";
 
@@ -74,13 +73,11 @@ export default function RootLayout({
     <html lang="tr">
       <body>
         <AuthProvider>
-          <DocumentsProvider scope="public">
-            <Suspense fallback={null}>
-              <GoogleAnalytics />
-            </Suspense>
-            <AutoAdsLoader />
-            <AppShell>{children}</AppShell>
-          </DocumentsProvider>
+          <Suspense fallback={null}>
+            <GoogleAnalytics />
+          </Suspense>
+          <AutoAdsLoader />
+          <AppShell>{children}</AppShell>
         </AuthProvider>
       </body>
     </html>

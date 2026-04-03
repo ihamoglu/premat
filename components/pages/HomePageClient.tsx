@@ -5,43 +5,41 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import DocumentCard from "@/components/documents/DocumentCard";
-import { useDocuments } from "@/components/providers/DocumentsProvider";
+import { DocumentItem } from "@/types/document";
 import {
   documentTypeCatalog,
   getAllTopics,
   getTopicsByGrade,
 } from "@/data/catalog";
 
-export default function HomePageClient() {
+export default function HomePageClient({
+  documents,
+}: {
+  documents: DocumentItem[];
+}) {
   const router = useRouter();
-  const { documents } = useDocuments();
 
   const [grade, setGrade] = useState("");
   const [topic, setTopic] = useState("");
   const [type, setType] = useState("");
 
-  const publishedDocs = useMemo(
-    () => documents.filter((doc) => doc.published),
-    [documents]
-  );
-
   const featuredDocs = useMemo(
-    () => publishedDocs.filter((doc) => doc.featured).slice(0, 6),
-    [publishedDocs]
+    () => documents.filter((doc) => doc.featured).slice(0, 6),
+    [documents]
   );
 
   const latestDocs = useMemo(
     () =>
-      [...publishedDocs]
+      [...documents]
         .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
         .slice(0, 8),
-    [publishedDocs]
+    [documents]
   );
 
   const gradeBlocks = useMemo(
     () =>
       (["5", "6", "7", "8"] as const).map((level) => {
-        const docs = publishedDocs.filter((doc) => doc.grade === level);
+        const docs = documents.filter((doc) => doc.grade === level);
         const topics = new Set(docs.map((doc) => doc.topic)).size;
 
         return {
@@ -51,7 +49,7 @@ export default function HomePageClient() {
           featured: docs.filter((doc) => doc.featured).length,
         };
       }),
-    [publishedDocs]
+    [documents]
   );
 
   const topicOptions = useMemo(() => {

@@ -2,7 +2,11 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import DocumentDetailPageClient from "@/components/pages/DocumentDetailPageClient";
 import StructuredData from "@/components/seo/StructuredData";
-import { getPublishedDocumentBySlug } from "@/lib/server-documents";
+import {
+  getPublishedDocumentBySlug,
+  getPublishedDocumentsByGrade,
+  getPublishedDocumentsByTopic,
+} from "@/lib/server-documents";
 
 type PageProps = {
   params: Promise<{
@@ -50,6 +54,17 @@ export default async function DocumentDetailPage({ params }: PageProps) {
     notFound();
   }
 
+  const sameTopicDocs = await getPublishedDocumentsByTopic(doc.topic, {
+    excludeSlug: doc.slug,
+    limit: 4,
+  });
+
+  const sameGradeDocs = await getPublishedDocumentsByGrade(doc.grade, {
+    excludeSlug: doc.slug,
+    excludeTopic: doc.topic,
+    limit: 4,
+  });
+
   const structuredData = {
     "@context": "https://schema.org",
     "@type": "CreativeWork",
@@ -57,7 +72,7 @@ export default async function DocumentDetailPage({ params }: PageProps) {
     headline: doc.title,
     description: doc.description,
     url: `https://www.premat.com.tr/documents/${doc.slug}`,
-    datePublished: doc.created_at,
+    datePublished: doc.createdAt,
     educationalLevel: `${doc.grade}. Sınıf`,
     learningResourceType: doc.type,
     about: [doc.topic, doc.subtopic].filter(Boolean),
@@ -71,7 +86,11 @@ export default async function DocumentDetailPage({ params }: PageProps) {
   return (
     <>
       <StructuredData data={structuredData} />
-      <DocumentDetailPageClient slug={slug} />
+      <DocumentDetailPageClient
+        doc={doc}
+        sameTopicDocs={sameTopicDocs}
+        sameGradeDocs={sameGradeDocs}
+      />
     </>
   );
 }

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import DocumentsPageClient from "@/components/pages/DocumentsPageClient";
 import StructuredData from "@/components/seo/StructuredData";
+import { getPublishedDocuments } from "@/lib/server-documents";
 
 export const metadata: Metadata = {
   title: "Tüm Dökümanlar",
@@ -32,7 +33,9 @@ function DocumentsPageFallback() {
   );
 }
 
-export default function DocumentsPage() {
+export default async function DocumentsPage() {
+  const documents = await getPublishedDocuments();
+
   const structuredData = {
     "@context": "https://schema.org",
     "@type": "CollectionPage",
@@ -46,7 +49,7 @@ export default function DocumentsPage() {
     <>
       <StructuredData data={structuredData} />
       <Suspense fallback={<DocumentsPageFallback />}>
-        <DocumentsPageClient />
+        <DocumentsPageClient documents={documents} />
       </Suspense>
     </>
   );
