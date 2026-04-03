@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
 import { Suspense } from "react";
 import "./globals.css";
 import AppShell from "@/components/layout/AppShell";
@@ -7,12 +6,6 @@ import { AuthProvider } from "@/components/providers/AuthProvider";
 import { DocumentsProvider } from "@/components/providers/DocumentsProvider";
 import GoogleAnalytics from "@/components/analytics/GoogleAnalytics";
 import AutoAdsLoader from "@/components/ads/AutoAdsLoader";
-
-const inter = Inter({
-  subsets: ["latin", "latin-ext"],
-  display: "swap",
-  variable: "--font-sans",
-});
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://www.premat.com.tr"),
@@ -78,10 +71,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="tr" className={inter.variable}>
-      <body className="min-h-screen bg-slate-50 text-slate-900 antialiased">
+    <html lang="tr">
+      <body>
         <AuthProvider>
-          <DocumentsProvider>
+          <DocumentsProvider scope="public">
             <Suspense fallback={null}>
               <GoogleAnalytics />
             </Suspense>

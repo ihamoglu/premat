@@ -9,6 +9,9 @@ import {
 } from "react";
 import { supabase } from "@/lib/supabase";
 import { DocumentItem } from "@/types/document";
+import { useAuth } from "@/components/providers/AuthProvider";
+
+type DocumentsScope = "public" | "admin";
 
 type DocumentsContextType = {
   documents: DocumentItem[];
@@ -65,16 +68,42 @@ function mapRowToDocument(row: SupabaseDocumentRow): DocumentItem {
 
 export function DocumentsProvider({
   children,
+  scope = "public",
 }: {
   children: React.ReactNode;
+  scope?: DocumentsScope;
 }) {
+  const { isAuthenticated, isLoading } = useAuth();
   const [documents, setDocuments] = useState<DocumentItem[]>([]);
 
+  function ensureAdminAccess() {
+    if (scope !== "admin" || !isAuthenticated) {
+      throw new Error("Bu işlem yalnızca admin scope içinde çalışır.");
+    }
+  }
+
   async function refreshDocuments() {
-    const { data, error } = await supabase
+    if (scope === "admin") {
+      if (isLoading) {
+        return;
+      }
+
+      if (!isAuthenticated) {
+        setDocuments([]);
+        return;
+      }
+    }
+
+    let query = supabase
       .from("documents")
       .select("*")
       .order("created_at", { ascending: false });
+
+    if (scope === "public") {
+      query = query.eq("published", true);
+    }
+
+    const { data, error } = await query;
 
     if (error) {
       console.error("Kayıtlar alınamadı:", error.message);
@@ -85,10 +114,19 @@ export function DocumentsProvider({
   }
 
   useEffect(() => {
-    refreshDocuments();
-  }, []);
+    if (scope === "public") {
+      refreshDocuments();
+      return;
+    }
+
+    if (!isLoading) {
+      refreshDocuments();
+    }
+  }, [scope, isAuthenticated, isLoading]);
 
   async function addDocument(doc: DocumentItem) {
+    ensureAdminAccess();
+
     const insertPayload = {
       slug: doc.slug,
       title: doc.title,
@@ -117,6 +155,8 @@ export function DocumentsProvider({
   }
 
   async function bulkAddDocuments(docs: DocumentItem[]) {
+    ensureAdminAccess();
+
     if (docs.length === 0) {
       return;
     }
@@ -149,6 +189,8 @@ export function DocumentsProvider({
   }
 
   async function updateDocument(updatedDoc: DocumentItem) {
+    ensureAdminAccess();
+
     const updatePayload = {
       slug: updatedDoc.slug,
       title: updatedDoc.title,
@@ -180,6 +222,8 @@ export function DocumentsProvider({
   }
 
   async function deleteDocument(id: string) {
+    ensureAdminAccess();
+
     const { error } = await supabase.from("documents").delete().eq("id", id);
 
     if (error) {
@@ -199,7 +243,7 @@ export function DocumentsProvider({
       deleteDocument,
       refreshDocuments,
     }),
-    [documents]
+    [documents, scope, isAuthenticated, isLoading]
   );
 
   return (

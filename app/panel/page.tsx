@@ -6,10 +6,13 @@ import AdminDocumentForm from "@/components/admin/AdminDocumentForm";
 import AdminDocumentsList from "@/components/admin/AdminDocumentsList";
 import AdminBulkImport from "@/components/admin/AdminBulkImport";
 import { useAuth } from "@/components/providers/AuthProvider";
-import { useDocuments } from "@/components/providers/DocumentsProvider";
+import {
+  DocumentsProvider,
+  useDocuments,
+} from "@/components/providers/DocumentsProvider";
 import { DocumentItem } from "@/types/document";
 
-export default function PanelPage() {
+function PanelPageContent() {
   const router = useRouter();
   const { isAuthenticated, isLoading, logout, userEmail } = useAuth();
   const { documents } = useDocuments();
@@ -184,5 +187,13 @@ export default function PanelPage() {
         </div>
       </section>
     </main>
+  );
+}
+
+export default function PanelPage() {
+  return (
+    <DocumentsProvider scope="admin">
+      <PanelPageContent />
+    </DocumentsProvider>
   );
 }
