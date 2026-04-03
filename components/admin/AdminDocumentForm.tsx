@@ -132,7 +132,7 @@ export default function AdminDocumentForm({
       featured: editingDoc.featured,
       published: editingDoc.published,
     });
-  }, [editingDoc, localCoverPreviewUrl]);
+  }, [editingDoc]);
 
   function updateField<K extends keyof FormState>(key: K, value: FormState[K]) {
     setForm((prev) => ({
@@ -182,8 +182,8 @@ export default function AdminDocumentForm({
     const previewUrl = URL.createObjectURL(file);
     setCoverImageFile(file);
     setLocalCoverPreviewUrl(previewUrl);
-    setStatusMessage("");
-    setStatusType("");
+    setStatusType("success");
+    setStatusMessage("Görsel seçildi. Kaydı kaydettiğinde yüklenecek.");
   }
 
   function clearCoverImage() {
@@ -195,6 +195,8 @@ export default function AdminDocumentForm({
     setLocalCoverPreviewUrl("");
     updateField("coverImageUrl", "");
     setFileInputKey((prev) => prev + 1);
+    setStatusType("");
+    setStatusMessage("");
   }
 
   async function uploadCoverImageIfNeeded(): Promise<string | undefined> {
