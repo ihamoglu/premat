@@ -66,6 +66,23 @@ function mapRowToDocument(row: SupabaseDocumentRow): DocumentItem {
   };
 }
 
+async function revalidatePublicContent(payload?: {
+  slug?: string;
+  grade?: string;
+}) {
+  try {
+    await fetch("/api/revalidate-public", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload ?? {}),
+    });
+  } catch (error) {
+    console.error("Public içerik revalidate çağrısı başarısız:", error);
+  }
+}
+
 export function DocumentsProvider({
   children,
   scope = "public",
@@ -73,11 +90,11 @@ export function DocumentsProvider({
   children: React.ReactNode;
   scope?: DocumentsScope;
 }) {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, isAdmin } = useAuth();
   const [documents, setDocuments] = useState<DocumentItem[]>([]);
 
   function ensureAdminAccess() {
-    if (scope !== "admin" || !isAuthenticated) {
+    if (scope !== "admin" || !isAuthenticated || !isAdmin) {
       throw new Error("Bu işlem yalnızca admin scope içinde çalışır.");
     }
   }
@@ -88,7 +105,7 @@ export function DocumentsProvider({
         return;
       }
 
-      if (!isAuthenticated) {
+      if (!isAuthenticated || !isAdmin) {
         setDocuments([]);
         return;
       }
@@ -122,7 +139,7 @@ export function DocumentsProvider({
     if (!isLoading) {
       refreshDocuments();
     }
-  }, [scope, isAuthenticated, isLoading]);
+  }, [scope, isAuthenticated, isAdmin, isLoading]);
 
   async function addDocument(doc: DocumentItem) {
     ensureAdminAccess();
@@ -152,6 +169,10 @@ export function DocumentsProvider({
     }
 
     await refreshDocuments();
+    await revalidatePublicContent({
+      slug: doc.slug,
+      grade: doc.grade,
+    });
   }
 
   async function bulkAddDocuments(docs: DocumentItem[]) {
@@ -186,6 +207,7 @@ export function DocumentsProvider({
     }
 
     await refreshDocuments();
+    await revalidatePublicContent();
   }
 
   async function updateDocument(updatedDoc: DocumentItem) {
@@ -219,10 +241,16 @@ export function DocumentsProvider({
     }
 
     await refreshDocuments();
+    await revalidatePublicContent({
+      slug: updatedDoc.slug,
+      grade: updatedDoc.grade,
+    });
   }
 
   async function deleteDocument(id: string) {
     ensureAdminAccess();
+
+    const targetDoc = documents.find((doc) => doc.id === id);
 
     const { error } = await supabase.from("documents").delete().eq("id", id);
 
@@ -232,6 +260,10 @@ export function DocumentsProvider({
     }
 
     await refreshDocuments();
+    await revalidatePublicContent({
+      slug: targetDoc?.slug,
+      grade: targetDoc?.grade,
+    });
   }
 
   const value = useMemo(
@@ -243,7 +275,7 @@ export function DocumentsProvider({
       deleteDocument,
       refreshDocuments,
     }),
-    [documents, scope, isAuthenticated, isLoading]
+    [documents, scope, isAuthenticated, isAdmin, isLoading]
   );
 
   return (

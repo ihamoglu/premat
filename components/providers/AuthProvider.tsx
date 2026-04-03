@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase";
+import { isAdminEmail } from "@/lib/admin";
 
 type AuthContextType = {
   isAuthenticated: boolean;
@@ -16,8 +17,6 @@ type AuthContextType = {
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
-const ADMIN_EMAIL = "ihamoglu@gmail.com";
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -75,20 +74,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUserEmail(null);
   }
 
-  const isAdmin =
-    !!userEmail &&
-    userEmail.trim().toLowerCase() === ADMIN_EMAIL.trim().toLowerCase();
-
   const value = useMemo(
     () => ({
       isAuthenticated,
-      isAdmin,
+      isAdmin: isAdminEmail(userEmail),
       isLoading,
       userEmail,
       login,
       logout,
     }),
-    [isAuthenticated, isAdmin, isLoading, userEmail]
+    [isAuthenticated, isLoading, userEmail]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

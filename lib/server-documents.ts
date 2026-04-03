@@ -1,3 +1,4 @@
+import { unstable_cache } from "next/cache";
 import { createClient } from "@supabase/supabase-js";
 import { DocumentItem, GradeLevel, SourceType } from "@/types/document";
 
@@ -51,25 +52,163 @@ function mapRows(rows: ServerDocumentRow[] | null) {
   return (rows ?? []).map(mapRowToDocument);
 }
 
+const CACHE_TAG = "documents-public";
+const CACHE_SECONDS = 300;
+
+const getPublishedDocumentsCached = unstable_cache(
+  async (limitValue: number | null) => {
+    let query = supabase
+      .from("documents")
+      .select("*")
+      .eq("published", true)
+      .order("created_at", { ascending: false });
+
+    if (limitValue) {
+      query = query.limit(limitValue);
+    }
+
+    const { data, error } = await query;
+
+    if (error) {
+      console.error("Yayındaki dökümanlar alınamadı:", error.message);
+      return [];
+    }
+
+    return mapRows(data as ServerDocumentRow[] | null);
+  },
+  ["documents-public-list"],
+  {
+    tags: [CACHE_TAG],
+    revalidate: CACHE_SECONDS,
+  }
+);
+
+const getPublishedDocumentsByGradeCached = unstable_cache(
+  async (
+    grade: GradeLevel,
+    excludeSlug?: string,
+    excludeTopic?: string,
+    limitValue?: number
+  ) => {
+    let query = supabase
+      .from("documents")
+      .select("*")
+      .eq("published", true)
+      .eq("grade", grade)
+      .order("created_at", { ascending: false });
+
+    if (excludeSlug) {
+      query = query.neq("slug", excludeSlug);
+    }
+
+    if (excludeTopic) {
+      query = query.neq("topic", excludeTopic);
+    }
+
+    if (limitValue) {
+      query = query.limit(limitValue);
+    }
+
+    const { data, error } = await query;
+
+    if (error) {
+      console.error("Sınıfa göre dökümanlar alınamadı:", error.message);
+      return [];
+    }
+
+    return mapRows(data as ServerDocumentRow[] | null);
+  },
+  ["documents-public-grade"],
+  {
+    tags: [CACHE_TAG],
+    revalidate: CACHE_SECONDS,
+  }
+);
+
+const getPublishedDocumentsByTopicCached = unstable_cache(
+  async (topic: string, excludeSlug?: string, limitValue?: number) => {
+    let query = supabase
+      .from("documents")
+      .select("*")
+      .eq("published", true)
+      .eq("topic", topic)
+      .order("created_at", { ascending: false });
+
+    if (excludeSlug) {
+      query = query.neq("slug", excludeSlug);
+    }
+
+    if (limitValue) {
+      query = query.limit(limitValue);
+    }
+
+    const { data, error } = await query;
+
+    if (error) {
+      console.error("Konuya göre dökümanlar alınamadı:", error.message);
+      return [];
+    }
+
+    return mapRows(data as ServerDocumentRow[] | null);
+  },
+  ["documents-public-topic"],
+  {
+    tags: [CACHE_TAG],
+    revalidate: CACHE_SECONDS,
+  }
+);
+
+const getPublishedDocumentBySlugCached = unstable_cache(
+  async (slug: string) => {
+    const { data, error } = await supabase
+      .from("documents")
+      .select("*")
+      .eq("slug", slug)
+      .eq("published", true)
+      .maybeSingle();
+
+    if (error) {
+      console.error("Slug ile döküman alınamadı:", error.message);
+      return null;
+    }
+
+    if (!data) {
+      return null;
+    }
+
+    return mapRowToDocument(data as ServerDocumentRow);
+  },
+  ["documents-public-slug"],
+  {
+    tags: [CACHE_TAG],
+    revalidate: CACHE_SECONDS,
+  }
+);
+
+const getPublishedDocumentsForSitemapCached = unstable_cache(
+  async () => {
+    const { data, error } = await supabase
+      .from("documents")
+      .select("slug, created_at")
+      .eq("published", true)
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      console.error("Sitemap için dökümanlar alınamadı:", error.message);
+      return [];
+    }
+
+    return (data ?? []) as { slug: string; created_at: string }[];
+  },
+  ["documents-public-sitemap"],
+  {
+    tags: [CACHE_TAG],
+    revalidate: CACHE_SECONDS,
+  }
+);
+
 export async function getPublishedDocuments(limit?: number) {
-  let query = supabase
-    .from("documents")
-    .select("*")
-    .eq("published", true)
-    .order("created_at", { ascending: false });
-
-  if (limit) {
-    query = query.limit(limit);
-  }
-
-  const { data, error } = await query;
-
-  if (error) {
-    console.error("Yayındaki dökümanlar alınamadı:", error.message);
-    return [];
-  }
-
-  return mapRows(data as ServerDocumentRow[] | null);
+  return getPublishedDocumentsCached(limit ?? null);
 }
 
 export async function getPublishedDocumentsByGrade(
@@ -80,33 +219,12 @@ export async function getPublishedDocumentsByGrade(
     limit?: number;
   }
 ) {
-  let query = supabase
-    .from("documents")
-    .select("*")
-    .eq("published", true)
-    .eq("grade", grade)
-    .order("created_at", { ascending: false });
-
-  if (options?.excludeSlug) {
-    query = query.neq("slug", options.excludeSlug);
-  }
-
-  if (options?.excludeTopic) {
-    query = query.neq("topic", options.excludeTopic);
-  }
-
-  if (options?.limit) {
-    query = query.limit(options.limit);
-  }
-
-  const { data, error } = await query;
-
-  if (error) {
-    console.error("Sınıfa göre dökümanlar alınamadı:", error.message);
-    return [];
-  }
-
-  return mapRows(data as ServerDocumentRow[] | null);
+  return getPublishedDocumentsByGradeCached(
+    grade,
+    options?.excludeSlug,
+    options?.excludeTopic,
+    options?.limit
+  );
 }
 
 export async function getPublishedDocumentsByTopic(
@@ -116,62 +234,17 @@ export async function getPublishedDocumentsByTopic(
     limit?: number;
   }
 ) {
-  let query = supabase
-    .from("documents")
-    .select("*")
-    .eq("published", true)
-    .eq("topic", topic)
-    .order("created_at", { ascending: false });
-
-  if (options?.excludeSlug) {
-    query = query.neq("slug", options.excludeSlug);
-  }
-
-  if (options?.limit) {
-    query = query.limit(options.limit);
-  }
-
-  const { data, error } = await query;
-
-  if (error) {
-    console.error("Konuya göre dökümanlar alınamadı:", error.message);
-    return [];
-  }
-
-  return mapRows(data as ServerDocumentRow[] | null);
+  return getPublishedDocumentsByTopicCached(
+    topic,
+    options?.excludeSlug,
+    options?.limit
+  );
 }
 
 export async function getPublishedDocumentBySlug(slug: string) {
-  const { data, error } = await supabase
-    .from("documents")
-    .select("*")
-    .eq("slug", slug)
-    .eq("published", true)
-    .maybeSingle();
-
-  if (error) {
-    console.error("Slug ile döküman alınamadı:", error.message);
-    return null;
-  }
-
-  if (!data) {
-    return null;
-  }
-
-  return mapRowToDocument(data as ServerDocumentRow);
+  return getPublishedDocumentBySlugCached(slug);
 }
 
 export async function getPublishedDocumentsForSitemap() {
-  const { data, error } = await supabase
-    .from("documents")
-    .select("slug, created_at")
-    .eq("published", true)
-    .order("created_at", { ascending: false });
-
-  if (error) {
-    console.error("Sitemap için dökümanlar alınamadı:", error.message);
-    return [];
-  }
-
-  return (data ?? []) as { slug: string; created_at: string }[];
+  return getPublishedDocumentsForSitemapCached();
 }
