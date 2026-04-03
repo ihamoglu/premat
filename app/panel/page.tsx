@@ -14,15 +14,15 @@ import { DocumentItem } from "@/types/document";
 
 function PanelPageContent() {
   const router = useRouter();
-  const { isAuthenticated, isLoading, logout, userEmail } = useAuth();
+  const { isAuthenticated, isAdmin, isLoading, logout, userEmail } = useAuth();
   const { documents } = useDocuments();
   const [editingDoc, setEditingDoc] = useState<DocumentItem | null>(null);
 
   useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
+    if (!isLoading && (!isAuthenticated || !isAdmin)) {
       router.push("/panel-giris");
     }
-  }, [isAuthenticated, isLoading, router]);
+  }, [isAuthenticated, isAdmin, isLoading, router]);
 
   const publishedCount = useMemo(
     () => documents.filter((doc) => doc.published).length,
@@ -56,14 +56,16 @@ function PanelPageContent() {
     );
   }
 
-  if (!isAuthenticated) {
+  if (!isAuthenticated || !isAdmin) {
     return (
       <main className="min-h-screen bg-[linear-gradient(180deg,#eef5ff_0%,#f8fbff_20%,#f8fafc_100%)] px-4 py-12 sm:px-6 sm:py-16">
         <div className="mx-auto max-w-2xl rounded-[2rem] border border-slate-200 bg-white p-10 text-center shadow-[0_18px_60px_rgba(15,23,42,0.06)]">
           <h1 className="text-2xl font-black tracking-[-0.03em] text-slate-950">
-            Yönlendiriliyorsun...
+            Yetkisiz erişim
           </h1>
-          <p className="mt-3 text-slate-600">Giriş ekranına geçiliyor.</p>
+          <p className="mt-3 text-slate-600">
+            Bu alan yalnızca tanımlı admin hesabına açıktır.
+          </p>
         </div>
       </main>
     );
