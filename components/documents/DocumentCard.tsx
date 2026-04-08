@@ -1,6 +1,6 @@
 import Link from "next/link";
-import ContentImage from "@/components/common/ContentImage";
 import { DocumentItem } from "@/types/document";
+import ContentImage from "@/components/common/ContentImage";
 
 type DocumentCardProps = {
   doc: DocumentItem;
@@ -76,9 +76,12 @@ export default function DocumentCard({ doc }: DocumentCardProps) {
             href={doc.fileUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex-1 rounded-2xl bg-blue-800 px-4 py-3 text-center text-sm font-bold text-white transition hover:bg-blue-900"
+            className="flex-1 rounded-2xl bg-[linear-gradient(135deg,#1d4f91_0%,#2f6eb7_55%,#3b82f6_100%)] px-4 py-3 text-center text-sm font-bold !text-white transition hover:brightness-[1.03] visited:!text-white"
+            style={{ color: "#ffffff" }}
           >
-            Aç
+            <span className="!text-white" style={{ color: "#ffffff" }}>
+              Aç
+            </span>
           </a>
         </div>
       </div>

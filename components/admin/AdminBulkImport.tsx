@@ -2,6 +2,10 @@
 
 import { useMemo, useState } from "react";
 import { useDocuments } from "@/components/providers/DocumentsProvider";
+import EmptyState from "@/components/ui/EmptyState";
+import InlineNotice from "@/components/ui/InlineNotice";
+import SectionHeader from "@/components/ui/SectionHeader";
+import StatCard from "@/components/ui/StatCard";
 import {
   documentTypeCatalog,
   getTopicsByGrade,
@@ -110,7 +114,9 @@ function parseBoolean(value: string, fallback: boolean) {
   if (!normalized) return fallback;
 
   if (
-    ["1", "true", "evet", "yes", "var", "yayinda", "on"].includes(normalized)
+    ["1", "true", "evet", "yes", "var", "yayinda", "on"].includes(
+      normalized
+    )
   ) {
     return true;
   }
@@ -205,8 +211,8 @@ export default function AdminBulkImport() {
     [previewRows]
   );
 
-  function copyTemplate() {
-    navigator.clipboard.writeText(templateText);
+  async function copyTemplate() {
+    await navigator.clipboard.writeText(templateText);
     setStatusType("success");
     setStatusMessage("Şablon panoya kopyalandı.");
   }
@@ -268,9 +274,7 @@ export default function AdminBulkImport() {
 
     if (missingRequired.length > 0) {
       setStatusType("error");
-      setStatusMessage(
-        `Eksik başlıklar var: ${missingRequired.join(", ")}`
-      );
+      setStatusMessage(`Eksik başlıklar var: ${missingRequired.join(", ")}`);
       setPreviewRows([]);
       return;
     }
@@ -411,22 +415,19 @@ export default function AdminBulkImport() {
 
   return (
     <section className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-[0_18px_60px_rgba(15,23,42,0.05)] md:p-8">
-      <div className="mb-6">
-        <div className="mb-4 inline-flex rounded-full border border-blue-100 bg-blue-50 px-4 py-2 text-xs font-semibold tracking-[0.08em] text-blue-800">
-          TOPLU İÇERİK GİRİŞİ
-        </div>
+      <SectionHeader
+        eyebrow="TOPLU İÇERİK GİRİŞİ"
+        title="Excel / Sheets’ten çoklu kayıt ekle"
+        description="Excel veya Google Sheets’te hazırladığın satırları başlık satırıyla birlikte kopyala, buraya yapıştır, önizle ve tek seferde ekle."
+      />
 
-        <h2 className="text-2xl font-black tracking-[-0.03em] text-slate-950 md:text-3xl">
-          Excel / Sheets’ten çoklu kayıt ekle
-        </h2>
-
-        <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-600">
-          Excel veya Google Sheets’te hazırladığın satırları başlık satırıyla
-          birlikte kopyala, buraya yapıştır, önizle ve tek seferde ekle.
-        </p>
+      <div className="mt-6 grid gap-4 sm:grid-cols-3">
+        <StatCard label="Önizlenen" value={previewRows.length} />
+        <StatCard label="Geçerli" value={validRows.length} tone="emerald" />
+        <StatCard label="Hatalı" value={invalidRows.length} tone="amber" />
       </div>
 
-      <div className="grid gap-6 xl:grid-cols-[1.08fr_0.92fr]">
+      <div className="mt-6 grid gap-6 xl:grid-cols-[1.08fr_0.92fr]">
         <div className="space-y-4">
           <textarea
             value={rawText}
@@ -472,75 +473,37 @@ export default function AdminBulkImport() {
           </div>
 
           {statusMessage ? (
-            <div
-              className={`rounded-2xl px-4 py-3 text-sm font-semibold ${
-                statusType === "success"
-                  ? "border border-emerald-200 bg-emerald-50 text-emerald-700"
-                  : "border border-red-200 bg-red-50 text-red-700"
-              }`}
-            >
+            <InlineNotice tone={statusType === "success" ? "success" : "error"}>
               {statusMessage}
-            </div>
+            </InlineNotice>
           ) : null}
         </div>
 
         <div className="space-y-4">
-          <div className="rounded-[1.6rem] border border-slate-200 bg-[linear-gradient(180deg,#f8fbff_0%,#ffffff_100%)] p-5">
-            <div className="text-sm font-semibold text-slate-900">
-              Beklenen başlıklar
-            </div>
+          <InlineNotice title="Beklenen başlıklar">
+            title, description, grade, topic, subtopic, type, sourceType, fileUrl, solutionUrl, answerKeyUrl, coverImageUrl, featured, published
+          </InlineNotice>
 
-            <div className="mt-3 rounded-2xl border border-slate-200 bg-white p-4 text-xs leading-7 text-slate-600">
-              title, description, grade, topic, subtopic, type, sourceType,
-              fileUrl, solutionUrl, answerKeyUrl, coverImageUrl, featured,
-              published
-            </div>
-
-            <p className="mt-3 text-xs leading-6 text-slate-500">
-              En temiz yöntem: Excel veya Google Sheets’te tabloyu başlık
-              satırıyla birlikte seçip doğrudan yapıştır.
-            </p>
-          </div>
-
-          <div className="grid gap-4 sm:grid-cols-3">
-            <div className="rounded-[1.5rem] border border-slate-200 bg-white p-5">
-              <div className="text-sm font-medium text-slate-500">
-                Önizlenen
-              </div>
-              <div className="mt-2 text-3xl font-black tracking-[-0.03em] text-slate-950">
-                {previewRows.length}
-              </div>
-            </div>
-
-            <div className="rounded-[1.5rem] border border-slate-200 bg-white p-5">
-              <div className="text-sm font-medium text-slate-500">Geçerli</div>
-              <div className="mt-2 text-3xl font-black tracking-[-0.03em] text-emerald-700">
-                {validRows.length}
-              </div>
-            </div>
-
-            <div className="rounded-[1.5rem] border border-slate-200 bg-white p-5">
-              <div className="text-sm font-medium text-slate-500">Hatalı</div>
-              <div className="mt-2 text-3xl font-black tracking-[-0.03em] text-red-700">
-                {invalidRows.length}
-              </div>
-            </div>
-          </div>
+          <InlineNotice tone="info" title="En temiz yöntem">
+            Excel veya Google Sheets’te tabloyu başlık satırıyla birlikte seçip doğrudan yapıştır. Alan ayırıcı olarak sekme en sorunsuz yöntemdir.
+          </InlineNotice>
         </div>
       </div>
 
       {previewRows.length > 0 ? (
         <div className="mt-8 grid gap-8 lg:grid-cols-2">
           <div>
-            <h3 className="text-xl font-black tracking-[-0.03em] text-slate-950">
-              Geçerli satırlar
-            </h3>
+            <SectionHeader
+              title="Geçerli satırlar"
+              description="Eklenmeye hazır kayıtlar"
+            />
 
             <div className="mt-4 grid gap-4">
               {validRows.length === 0 ? (
-                <div className="rounded-[1.5rem] border border-dashed border-slate-300 bg-slate-50 p-6 text-sm text-slate-500">
-                  Geçerli satır yok.
-                </div>
+                <EmptyState
+                  title="Geçerli satır yok"
+                  description="Önce hatalı alanları düzelt, sonra yeniden önizle."
+                />
               ) : (
                 validRows.map((row) => (
                   <div
@@ -564,16 +527,13 @@ export default function AdminBulkImport() {
                         <span className="font-semibold">Slug:</span> {row.slug}
                       </div>
                       <div>
-                        <span className="font-semibold">Sınıf:</span>{" "}
-                        {row.data.grade}. Sınıf
+                        <span className="font-semibold">Sınıf:</span> {row.data.grade}. Sınıf
                       </div>
                       <div>
-                        <span className="font-semibold">Konu:</span>{" "}
-                        {row.data.topic}
+                        <span className="font-semibold">Konu:</span> {row.data.topic}
                       </div>
                       <div>
-                        <span className="font-semibold">Tür:</span>{" "}
-                        {row.data.type}
+                        <span className="font-semibold">Tür:</span> {row.data.type}
                       </div>
                     </div>
                   </div>
@@ -583,15 +543,17 @@ export default function AdminBulkImport() {
           </div>
 
           <div>
-            <h3 className="text-xl font-black tracking-[-0.03em] text-slate-950">
-              Hatalı satırlar
-            </h3>
+            <SectionHeader
+              title="Hatalı satırlar"
+              description="Eklenmeden önce düzeltilmesi gerekenler"
+            />
 
             <div className="mt-4 grid gap-4">
               {invalidRows.length === 0 ? (
-                <div className="rounded-[1.5rem] border border-dashed border-slate-300 bg-slate-50 p-6 text-sm text-slate-500">
-                  Hatalı satır yok.
-                </div>
+                <EmptyState
+                  title="Hatalı satır yok"
+                  description="Önizleme temiz. İstersen doğrudan toplu ekleme yapabilirsin."
+                />
               ) : (
                 invalidRows.map((row) => (
                   <div

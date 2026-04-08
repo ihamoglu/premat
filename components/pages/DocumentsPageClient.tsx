@@ -119,7 +119,7 @@ export default function DocumentsPageClient({
             ← Ana Sayfaya Dön
           </Link>
 
-          <div className="mt-6 grid gap-8 lg:grid-cols-[1.08fr_0.92fr] lg:items-end">
+          <div className="mt-6 grid gap-6 lg:grid-cols-[1.08fr_0.92fr] lg:items-end lg:gap-8">
             <div>
               <div className="inline-flex rounded-full border border-blue-100 bg-white/90 px-4 py-2 text-xs font-semibold tracking-[0.08em] text-blue-800 shadow-sm">
                 PREMAT ARŞİVİ
@@ -136,8 +136,8 @@ export default function DocumentsPageClient({
               </p>
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-3">
-              <div className="rounded-[1.55rem] border border-white/40 bg-white/95 p-5 shadow-lg shadow-slate-900/10">
+            <div className="grid gap-3 sm:grid-cols-3">
+              <div className="rounded-[1.45rem] border border-white/40 bg-white/95 p-5 shadow-lg shadow-slate-900/10">
                 <div className="text-sm font-medium text-slate-500">
                   Toplam Kayıt
                 </div>
@@ -146,7 +146,7 @@ export default function DocumentsPageClient({
                 </div>
               </div>
 
-              <div className="rounded-[1.55rem] border border-white/40 bg-white/95 p-5 shadow-lg shadow-slate-900/10">
+              <div className="rounded-[1.45rem] border border-white/40 bg-white/95 p-5 shadow-lg shadow-slate-900/10">
                 <div className="text-sm font-medium text-slate-500">
                   Gösterilen
                 </div>
@@ -155,7 +155,7 @@ export default function DocumentsPageClient({
                 </div>
               </div>
 
-              <div className="rounded-[1.55rem] border border-white/40 bg-white/95 p-5 shadow-lg shadow-slate-900/10">
+              <div className="rounded-[1.45rem] border border-white/40 bg-white/95 p-5 shadow-lg shadow-slate-900/10">
                 <div className="text-sm font-medium text-slate-500">
                   Öne Çıkan
                 </div>
@@ -190,30 +190,32 @@ export default function DocumentsPageClient({
             </button>
           </div>
 
-          <div className="mt-5 flex flex-wrap gap-2.5">
-            {gradePills.map((item) => {
-              const active = selectedGrade === item.value;
+          <div className="-mx-1 mt-5 overflow-x-auto pb-1">
+            <div className="flex min-w-max gap-2.5 px-1">
+              {gradePills.map((item) => {
+                const active = selectedGrade === item.value;
 
-              return (
-                <button
-                  key={item.value}
-                  type="button"
-                  onClick={() =>
-                    updateFilters({
-                      grade: item.value,
-                      topic: "",
-                    })
-                  }
-                  className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
-                    active
-                      ? "bg-[linear-gradient(135deg,#1d4f91_0%,#2f6eb7_100%)] text-white shadow-md shadow-blue-900/20"
-                      : "border border-slate-200 bg-white text-slate-700 hover:border-blue-200 hover:text-blue-800"
-                  }`}
-                >
-                  {item.label}
-                </button>
-              );
-            })}
+                return (
+                  <button
+                    key={item.value}
+                    type="button"
+                    onClick={() =>
+                      updateFilters({
+                        grade: item.value,
+                        topic: "",
+                      })
+                    }
+                    className={`whitespace-nowrap rounded-full px-4 py-2 text-sm font-semibold transition ${
+                      active
+                        ? "bg-[linear-gradient(135deg,#1d4f91_0%,#2f6eb7_100%)] text-white shadow-md shadow-blue-900/20"
+                        : "border border-slate-200 bg-white text-slate-700 hover:border-blue-200 hover:text-blue-800"
+                    }`}
+                  >
+                    {item.label}
+                  </button>
+                );
+              })}
+            </div>
           </div>
 
           <div className="mt-5 grid gap-4 md:grid-cols-3">
@@ -272,7 +274,7 @@ export default function DocumentsPageClient({
             </select>
           </div>
 
-          <div className="mt-5 flex flex-wrap gap-3">
+          <div className="mt-5 flex flex-wrap gap-2.5">
             {activeFilters.length > 0 ? (
               activeFilters.map((filter) => (
                 <span

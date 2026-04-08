@@ -5,8 +5,6 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import DocumentCard from "@/components/documents/DocumentCard";
-import SectionHeader from "@/components/ui/SectionHeader";
-import EmptyState from "@/components/ui/EmptyState";
 import { DocumentItem } from "@/types/document";
 import {
   documentTypeCatalog,
@@ -71,8 +69,8 @@ export default function HomePageClient({
 
   return (
     <main className="min-h-screen bg-[linear-gradient(180deg,#295c9c_0%,#4479be_18%,#eef5ff_18%,#f8fbff_100%)]">
-      <section className="mx-auto max-w-7xl px-4 pb-10 pt-6 sm:pb-12 sm:pt-8 md:px-6 md:pb-16 md:pt-12">
-        <div className="overflow-hidden rounded-[1.9rem] border border-white/30 bg-white/95 shadow-2xl shadow-blue-950/10 sm:rounded-[2.2rem]">
+      <section className="mx-auto max-w-7xl px-4 pb-8 pt-5 sm:pb-12 sm:pt-8 md:px-6 md:pb-16 md:pt-12">
+        <div className="overflow-hidden rounded-[1.85rem] border border-white/30 bg-white/95 shadow-2xl shadow-blue-950/10 sm:rounded-[2.2rem]">
           <div className="relative px-4 py-6 sm:px-6 sm:py-8 md:px-10 md:py-14">
             <div className="absolute inset-0 opacity-35">
               <div className="absolute -left-8 top-8 h-28 w-28 rounded-full bg-sky-100 blur-3xl sm:h-40 sm:w-40" />
@@ -87,12 +85,12 @@ export default function HomePageClient({
                   alt="premat kare logo"
                   width={220}
                   height={220}
-                  className="h-auto w-[110px] sm:w-[130px] md:w-[150px]"
+                  className="h-auto w-[104px] sm:w-[130px] md:w-[150px]"
                   priority
                 />
               </div>
 
-              <h1 className="max-w-4xl text-3xl font-black leading-[0.98] tracking-[-0.04em] text-slate-950 sm:text-4xl md:text-6xl">
+              <h1 className="max-w-4xl text-[2rem] font-black leading-[0.98] tracking-[-0.04em] text-slate-950 sm:text-4xl md:text-6xl">
                 Matematik için
                 <span className="block bg-[linear-gradient(90deg,#1d4f91_0%,#2f6eb7_42%,#ea580c_100%)] bg-clip-text text-transparent">
                   düzenli ve güvenilir
@@ -102,12 +100,12 @@ export default function HomePageClient({
                 </span>
               </h1>
 
-              <p className="mt-5 max-w-3xl text-sm leading-7 text-slate-600 sm:text-base md:text-lg md:leading-8">
+              <p className="mt-4 max-w-3xl text-sm leading-7 text-slate-600 sm:text-base md:text-lg md:leading-8">
                 Dağınık içerik yığınları yerine; sınıf, konu ve tür bazında
                 düzenlenmiş, seçilmiş ve hızlı ulaşılan bir döküman yapısı.
               </p>
 
-              <div className="mt-6 flex flex-wrap gap-2.5 sm:gap-3">
+              <div className="mt-5 flex flex-wrap gap-2.5 sm:gap-3">
                 {[
                   "Seçili içerik yapısı",
                   "Sınıf ve konu filtresi",
@@ -115,7 +113,7 @@ export default function HomePageClient({
                 ].map((item) => (
                   <div
                     key={item}
-                    className="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-semibold text-emerald-700 sm:px-4 sm:text-sm"
+                    className="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-2 text-[11px] font-semibold text-emerald-700 sm:px-4 sm:text-sm"
                   >
                     ✓ {item}
                   </div>
@@ -125,12 +123,16 @@ export default function HomePageClient({
           </div>
 
           <div className="border-t border-slate-200 bg-slate-50 px-4 py-5 sm:px-6 md:px-10 md:py-6">
-            <SectionHeader
-              title="Hızlı Arama"
-              description="Sınıf, konu ve tür seçerek doğrudan arşive geç."
-            />
+            <div className="mb-4">
+              <h2 className="text-base font-black text-slate-900 sm:text-lg">
+                Hızlı Arama
+              </h2>
+              <p className="mt-1 text-xs text-slate-500 sm:text-sm">
+                Sınıf, konu ve tür seçerek doğrudan arşive geç.
+              </p>
+            </div>
 
-            <div className="mt-5 grid gap-3 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_auto]">
+            <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_auto]">
               <select
                 value={grade}
                 onChange={(e) => {
@@ -186,12 +188,17 @@ export default function HomePageClient({
 
       <section className="mx-auto max-w-7xl px-4 pb-8 md:px-6 md:pb-10">
         <div className="rounded-[1.75rem] border border-slate-200 bg-white p-4 shadow-xl shadow-slate-900/5 sm:p-6 md:rounded-[2rem] md:p-8">
-          <SectionHeader
-            title="Sınıfa Göre Hızlı Geçiş"
-            description="Her sınıf için mevcut içerik yoğunluğunu gör ve doğrudan ilgili arşive geç."
-          />
+          <div className="mb-6">
+            <h2 className="text-xl font-black text-slate-900 sm:text-2xl md:text-3xl">
+              Sınıfa Göre Hızlı Geçiş
+            </h2>
+            <p className="mt-2 text-sm text-slate-600">
+              Her sınıf için mevcut içerik yoğunluğunu gör ve doğrudan ilgili
+              arşive geç.
+            </p>
+          </div>
 
-          <div className="mt-6 grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
+          <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
             {gradeBlocks.map((item) => (
               <Link
                 key={item.level}
@@ -232,25 +239,29 @@ export default function HomePageClient({
 
       <section className="mx-auto max-w-7xl px-4 pb-8 md:px-6 md:pb-10">
         <div className="rounded-[1.75rem] border border-slate-200 bg-white p-4 shadow-xl shadow-slate-900/5 sm:p-6 md:rounded-[2rem] md:p-8">
-          <SectionHeader
-            title="Öne Çıkan Dökümanlar"
-            description="Seçili içerikler burada görünür."
-            actions={
-              <Link
-                href="/documents"
-                className="rounded-2xl border border-blue-200 bg-white px-5 py-3 text-center text-sm font-bold text-blue-900 transition hover:bg-blue-50"
-              >
-                Dökümanları İncele
-              </Link>
-            }
-          />
+          <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h2 className="text-xl font-black text-slate-900 sm:text-2xl md:text-3xl">
+                Öne Çıkan Dökümanlar
+              </h2>
+              <p className="mt-2 text-sm text-slate-600">
+                Seçili içerikler burada görünür.
+              </p>
+            </div>
 
-          <div className="mt-6 grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+            <Link
+              href="/documents"
+              className="rounded-2xl border border-blue-200 bg-white px-5 py-3 text-center text-sm font-bold text-blue-900 transition hover:bg-blue-50"
+            >
+              Dökümanları İncele
+            </Link>
+          </div>
+
+          <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
             {featuredDocs.length === 0 ? (
-              <EmptyState
-                title="Henüz öne çıkan döküman yok"
-                description="Öne çıkarılmış içerik eklendiğinde burada görünecek."
-              />
+              <div className="col-span-full rounded-3xl border border-dashed border-slate-300 bg-slate-50 p-10 text-center text-slate-500">
+                Henüz öne çıkan döküman yok.
+              </div>
             ) : (
               featuredDocs.map((doc) => <DocumentCard key={doc.id} doc={doc} />)
             )}
@@ -260,25 +271,29 @@ export default function HomePageClient({
 
       <section className="mx-auto max-w-7xl px-4 pb-10 md:px-6 md:pb-14">
         <div className="rounded-[1.75rem] border border-slate-200 bg-white p-4 shadow-xl shadow-slate-900/5 sm:p-6 md:rounded-[2rem] md:p-8">
-          <SectionHeader
-            title="Son Eklenen Dökümanlar"
-            description="Arşive en son eklenen yayınları hızlıca incele."
-            actions={
-              <Link
-                href="/documents"
-                className="rounded-2xl border border-blue-200 bg-white px-5 py-3 text-center text-sm font-bold text-blue-900 transition hover:bg-blue-50"
-              >
-                Dökümanları İncele
-              </Link>
-            }
-          />
+          <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h2 className="text-xl font-black text-slate-900 sm:text-2xl md:text-3xl">
+                Son Eklenen Dökümanlar
+              </h2>
+              <p className="mt-2 text-sm text-slate-600">
+                Arşive en son eklenen yayınları hızlıca incele.
+              </p>
+            </div>
 
-          <div className="mt-6 grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
+            <Link
+              href="/documents"
+              className="rounded-2xl border border-blue-200 bg-white px-5 py-3 text-center text-sm font-bold text-blue-900 transition hover:bg-blue-50"
+            >
+              Dökümanları İncele
+            </Link>
+          </div>
+
+          <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
             {latestDocs.length === 0 ? (
-              <EmptyState
-                title="Henüz yayınlanmış döküman yok"
-                description="İlk yayınlanan kayıt eklendiğinde burada görünecek."
-              />
+              <div className="col-span-full rounded-3xl border border-dashed border-slate-300 bg-slate-50 p-10 text-center text-slate-500">
+                Henüz yayınlanmış döküman yok.
+              </div>
             ) : (
               latestDocs.map((doc) => <DocumentCard key={doc.id} doc={doc} />)
             )}

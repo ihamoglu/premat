@@ -1,9 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import ContentImage from "@/components/common/ContentImage";
 import { useState } from "react";
 import DocumentCard from "@/components/documents/DocumentCard";
+import ContentImage from "@/components/common/ContentImage";
 import { DocumentItem } from "@/types/document";
 
 type DocumentDetailPageClientProps = {
@@ -174,32 +174,6 @@ export default function DocumentDetailPageClient({
                   </div>
                 </div>
               </div>
-
-              <div className="mt-8 grid gap-4 md:grid-cols-2">
-                <Link
-                  href={topicArchiveHref}
-                  className="rounded-[1.5rem] border border-slate-200 bg-white p-5 transition hover:border-blue-200 hover:bg-blue-50"
-                >
-                  <div className="text-sm font-bold text-slate-500">
-                    Aynı Konu
-                  </div>
-                  <div className="mt-2 text-lg font-black text-slate-950">
-                    Bu konuya ait diğer içerikleri aç
-                  </div>
-                </Link>
-
-                <Link
-                  href={gradeArchiveHref}
-                  className="rounded-[1.5rem] border border-slate-200 bg-white p-5 transition hover:border-blue-200 hover:bg-blue-50"
-                >
-                  <div className="text-sm font-bold text-slate-500">
-                    Aynı Sınıf
-                  </div>
-                  <div className="mt-2 text-lg font-black text-slate-950">
-                    {doc.grade}. sınıf arşivine git
-                  </div>
-                </Link>
-              </div>
             </div>
 
             <aside className="rounded-[1.75rem] border border-slate-200 bg-white p-5 shadow-xl shadow-slate-900/5 sm:rounded-[2rem] sm:p-6 md:p-8">
@@ -223,9 +197,12 @@ export default function DocumentDetailPageClient({
                   href={doc.fileUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="block rounded-2xl bg-blue-800 px-5 py-4 text-center text-sm font-bold text-white shadow-lg shadow-blue-800/20 transition hover:bg-blue-900"
+                  className="block rounded-2xl bg-[linear-gradient(135deg,#1d4f91_0%,#2f6eb7_55%,#3b82f6_100%)] px-5 py-4 text-center text-sm font-bold !text-white shadow-lg shadow-blue-800/20 transition hover:brightness-[1.03] visited:!text-white"
+                  style={{ color: "#ffffff" }}
                 >
-                  Dokümanı Aç
+                  <span className="!text-white" style={{ color: "#ffffff" }}>
+                    Dokümanı Aç
+                  </span>
                 </a>
 
                 {doc.solutionUrl ? (
@@ -353,6 +330,75 @@ export default function DocumentDetailPageClient({
             ))}
           </div>
         )}
+      </section>
+
+      <section className="border-t border-slate-200 bg-[linear-gradient(180deg,#eef5ff_0%,#ffffff_100%)]">
+        <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-12 md:py-14">
+          <div className="overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-sm">
+            <div className="border-b border-slate-200 bg-slate-50 px-5 py-4 sm:px-6">
+              <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                <div>
+                  <div className="text-xs font-black uppercase tracking-[0.18em] text-blue-800">
+                    Diğer Sayfalara Geçiş
+                  </div>
+                  <h2 className="mt-2 text-2xl font-black text-slate-950 sm:text-3xl">
+                    Buradan ilgili arşiv sayfalarına geç
+                  </h2>
+                </div>
+
+                <div className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-600 shadow-sm">
+                  <span className="text-blue-800">Bu içerik</span>
+                  <span className="text-slate-400">→</span>
+                  <span>Arşiv sayfaları</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid gap-4 px-5 py-5 sm:px-6 sm:py-6 md:grid-cols-2">
+              <Link
+                href={topicArchiveHref}
+                className="group rounded-[1.6rem] border border-slate-200 bg-[linear-gradient(135deg,#ffffff_0%,#f8fbff_100%)] p-5 transition hover:-translate-y-0.5 hover:border-blue-200 hover:shadow-md"
+              >
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <div className="text-sm font-bold text-slate-500">Aynı Konu</div>
+                    <div className="mt-2 text-2xl font-black leading-tight text-slate-950">
+                      Bu konuya ait diğer içerikleri aç
+                    </div>
+                    <p className="mt-3 text-sm leading-7 text-slate-600">
+                      {doc.topic} başlığındaki ilgili içeriklerin olduğu listeye geç.
+                    </p>
+                  </div>
+
+                  <div className="rounded-full bg-blue-100 px-3 py-2 text-blue-800 transition group-hover:bg-blue-800 group-hover:text-white">
+                    →
+                  </div>
+                </div>
+              </Link>
+
+              <Link
+                href={gradeArchiveHref}
+                className="group rounded-[1.6rem] border border-slate-200 bg-[linear-gradient(135deg,#ffffff_0%,#fff8f1_100%)] p-5 transition hover:-translate-y-0.5 hover:border-orange-200 hover:shadow-md"
+              >
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <div className="text-sm font-bold text-slate-500">Aynı Sınıf</div>
+                    <div className="mt-2 text-2xl font-black leading-tight text-slate-950">
+                      {doc.grade}. sınıf arşivine git
+                    </div>
+                    <p className="mt-3 text-sm leading-7 text-slate-600">
+                      Aynı sınıf düzeyindeki tüm yayınlara doğrudan geçiş yap.
+                    </p>
+                  </div>
+
+                  <div className="rounded-full bg-orange-100 px-3 py-2 text-orange-700 transition group-hover:bg-orange-600 group-hover:text-white">
+                    →
+                  </div>
+                </div>
+              </Link>
+            </div>
+          </div>
+        </div>
       </section>
     </main>
   );

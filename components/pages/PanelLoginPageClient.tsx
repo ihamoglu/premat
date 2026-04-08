@@ -3,8 +3,6 @@
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import EmptyState from "@/components/ui/EmptyState";
-import SectionHeader from "@/components/ui/SectionHeader";
 import { useAuth } from "@/components/providers/AuthProvider";
 
 export default function PanelLoginPageClient() {
@@ -42,8 +40,8 @@ export default function PanelLoginPageClient() {
 
   return (
     <main className="min-h-screen bg-[radial-gradient(circle_at_top,#dbeafe_0%,#eff6ff_34%,#f8fafc_100%)]">
-      <section className="mx-auto flex min-h-screen max-w-7xl items-center justify-center px-4 py-10 md:px-6">
-        <div className="grid w-full max-w-6xl overflow-hidden rounded-[2.2rem] border border-slate-200 bg-white shadow-[0_30px_90px_rgba(15,23,42,0.12)] lg:grid-cols-[1.05fr_0.95fr]">
+      <section className="mx-auto flex min-h-screen max-w-7xl items-center justify-center px-4 py-6 md:px-6 md:py-10">
+        <div className="grid w-full max-w-6xl overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-[0_30px_90px_rgba(15,23,42,0.12)] lg:grid-cols-[1.05fr_0.95fr]">
           <div className="relative hidden overflow-hidden bg-[linear-gradient(135deg,#103b73_0%,#1d4f91_28%,#2f6eb7_62%,#ea580c_100%)] p-10 text-white lg:block">
             <div className="absolute inset-0 opacity-30">
               <div className="absolute left-8 top-8 h-40 w-40 rounded-full bg-sky-200 blur-3xl" />
@@ -63,15 +61,23 @@ export default function PanelLoginPageClient() {
                 />
               </div>
 
-              <SectionHeader
-                eyebrow="YÖNETİM GİRİŞİ"
-                title="İçerik yönetimi için kontrollü giriş"
-                description="Arşivdeki içeriklerin düzenlenmesi, yeni kayıt eklenmesi ve seçili dökümanların yönetimi bu alandan yapılır."
-              />
+              <div className="inline-flex rounded-full border border-white/25 bg-white/10 px-4 py-2 text-xs font-semibold tracking-[0.08em] text-white/90 backdrop-blur">
+                YÖNETİM GİRİŞİ
+              </div>
+
+              <h1 className="mt-5 max-w-md text-4xl font-black leading-tight tracking-[-0.03em]">
+                İçerik yönetimi için
+                <span className="block text-blue-100">kontrollü giriş</span>
+              </h1>
+
+              <p className="mt-5 max-w-md text-sm leading-7 text-blue-50 md:text-base">
+                Arşivdeki içeriklerin düzenlenmesi, yeni kayıt eklenmesi ve
+                seçili dökümanların yönetimi bu alandan yapılır.
+              </p>
             </div>
           </div>
 
-          <div className="p-8 md:p-10 lg:p-12">
+          <div className="p-6 sm:p-8 md:p-10 lg:p-12">
             <div className="mb-8 text-center lg:text-left">
               <div className="mx-auto mb-5 lg:mx-0">
                 <Image
@@ -79,16 +85,23 @@ export default function PanelLoginPageClient() {
                   alt="premat kare logo"
                   width={140}
                   height={140}
-                  className="h-auto w-[84px] md:w-[94px]"
+                  className="h-auto w-[82px] sm:w-[90px] md:w-[94px]"
                   priority
                 />
               </div>
 
-              <SectionHeader
-                eyebrow="PREMAT PANEL"
-                title="İçerik girişi"
-                description="Devam etmek için e-posta ve şifreni gir. Bu alan yalnızca içerik yönetimi için kullanılır."
-              />
+              <div className="inline-flex rounded-full border border-blue-100 bg-blue-50 px-4 py-2 text-xs font-semibold tracking-[0.08em] text-blue-800">
+                PREMAT PANEL
+              </div>
+
+              <h2 className="mt-5 text-3xl font-black tracking-[-0.03em] text-slate-950">
+                İçerik girişi
+              </h2>
+
+              <p className="mt-3 text-sm leading-7 text-slate-600">
+                Devam etmek için e-posta ve şifreni gir. Bu alan yalnızca içerik
+                yönetimi için kullanılır.
+              </p>
             </div>
 
             {!isLoading && isAuthenticated && !isAdmin ? (

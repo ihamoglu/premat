@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import DocumentsPageClient from "@/components/pages/DocumentsPageClient";
 import StructuredData from "@/components/seo/StructuredData";
 import { getPublishedDocuments } from "@/lib/server-documents";
+import { absoluteUrl, siteConfig } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Tüm Dökümanlar",
@@ -12,10 +13,18 @@ export const metadata: Metadata = {
     canonical: "/documents",
   },
   openGraph: {
-    title: "Tüm Dökümanlar | premat",
+    title: `Tüm Dökümanlar | ${siteConfig.name}`,
     description:
       "Sınıf, konu ve içerik türüne göre filtrelenebilen matematik döküman arşivi.",
-    url: "https://www.premat.com.tr/documents",
+    url: absoluteUrl("/documents"),
+    images: [absoluteUrl(siteConfig.ogImage)],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: `Tüm Dökümanlar | ${siteConfig.name}`,
+    description:
+      "Sınıf, konu ve içerik türüne göre filtrelenebilen matematik döküman arşivi.",
+    images: [absoluteUrl(siteConfig.ogImage)],
   },
 };
 
@@ -39,10 +48,15 @@ export default async function DocumentsPage() {
   const structuredData = {
     "@context": "https://schema.org",
     "@type": "CollectionPage",
-    name: "Tüm Dökümanlar | premat",
-    url: "https://www.premat.com.tr/documents",
+    name: `Tüm Dökümanlar | ${siteConfig.name}`,
+    url: absoluteUrl("/documents"),
     description:
       "Sınıf, konu ve içerik türüne göre filtrelenebilen matematik döküman arşivi.",
+    isPartOf: {
+      "@type": "WebSite",
+      name: siteConfig.name,
+      url: siteConfig.url,
+    },
   };
 
   return (

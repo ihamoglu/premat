@@ -5,56 +5,44 @@ import AppShell from "@/components/layout/AppShell";
 import { AuthProvider } from "@/components/providers/AuthProvider";
 import GoogleAnalytics from "@/components/analytics/GoogleAnalytics";
 import AutoAdsLoader from "@/components/ads/AutoAdsLoader";
+import { absoluteUrl, siteConfig } from "@/lib/site";
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://www.premat.com.tr"),
+  metadataBase: new URL(siteConfig.url),
   title: {
-    default: "premat | Matematik İçin Düzenli ve Güvenilir Dökümanlar",
-    template: "%s | premat",
+    default: `${siteConfig.name} | Matematik İçin Düzenli ve Güvenilir Dökümanlar`,
+    template: `%s | ${siteConfig.name}`,
   },
-  description:
-    "premat; matematik için düzenli, seçili ve güvenilir döküman arşivi sunar. Sınıf, konu ve içerik türüne göre filtrelenmiş içeriklere hızlı erişim sağlar.",
-  applicationName: "premat",
-  keywords: [
-    "premat",
-    "matematik",
-    "matematik dökümanları",
-    "ortaokul matematik",
-    "çalışma kağıtları",
-    "kazanım testleri",
-    "deneme sınavları",
-    "meb içerikleri",
-    "yazılı soruları",
-  ],
-  authors: [{ name: "premat" }],
-  creator: "premat",
-  publisher: "premat",
+  description: siteConfig.longDescription,
+  applicationName: siteConfig.name,
+  keywords: siteConfig.keywords,
+  authors: [{ name: siteConfig.name }],
+  creator: siteConfig.name,
+  publisher: siteConfig.name,
   alternates: {
     canonical: "/",
   },
   openGraph: {
     type: "website",
-    locale: "tr_TR",
-    url: "https://www.premat.com.tr",
-    siteName: "premat",
-    title: "premat | Matematik İçin Düzenli ve Güvenilir Dökümanlar",
-    description:
-      "Sınıf, konu ve içerik türüne göre düzenlenmiş matematik döküman arşivi.",
+    locale: siteConfig.locale,
+    url: siteConfig.url,
+    siteName: siteConfig.name,
+    title: `${siteConfig.name} | Matematik İçin Düzenli ve Güvenilir Dökümanlar`,
+    description: siteConfig.longDescription,
     images: [
       {
-        url: "/brand/logo-square.png",
+        url: absoluteUrl(siteConfig.ogImage),
         width: 512,
         height: 512,
-        alt: "premat kare logo",
+        alt: `${siteConfig.name} kare logo`,
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "premat | Matematik İçin Düzenli ve Güvenilir Dökümanlar",
-    description:
-      "Sınıf, konu ve içerik türüne göre düzenlenmiş matematik döküman arşivi.",
-    images: ["/brand/logo-square.png"],
+    title: `${siteConfig.name} | Matematik İçin Düzenli ve Güvenilir Dökümanlar`,
+    description: siteConfig.longDescription,
+    images: [absoluteUrl(siteConfig.ogImage)],
   },
   icons: {
     icon: "/brand/logo-square.png",

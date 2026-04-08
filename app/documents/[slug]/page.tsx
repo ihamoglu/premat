@@ -7,6 +7,7 @@ import {
   getPublishedDocumentsByGrade,
   getPublishedDocumentsByTopic,
 } from "@/lib/server-documents";
+import { absoluteUrl, siteConfig } from "@/lib/site";
 
 type PageProps = {
   params: Promise<{
@@ -32,6 +33,8 @@ export async function generateMetadata({
       ? `${doc.description.slice(0, 157)}...`
       : doc.description;
 
+  const imageUrl = absoluteUrl(doc.coverImageUrl || siteConfig.ogImage);
+
   return {
     title: doc.title,
     description: shortDescription,
@@ -39,9 +42,16 @@ export async function generateMetadata({
       canonical: `/documents/${doc.slug}`,
     },
     openGraph: {
-      title: `${doc.title} | premat`,
+      title: `${doc.title} | ${siteConfig.name}`,
       description: shortDescription,
-      url: `https://www.premat.com.tr/documents/${doc.slug}`,
+      url: absoluteUrl(`/documents/${doc.slug}`),
+      images: [imageUrl],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${doc.title} | ${siteConfig.name}`,
+      description: shortDescription,
+      images: [imageUrl],
     },
   };
 }
@@ -71,15 +81,16 @@ export default async function DocumentDetailPage({ params }: PageProps) {
     name: doc.title,
     headline: doc.title,
     description: doc.description,
-    url: `https://www.premat.com.tr/documents/${doc.slug}`,
+    url: absoluteUrl(`/documents/${doc.slug}`),
     datePublished: doc.createdAt,
     educationalLevel: `${doc.grade}. Sınıf`,
     learningResourceType: doc.type,
     about: [doc.topic, doc.subtopic].filter(Boolean),
+    image: absoluteUrl(doc.coverImageUrl || siteConfig.ogImage),
     publisher: {
       "@type": "Organization",
-      name: "premat",
-      url: "https://www.premat.com.tr",
+      name: siteConfig.name,
+      url: siteConfig.url,
     },
   };
 

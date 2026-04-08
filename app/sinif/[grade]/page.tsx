@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import GradePageClient from "@/components/pages/GradePageClient";
 import StructuredData from "@/components/seo/StructuredData";
 import { getPublishedDocumentsByGrade } from "@/lib/server-documents";
+import { absoluteUrl, siteConfig } from "@/lib/site";
 
 const validGrades = ["5", "6", "7", "8"] as const;
 
@@ -26,14 +27,21 @@ export async function generateMetadata({
 
   return {
     title: `${grade}. Sınıf Matematik Dökümanları`,
-    description: `${grade}. sınıf matematik dökümanları, konu bazlı içerikler, çalışma kağıtları, kazanım testleri ve seçili kaynaklar premat arşivinde.`,
+    description: `${grade}. sınıf matematik dökümanları, konu bazlı içerikler, çalışma kağıtları, kazanım testleri ve seçili kaynaklar ${siteConfig.name} arşivinde.`,
     alternates: {
       canonical: `/sinif/${grade}`,
     },
     openGraph: {
-      title: `${grade}. Sınıf Matematik Dökümanları | premat`,
+      title: `${grade}. Sınıf Matematik Dökümanları | ${siteConfig.name}`,
       description: `${grade}. sınıf düzeyine ait seçili matematik dökümanları ve konu bazlı içerikler.`,
-      url: `https://www.premat.com.tr/sinif/${grade}`,
+      url: absoluteUrl(`/sinif/${grade}`),
+      images: [absoluteUrl(siteConfig.ogImage)],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${grade}. Sınıf Matematik Dökümanları | ${siteConfig.name}`,
+      description: `${grade}. sınıf düzeyine ait seçili matematik dökümanları ve konu bazlı içerikler.`,
+      images: [absoluteUrl(siteConfig.ogImage)],
     },
   };
 }
@@ -50,13 +58,13 @@ export default async function GradePage({ params }: PageProps) {
   const structuredData = {
     "@context": "https://schema.org",
     "@type": "CollectionPage",
-    name: `${grade}. Sınıf Matematik Dökümanları | premat`,
-    url: `https://www.premat.com.tr/sinif/${grade}`,
+    name: `${grade}. Sınıf Matematik Dökümanları | ${siteConfig.name}`,
+    url: absoluteUrl(`/sinif/${grade}`),
     description: `${grade}. sınıf düzeyine ait seçili matematik dökümanları ve konu bazlı içerikler.`,
     isPartOf: {
       "@type": "WebSite",
-      name: "premat",
-      url: "https://www.premat.com.tr",
+      name: siteConfig.name,
+      url: siteConfig.url,
     },
   };
 

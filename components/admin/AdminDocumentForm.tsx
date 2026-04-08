@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { useDocuments } from "@/components/providers/DocumentsProvider";
+import CopyButton from "@/components/ui/CopyButton";
 import {
   documentTypeCatalog,
   getTopicsByGrade,
@@ -340,10 +341,16 @@ export default function AdminDocumentForm({
             </p>
           </div>
 
-          <div className="flex flex-wrap gap-2.5">
+          <div className="flex flex-wrap items-center gap-2.5">
             <span className="rounded-full border border-slate-200 bg-slate-50 px-4 py-2 text-xs font-semibold text-slate-600">
               Slug: {generatedSlug}
             </span>
+
+            <CopyButton
+              text={generatedSlug}
+              idleLabel="Slug Kopyala"
+              successLabel="Slug Kopyalandı"
+            />
 
             <span
               className={`rounded-full px-4 py-2 text-xs font-semibold ${
@@ -644,10 +651,6 @@ export default function AdminDocumentForm({
             <h2 className="mt-4 text-2xl font-black tracking-[-0.03em] text-slate-950">
               İçerik kartı özeti
             </h2>
-
-            <p className="mt-3 text-sm leading-7 text-slate-600">
-              Form alanlarının dışarıya nasıl yansıdığını burada hızlıca gör.
-            </p>
           </div>
 
           <div className="space-y-4">
@@ -689,66 +692,7 @@ export default function AdminDocumentForm({
               <p className="mt-3 text-sm leading-7 text-blue-50">
                 {form.description || "Açıklama burada görünecek."}
               </p>
-
-              <div className="mt-4 text-sm font-semibold text-white/90">
-                {form.topic || "Konu seçilmedi"}
-                {form.subtopic ? ` • ${form.subtopic}` : ""}
-              </div>
             </div>
-
-            <div className="grid gap-3 sm:grid-cols-2">
-              <div className="rounded-[1.4rem] border border-slate-200 bg-slate-50 p-4">
-                <div className="text-xs font-medium text-slate-500">Slug</div>
-                <div className="mt-2 break-all text-sm font-semibold text-slate-800">
-                  {generatedSlug}
-                </div>
-              </div>
-
-              <div className="rounded-[1.4rem] border border-slate-200 bg-slate-50 p-4">
-                <div className="text-xs font-medium text-slate-500">Kaynak</div>
-                <div className="mt-2 text-sm font-semibold text-slate-800">
-                  {form.sourceType}
-                </div>
-              </div>
-
-              <div className="rounded-[1.4rem] border border-slate-200 bg-slate-50 p-4">
-                <div className="text-xs font-medium text-slate-500">Çözüm</div>
-                <div className="mt-2 text-sm font-semibold text-slate-800">
-                  {form.solutionUrl ? "Var" : "Yok"}
-                </div>
-              </div>
-
-              <div className="rounded-[1.4rem] border border-slate-200 bg-slate-50 p-4">
-                <div className="text-xs font-medium text-slate-500">
-                  Cevap Anahtarı
-                </div>
-                <div className="mt-2 text-sm font-semibold text-slate-800">
-                  {form.answerKeyUrl ? "Var" : "Yok"}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-[0_18px_60px_rgba(15,23,42,0.05)] md:p-8">
-          <div className="inline-flex rounded-full border border-orange-200 bg-orange-50 px-4 py-2 text-xs font-semibold tracking-[0.08em] text-orange-800">
-            KISA NOTLAR
-          </div>
-
-          <div className="mt-5 grid gap-3">
-            {[
-              "Başlık kısa ve aranabilir olursa arşiv kalitesi yükselir.",
-              "Konu seçimi sınıfa uygun olmalı; filtre mantığı buna dayanır.",
-              "Tanıtım görseli varsa kartlar daha güçlü görünür.",
-              "Her içeriğe çözüm koymak şart değil ama varsa değeri artar.",
-            ].map((item) => (
-              <div
-                key={item}
-                className="rounded-[1.4rem] border border-slate-200 bg-slate-50 px-4 py-4 text-sm leading-7 text-slate-600"
-              >
-                {item}
-              </div>
-            ))}
           </div>
         </div>
       </aside>

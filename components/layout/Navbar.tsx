@@ -55,14 +55,22 @@ export default function Navbar() {
   }, [locationKey]);
 
   useEffect(() => {
+    function handleKeydown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setMobileMenuOpen(false);
+      }
+    }
+
     if (mobileMenuOpen) {
       document.body.style.overflow = "hidden";
+      window.addEventListener("keydown", handleKeydown);
     } else {
       document.body.style.overflow = "";
     }
 
     return () => {
       document.body.style.overflow = "";
+      window.removeEventListener("keydown", handleKeydown);
     };
   }, [mobileMenuOpen]);
 
@@ -135,7 +143,7 @@ export default function Navbar() {
           />
 
           <aside className="absolute left-0 top-0 flex h-full w-[88%] max-w-[360px] flex-col border-r border-slate-200 bg-white shadow-2xl shadow-slate-900/20">
-            <div className="flex items-center justify-between border-b border-slate-200 px-4 py-4">
+            <div className="sticky top-0 z-10 flex items-center justify-between border-b border-slate-200 bg-white px-4 py-4">
               <Image
                 src="/brand/logo-horizontal.png"
                 alt="premat logo"
@@ -190,67 +198,71 @@ export default function Navbar() {
                   );
                 })}
 
-                {mobileGradeItems.map((item) => {
-                  const isOpen = openGrade === item.grade;
+                <div className="pt-2">
+                  <div className="px-2 pb-2 text-[11px] font-bold uppercase tracking-[0.14em] text-slate-400">
+                    Sınıf ve tür
+                  </div>
 
-                  return (
-                    <div
-                      key={item.grade}
-                      className="overflow-hidden rounded-2xl border border-slate-200 bg-white"
-                    >
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setOpenGrade((prev) =>
-                            prev === item.grade ? null : item.grade
-                          )
-                        }
-                        className="flex w-full items-center justify-between px-4 py-3 text-left text-sm font-semibold text-slate-700 transition hover:bg-slate-50 hover:text-blue-800"
+                  {mobileGradeItems.map((item) => {
+                    const isOpen = openGrade === item.grade;
+
+                    return (
+                      <div
+                        key={item.grade}
+                        className="mb-2 overflow-hidden rounded-2xl border border-slate-200 bg-white"
                       >
-                        <span>{item.label}</span>
-                        <svg
-                          viewBox="0 0 24 24"
-                          className={`h-5 w-5 transition ${
-                            isOpen ? "rotate-90" : ""
-                          }`}
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2.2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setOpenGrade((prev) =>
+                              prev === item.grade ? null : item.grade
+                            )
+                          }
+                          className="flex w-full items-center justify-between px-4 py-3 text-left text-sm font-semibold text-slate-700 transition hover:bg-slate-50 hover:text-blue-800"
                         >
-                          <path d="M9 6l6 6-6 6" />
-                        </svg>
-                      </button>
+                          <span>{item.label}</span>
+                          <svg
+                            viewBox="0 0 24 24"
+                            className={`h-5 w-5 transition ${isOpen ? "rotate-90" : ""}`}
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2.2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          >
+                            <path d="M9 6l6 6-6 6" />
+                          </svg>
+                        </button>
 
-                      {isOpen ? (
-                        <div className="border-t border-slate-200 bg-slate-50 px-3 py-3">
-                          <div className="grid gap-2">
-                            {documentTypeCatalog.map((type) => (
-                              <Link
-                                key={`${item.grade}-${type}`}
-                                href={{
-                                  pathname: "/documents",
-                                  query: {
-                                    grade: item.grade,
-                                    type,
-                                  },
-                                }}
-                                onClick={() => {
-                                  setMobileMenuOpen(false);
-                                  setOpenGrade(null);
-                                }}
-                                className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 transition hover:border-blue-200 hover:text-blue-800"
-                              >
-                                {type}
-                              </Link>
-                            ))}
+                        {isOpen ? (
+                          <div className="border-t border-slate-200 bg-slate-50 px-3 py-3">
+                            <div className="grid gap-2">
+                              {documentTypeCatalog.map((type) => (
+                                <Link
+                                  key={`${item.grade}-${type}`}
+                                  href={{
+                                    pathname: "/documents",
+                                    query: {
+                                      grade: item.grade,
+                                      type,
+                                    },
+                                  }}
+                                  onClick={() => {
+                                    setMobileMenuOpen(false);
+                                    setOpenGrade(null);
+                                  }}
+                                  className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 transition hover:border-blue-200 hover:text-blue-800"
+                                >
+                                  {type}
+                                </Link>
+                              ))}
+                            </div>
                           </div>
-                        </div>
-                      ) : null}
-                    </div>
-                  );
-                })}
+                        ) : null}
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
             </nav>
           </aside>
