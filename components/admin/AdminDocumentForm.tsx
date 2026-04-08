@@ -3,7 +3,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { useDocuments } from "@/components/providers/DocumentsProvider";
-import CopyButton from "@/components/ui/CopyButton";
+import SectionHeader from "@/components/ui/SectionHeader";
+import InlineNotice from "@/components/ui/InlineNotice";
+import QualityPill from "@/components/ui/QualityPill";
+import { assessDraftQuality } from "@/lib/document-quality";
 import {
   documentTypeCatalog,
   getTopicsByGrade,
@@ -76,42 +79,65 @@ function getFileExtension(file: File) {
   return "jpg";
 }
 
-export default function AdminDocumentForm({
-  editingDoc,
-  onCancelEdit,
-  onFinish,
-}: AdminDocumentFormProps) {
+function FieldLabel({ children }: { children: React.ReactNode }) {
+  return <label className="mb-2 block text-sm font-semibold text-slate-700">{children}</label>;
+}
+
+function FieldCard({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div className="rounded-[1.6rem] border border-slate-200 bg-[linear-gradient(180deg,#f8fbff_0%,#ffffff_100%)] p-5">
+      <h3 className="text-lg font-black tracking-[-0.02em] text-slate-950">{title}</h3>
+      <div className="mt-5">{children}</div>
+    </div>
+  );
+}
+
+export default function AdminDocumentForm({ editingDoc, onCancelEdit, onFinish }: AdminDocumentFormProps) {
   const { addDocument, updateDocument, refreshDocuments } = useDocuments();
 
   const [form, setForm] = useState<FormState>(initialState);
   const [createdDoc, setCreatedDoc] = useState<DocumentItem | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [statusMessage, setStatusMessage] = useState("");
-  const [statusType, setStatusType] = useState<"success" | "error" | "">("");
+  const [statusType, setStatusType] = useState<"success" | "error" | "warning" | "">("");
   const [coverImageFile, setCoverImageFile] = useState<File | null>(null);
   const [localCoverPreviewUrl, setLocalCoverPreviewUrl] = useState("");
   const [fileInputKey, setFileInputKey] = useState(0);
+  const [slugCopied, setSlugCopied] = useState(false);
 
   const topicOptions = useMemo(() => getTopicsByGrade(form.grade), [form.grade]);
   const isEditing = Boolean(editingDoc);
   const generatedSlug = form.title ? slugifyTr(form.title) : "slug-olusturulmadi";
+  const livePreviewImage = localCoverPreviewUrl || form.coverImageUrl || createdDoc?.coverImageUrl;
+  const quality = useMemo(
+    () =>
+      assessDraftQuality({
+        title: form.title,
+        description: form.description,
+        topic: form.topic,
+        subtopic: form.subtopic || undefined,
+        solutionUrl: form.solutionUrl || undefined,
+        answerKeyUrl: form.answerKeyUrl || undefined,
+        coverImageUrl: livePreviewImage || undefined,
+        featured: form.featured,
+        published: form.published,
+      }),
+    [form, livePreviewImage]
+  );
 
   useEffect(() => {
     return () => {
-      if (localCoverPreviewUrl) {
-        URL.revokeObjectURL(localCoverPreviewUrl);
-      }
+      if (localCoverPreviewUrl) URL.revokeObjectURL(localCoverPreviewUrl);
     };
   }, [localCoverPreviewUrl]);
 
   useEffect(() => {
-    if (localCoverPreviewUrl) {
-      URL.revokeObjectURL(localCoverPreviewUrl);
-    }
+    if (localCoverPreviewUrl) URL.revokeObjectURL(localCoverPreviewUrl);
 
     setCoverImageFile(null);
     setLocalCoverPreviewUrl("");
     setFileInputKey((prev) => prev + 1);
+    setSlugCopied(false);
 
     if (!editingDoc) {
       setForm(initialState);
@@ -136,17 +162,11 @@ export default function AdminDocumentForm({
   }, [editingDoc]);
 
   function updateField<K extends keyof FormState>(key: K, value: FormState[K]) {
-    setForm((prev) => ({
-      ...prev,
-      [key]: value,
-    }));
+    setForm((prev) => ({ ...prev, [key]: value }));
   }
 
   function resetFormCompletely() {
-    if (localCoverPreviewUrl) {
-      URL.revokeObjectURL(localCoverPreviewUrl);
-    }
-
+    if (localCoverPreviewUrl) URL.revokeObjectURL(localCoverPreviewUrl);
     setForm(initialState);
     setCoverImageFile(null);
     setLocalCoverPreviewUrl("");
@@ -154,15 +174,13 @@ export default function AdminDocumentForm({
     setStatusMessage("");
     setStatusType("");
     setCreatedDoc(null);
+    setSlugCopied(false);
     onCancelEdit();
   }
 
   function handleCoverImageChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
-
-    if (!file) {
-      return;
-    }
+    if (!file) return;
 
     if (!file.type.startsWith("image/")) {
       setStatusType("error");
@@ -176,22 +194,17 @@ export default function AdminDocumentForm({
       return;
     }
 
-    if (localCoverPreviewUrl) {
-      URL.revokeObjectURL(localCoverPreviewUrl);
-    }
+    if (localCoverPreviewUrl) URL.revokeObjectURL(localCoverPreviewUrl);
 
     const previewUrl = URL.createObjectURL(file);
     setCoverImageFile(file);
     setLocalCoverPreviewUrl(previewUrl);
-    setStatusType("success");
+    setStatusType("warning");
     setStatusMessage("Görsel seçildi. Kaydı kaydettiğinde yüklenecek.");
   }
 
   function clearCoverImage() {
-    if (localCoverPreviewUrl) {
-      URL.revokeObjectURL(localCoverPreviewUrl);
-    }
-
+    if (localCoverPreviewUrl) URL.revokeObjectURL(localCoverPreviewUrl);
     setCoverImageFile(null);
     setLocalCoverPreviewUrl("");
     updateField("coverImageUrl", "");
@@ -201,9 +214,7 @@ export default function AdminDocumentForm({
   }
 
   async function uploadCoverImageIfNeeded(): Promise<string | undefined> {
-    if (!coverImageFile) {
-      return form.coverImageUrl || undefined;
-    }
+    if (!coverImageFile) return form.coverImageUrl || undefined;
 
     const extension = getFileExtension(coverImageFile);
     const path = `documents/${new Date().getFullYear()}/${Date.now()}-${crypto.randomUUID()}.${extension}`;
@@ -216,12 +227,9 @@ export default function AdminDocumentForm({
         upsert: false,
       });
 
-    if (uploadError) {
-      throw uploadError;
-    }
+    if (uploadError) throw uploadError;
 
     const { data } = supabase.storage.from("document-covers").getPublicUrl(path);
-
     return data.publicUrl;
   }
 
@@ -256,15 +264,10 @@ export default function AdminDocumentForm({
 
         await updateDocument(updatedDoc);
         await refreshDocuments();
-
         setCreatedDoc(updatedDoc);
         setForm(initialState);
         setCoverImageFile(null);
-
-        if (localCoverPreviewUrl) {
-          URL.revokeObjectURL(localCoverPreviewUrl);
-        }
-
+        if (localCoverPreviewUrl) URL.revokeObjectURL(localCoverPreviewUrl);
         setLocalCoverPreviewUrl("");
         setFileInputKey((prev) => prev + 1);
         setStatusType("success");
@@ -294,15 +297,10 @@ export default function AdminDocumentForm({
 
       await addDocument(newDoc);
       await refreshDocuments();
-
       setCreatedDoc(newDoc);
       setForm(initialState);
       setCoverImageFile(null);
-
-      if (localCoverPreviewUrl) {
-        URL.revokeObjectURL(localCoverPreviewUrl);
-      }
-
+      if (localCoverPreviewUrl) URL.revokeObjectURL(localCoverPreviewUrl);
       setLocalCoverPreviewUrl("");
       setFileInputKey((prev) => prev + 1);
       setStatusType("success");
@@ -316,325 +314,157 @@ export default function AdminDocumentForm({
     }
   }
 
-  const livePreviewImage =
-    localCoverPreviewUrl || form.coverImageUrl || createdDoc?.coverImageUrl;
+  async function handleCopySlug() {
+    if (!generatedSlug || generatedSlug === "slug-olusturulmadi") return;
+    try {
+      await navigator.clipboard.writeText(generatedSlug);
+      setSlugCopied(true);
+      window.setTimeout(() => setSlugCopied(false), 1500);
+    } catch {
+      setSlugCopied(false);
+    }
+  }
 
   return (
-    <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr]">
-      <form
-        onSubmit={handleSubmit}
-        className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-[0_18px_60px_rgba(15,23,42,0.05)] md:p-8"
-      >
-        <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-          <div>
-            <div className="mb-4 inline-flex rounded-full border border-blue-100 bg-blue-50 px-4 py-2 text-xs font-semibold tracking-[0.08em] text-blue-800">
-              {isEditing ? "DÜZENLEME MODU" : "YENİ KAYIT"}
+    <div className="grid gap-8 lg:grid-cols-[1.08fr_0.92fr]">
+      <form onSubmit={handleSubmit} className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-[0_18px_60px_rgba(15,23,42,0.05)] md:p-8">
+        <SectionHeader
+          eyebrow={isEditing ? "DÜZENLEME MODU" : "YENİ KAYIT"}
+          title={isEditing ? "İçeriği düzenle" : "Yeni içerik ekle"}
+          description="Başlık, açıklama, bağlantılar, görsel ve görünürlük durumunu tek form üzerinden düzenle."
+          actions={
+            <div className="flex flex-wrap gap-2.5">
+              <span className="rounded-full border border-slate-200 bg-slate-50 px-4 py-2 text-xs font-semibold text-slate-600">
+                {form.published ? "Yayında" : "Taslak"}
+              </span>
+              <QualityPill quality={quality} />
+              <button
+                type="button"
+                onClick={handleCopySlug}
+                className="rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-600 transition hover:border-blue-200 hover:text-blue-800"
+              >
+                {slugCopied ? "Slug kopyalandı" : `Slug: ${generatedSlug}`}
+              </button>
             </div>
+          }
+        />
 
-            <h2 className="text-2xl font-black tracking-[-0.03em] text-slate-950 md:text-3xl">
-              {isEditing ? "İçeriği düzenle" : "Yeni içerik ekle"}
-            </h2>
+        <div className="mt-6 grid gap-6">
+          {quality.issues.length > 0 ? (
+            <InlineNotice tone="warning" title="İçerik kalite kontrolü">
+              <ul className="list-disc space-y-1 pl-5">
+                {quality.issues.slice(0, 4).map((issue) => (
+                  <li key={issue}>{issue}</li>
+                ))}
+              </ul>
+            </InlineNotice>
+          ) : (
+            <InlineNotice tone="success" title="İçerik kalite kontrolü">
+              Bu kayıt şu an temiz görünüyor. Temel kalite sinyallerinde sorun yok.
+            </InlineNotice>
+          )}
 
-            <p className="mt-3 max-w-2xl text-sm leading-7 text-slate-600">
-              Başlık, açıklama, bağlantılar, görsel ve görünürlük durumunu tek
-              form üzerinden düzenle.
-            </p>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-2.5">
-            <span className="rounded-full border border-slate-200 bg-slate-50 px-4 py-2 text-xs font-semibold text-slate-600">
-              Slug: {generatedSlug}
-            </span>
-
-            <CopyButton
-              text={generatedSlug}
-              idleLabel="Slug Kopyala"
-              successLabel="Slug Kopyalandı"
-            />
-
-            <span
-              className={`rounded-full px-4 py-2 text-xs font-semibold ${
-                form.published
-                  ? "border border-emerald-200 bg-emerald-50 text-emerald-700"
-                  : "border border-amber-200 bg-amber-50 text-amber-700"
-              }`}
-            >
-              {form.published ? "Yayında" : "Taslak"}
-            </span>
-          </div>
-        </div>
-
-        <div className="grid gap-6">
-          <div className="rounded-[1.6rem] border border-slate-200 bg-[linear-gradient(180deg,#f8fbff_0%,#ffffff_100%)] p-5">
-            <h3 className="text-lg font-black tracking-[-0.02em] text-slate-950">
-              Temel bilgiler
-            </h3>
-
-            <div className="mt-5 grid gap-5">
+          <FieldCard title="Temel bilgiler">
+            <div className="grid gap-5">
               <div>
-                <label className="mb-2 block text-sm font-semibold text-slate-700">
-                  Başlık
-                </label>
-                <input
-                  type="text"
-                  value={form.title}
-                  onChange={(e) => updateField("title", e.target.value)}
-                  placeholder="Örn: 7. Sınıf Oran Orantı Yaprak Test"
-                  className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-blue-400"
-                  required
-                />
+                <FieldLabel>Başlık</FieldLabel>
+                <input type="text" value={form.title} onChange={(e) => updateField("title", e.target.value)} placeholder="Örn: 7. Sınıf Oran Orantı Yaprak Test" className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-blue-400" required />
+                <div className="mt-2 text-xs text-slate-500">{form.title.trim().length} karakter</div>
               </div>
 
               <div>
-                <label className="mb-2 block text-sm font-semibold text-slate-700">
-                  Açıklama
-                </label>
-                <textarea
-                  value={form.description}
-                  onChange={(e) => updateField("description", e.target.value)}
-                  placeholder="İçeriğin ne sunduğunu kısa ve net şekilde yaz."
-                  rows={4}
-                  className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-blue-400"
-                  required
-                />
+                <FieldLabel>Açıklama</FieldLabel>
+                <textarea value={form.description} onChange={(e) => updateField("description", e.target.value)} placeholder="İçeriğin ne sunduğunu kısa ve net şekilde yaz." rows={4} className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-blue-400" required />
+                <div className="mt-2 text-xs text-slate-500">{form.description.trim().length} karakter</div>
               </div>
             </div>
-          </div>
+          </FieldCard>
 
-          <div className="rounded-[1.6rem] border border-slate-200 bg-[linear-gradient(180deg,#f8fbff_0%,#ffffff_100%)] p-5">
-            <h3 className="text-lg font-black tracking-[-0.02em] text-slate-950">
-              Sınıf ve kategori
-            </h3>
-
-            <div className="mt-5 grid gap-5 md:grid-cols-2">
+          <FieldCard title="Sınıf ve kategori">
+            <div className="grid gap-5 md:grid-cols-2">
               <div>
-                <label className="mb-2 block text-sm font-semibold text-slate-700">
-                  Sınıf
-                </label>
-                <select
-                  value={form.grade}
-                  onChange={(e) => {
-                    const value = e.target.value as GradeLevel;
-                    updateField("grade", value);
-                    updateField("topic", "");
-                  }}
-                  className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-blue-400"
-                >
-                  {gradeOptions.map((grade) => (
-                    <option key={grade} value={grade}>
-                      {grade}. Sınıf
-                    </option>
-                  ))}
+                <FieldLabel>Sınıf</FieldLabel>
+                <select value={form.grade} onChange={(e) => { const value = e.target.value as GradeLevel; updateField("grade", value); updateField("topic", ""); }} className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-blue-400">
+                  {gradeOptions.map((grade) => <option key={grade} value={grade}>{grade}. Sınıf</option>)}
                 </select>
               </div>
-
               <div>
-                <label className="mb-2 block text-sm font-semibold text-slate-700">
-                  Tür
-                </label>
-                <select
-                  value={form.type}
-                  onChange={(e) => updateField("type", e.target.value)}
-                  className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-blue-400"
-                >
-                  {documentTypeCatalog.map((item) => (
-                    <option key={item} value={item}>
-                      {item}
-                    </option>
-                  ))}
+                <FieldLabel>Tür</FieldLabel>
+                <select value={form.type} onChange={(e) => updateField("type", e.target.value)} className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-blue-400">
+                  {documentTypeCatalog.map((item) => <option key={item} value={item}>{item}</option>)}
                 </select>
               </div>
-
               <div>
-                <label className="mb-2 block text-sm font-semibold text-slate-700">
-                  Konu
-                </label>
-                <select
-                  value={form.topic}
-                  onChange={(e) => updateField("topic", e.target.value)}
-                  className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-blue-400"
-                  required
-                >
+                <FieldLabel>Konu</FieldLabel>
+                <select value={form.topic} onChange={(e) => updateField("topic", e.target.value)} className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-blue-400" required>
                   <option value="">Konu seç</option>
-                  {topicOptions.map((item) => (
-                    <option key={item} value={item}>
-                      {item}
-                    </option>
-                  ))}
+                  {topicOptions.map((item) => <option key={item} value={item}>{item}</option>)}
                 </select>
               </div>
-
               <div>
-                <label className="mb-2 block text-sm font-semibold text-slate-700">
-                  Alt Konu
-                </label>
-                <input
-                  type="text"
-                  value={form.subtopic}
-                  onChange={(e) => updateField("subtopic", e.target.value)}
-                  placeholder="Örn: Kesir Problemleri"
-                  className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-blue-400"
-                />
+                <FieldLabel>Alt Konu</FieldLabel>
+                <input type="text" value={form.subtopic} onChange={(e) => updateField("subtopic", e.target.value)} placeholder="Örn: Kesir Problemleri" className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-blue-400" />
               </div>
-
               <div className="md:col-span-2">
-                <label className="mb-2 block text-sm font-semibold text-slate-700">
-                  Kaynak Türü
-                </label>
-                <select
-                  value={form.sourceType}
-                  onChange={(e) =>
-                    updateField("sourceType", e.target.value as SourceType)
-                  }
-                  className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-blue-400"
-                >
-                  {sourceTypeCatalog.map((item) => (
-                    <option key={item} value={item}>
-                      {item}
-                    </option>
-                  ))}
+                <FieldLabel>Kaynak Türü</FieldLabel>
+                <select value={form.sourceType} onChange={(e) => updateField("sourceType", e.target.value as SourceType)} className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-blue-400">
+                  {sourceTypeCatalog.map((item) => <option key={item} value={item}>{item}</option>)}
                 </select>
               </div>
             </div>
-          </div>
+          </FieldCard>
 
-          <div className="rounded-[1.6rem] border border-slate-200 bg-[linear-gradient(180deg,#f8fbff_0%,#ffffff_100%)] p-5">
-            <h3 className="text-lg font-black tracking-[-0.02em] text-slate-950">
-              Bağlantılar ve görsel
-            </h3>
-
-            <div className="mt-5 grid gap-5">
+          <FieldCard title="Bağlantılar ve görsel">
+            <div className="grid gap-5">
               <div>
-                <label className="mb-2 block text-sm font-semibold text-slate-700">
-                  İçerik Bağlantısı
-                </label>
-                <input
-                  type="url"
-                  value={form.fileUrl}
-                  onChange={(e) => updateField("fileUrl", e.target.value)}
-                  placeholder="https://..."
-                  className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-blue-400"
-                  required
-                />
+                <FieldLabel>İçerik Bağlantısı</FieldLabel>
+                <input type="url" value={form.fileUrl} onChange={(e) => updateField("fileUrl", e.target.value)} placeholder="https://..." className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-blue-400" required />
               </div>
-
               <div className="grid gap-5 md:grid-cols-2">
                 <div>
-                  <label className="mb-2 block text-sm font-semibold text-slate-700">
-                    Çözüm Bağlantısı
-                  </label>
-                  <input
-                    type="url"
-                    value={form.solutionUrl}
-                    onChange={(e) => updateField("solutionUrl", e.target.value)}
-                    placeholder="Opsiyonel çözüm bağlantısı"
-                    className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-blue-400"
-                  />
+                  <FieldLabel>Çözüm Bağlantısı</FieldLabel>
+                  <input type="url" value={form.solutionUrl} onChange={(e) => updateField("solutionUrl", e.target.value)} placeholder="Opsiyonel çözüm bağlantısı" className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-blue-400" />
                 </div>
-
                 <div>
-                  <label className="mb-2 block text-sm font-semibold text-slate-700">
-                    Cevap Anahtarı Bağlantısı
-                  </label>
-                  <input
-                    type="url"
-                    value={form.answerKeyUrl}
-                    onChange={(e) => updateField("answerKeyUrl", e.target.value)}
-                    placeholder="Opsiyonel cevap anahtarı bağlantısı"
-                    className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-blue-400"
-                  />
+                  <FieldLabel>Cevap Anahtarı Bağlantısı</FieldLabel>
+                  <input type="url" value={form.answerKeyUrl} onChange={(e) => updateField("answerKeyUrl", e.target.value)} placeholder="Opsiyonel cevap anahtarı bağlantısı" className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-blue-400" />
                 </div>
               </div>
-
               <div className="rounded-[1.5rem] border border-slate-200 bg-slate-50 p-4">
-                <label className="mb-2 block text-sm font-semibold text-slate-700">
-                  Tanıtım Görseli Yükle
-                </label>
-
-                <input
-                  key={fileInputKey}
-                  type="file"
-                  accept="image/png,image/jpeg,image/webp,image/jpg"
-                  onChange={handleCoverImageChange}
-                  className="block w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 file:mr-4 file:rounded-xl file:border-0 file:bg-blue-800 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-blue-900"
-                />
-
-                <p className="mt-3 text-xs leading-6 text-slate-500">
-                  PNG, JPG veya WEBP yükle. Maksimum 5 MB.
-                </p>
-
+                <FieldLabel>Tanıtım Görseli Yükle</FieldLabel>
+                <input key={fileInputKey} type="file" accept="image/png,image/jpeg,image/webp,image/jpg" onChange={handleCoverImageChange} className="block w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 file:mr-4 file:rounded-xl file:border-0 file:bg-blue-800 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-blue-900" />
+                <p className="mt-3 text-xs leading-6 text-slate-500">PNG, JPG veya WEBP yükle. Maksimum 5 MB.</p>
                 {(form.coverImageUrl || localCoverPreviewUrl) ? (
-                  <button
-                    type="button"
-                    onClick={clearCoverImage}
-                    className="mt-3 rounded-2xl border border-red-300 bg-red-50 px-4 py-2 text-sm font-semibold text-red-700 transition hover:bg-red-100"
-                  >
-                    Görseli Kaldır
-                  </button>
+                  <button type="button" onClick={clearCoverImage} className="mt-3 rounded-2xl border border-red-300 bg-red-50 px-4 py-2 text-sm font-semibold text-red-700 transition hover:bg-red-100">Görseli Kaldır</button>
                 ) : null}
               </div>
             </div>
-          </div>
+          </FieldCard>
 
-          <div className="rounded-[1.6rem] border border-slate-200 bg-[linear-gradient(180deg,#f8fbff_0%,#ffffff_100%)] p-5">
-            <h3 className="text-lg font-black tracking-[-0.02em] text-slate-950">
-              Yayın ayarları
-            </h3>
-
-            <div className="mt-5 grid gap-3 md:grid-cols-2">
+          <FieldCard title="Yayın ayarları">
+            <div className="grid gap-3 md:grid-cols-2">
               <label className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-4 text-sm font-semibold text-slate-700">
-                <input
-                  type="checkbox"
-                  checked={form.featured}
-                  onChange={(e) => updateField("featured", e.target.checked)}
-                  className="h-4 w-4"
-                />
+                <input type="checkbox" checked={form.featured} onChange={(e) => updateField("featured", e.target.checked)} className="h-4 w-4" />
                 Öne çıkarılsın
               </label>
-
               <label className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-4 text-sm font-semibold text-slate-700">
-                <input
-                  type="checkbox"
-                  checked={form.published}
-                  onChange={(e) => updateField("published", e.target.checked)}
-                  className="h-4 w-4"
-                />
+                <input type="checkbox" checked={form.published} onChange={(e) => updateField("published", e.target.checked)} className="h-4 w-4" />
                 Yayında görünsün
               </label>
             </div>
-          </div>
+          </FieldCard>
 
           {statusMessage ? (
-            <div
-              className={`rounded-2xl px-4 py-3 text-sm font-semibold ${
-                statusType === "success"
-                  ? "border border-emerald-200 bg-emerald-50 text-emerald-700"
-                  : "border border-red-200 bg-red-50 text-red-700"
-              }`}
-            >
+            <InlineNotice tone={statusType === "success" ? "success" : statusType === "warning" ? "warning" : "error"}>
               {statusMessage}
-            </div>
+            </InlineNotice>
           ) : null}
 
           <div className="flex flex-wrap gap-3 pt-1">
-            <button
-              type="submit"
-              disabled={submitting}
-              className="rounded-2xl bg-[linear-gradient(135deg,#1d4f91_0%,#2f6eb7_55%,#3b82f6_100%)] px-5 py-4 text-sm font-semibold text-white shadow-lg shadow-blue-900/20 transition hover:-translate-y-0.5 hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-70"
-            >
-              {submitting
-                ? "İşleniyor..."
-                : isEditing
-                ? "Kaydı Güncelle"
-                : "Kaydı Oluştur"}
+            <button type="submit" disabled={submitting} className="rounded-2xl bg-[linear-gradient(135deg,#1d4f91_0%,#2f6eb7_55%,#3b82f6_100%)] px-5 py-4 text-sm font-semibold text-white shadow-lg shadow-blue-900/20 transition hover:-translate-y-0.5 hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-70">
+              {submitting ? "İşleniyor..." : isEditing ? "Kaydı Güncelle" : "Kaydı Oluştur"}
             </button>
-
-            <button
-              type="button"
-              onClick={resetFormCompletely}
-              disabled={submitting}
-              className="rounded-2xl border border-slate-300 bg-white px-5 py-4 text-sm font-semibold text-slate-700 transition hover:border-blue-300 hover:text-blue-800 disabled:cursor-not-allowed disabled:opacity-70"
-            >
+            <button type="button" onClick={resetFormCompletely} disabled={submitting} className="rounded-2xl border border-slate-300 bg-white px-5 py-4 text-sm font-semibold text-slate-700 transition hover:border-blue-300 hover:text-blue-800 disabled:cursor-not-allowed disabled:opacity-70">
               {isEditing ? "Düzenlemeyi İptal Et" : "Formu Temizle"}
             </button>
           </div>
@@ -643,55 +473,25 @@ export default function AdminDocumentForm({
 
       <aside className="space-y-6">
         <div className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-[0_18px_60px_rgba(15,23,42,0.05)] md:p-8">
-          <div className="mb-5">
-            <div className="inline-flex rounded-full border border-blue-100 bg-blue-50 px-4 py-2 text-xs font-semibold tracking-[0.08em] text-blue-800">
-              CANLI ÖNİZLEME
-            </div>
-
-            <h2 className="mt-4 text-2xl font-black tracking-[-0.03em] text-slate-950">
-              İçerik kartı özeti
-            </h2>
-          </div>
-
-          <div className="space-y-4">
+          <SectionHeader eyebrow="CANLI ÖNİZLEME" title="İçerik kartı özeti" description="Form alanlarının dışarıya nasıl yansıdığını burada hızlıca gör." />
+          <div className="mt-5 space-y-4">
             {livePreviewImage ? (
               <div className="overflow-hidden rounded-[1.5rem] border border-slate-200 bg-slate-50">
-                <img
-                  src={livePreviewImage}
-                  alt={form.title || "Tanıtım görseli"}
-                  className="h-[240px] w-full object-cover"
-                />
+                <img src={livePreviewImage} alt={form.title || "Tanıtım görseli"} className="h-[240px] w-full object-cover" />
               </div>
             ) : (
-              <div className="rounded-[1.5rem] border border-dashed border-slate-300 bg-slate-50 p-10 text-center text-sm text-slate-500">
-                Tanıtım görseli henüz eklenmedi.
-              </div>
+              <div className="rounded-[1.5rem] border border-dashed border-slate-300 bg-slate-50 p-10 text-center text-sm text-slate-500">Tanıtım görseli henüz eklenmedi.</div>
             )}
 
             <div className="rounded-[1.6rem] bg-[linear-gradient(135deg,#1d4f91_0%,#2f6eb7_55%,#ea580c_100%)] p-5 text-white">
               <div className="mb-3 flex flex-wrap gap-2">
-                <span className="rounded-full bg-white/92 px-3 py-1 text-xs font-semibold text-blue-900">
-                  {form.grade}. Sınıf
-                </span>
-
-                <span className="rounded-full bg-white/20 px-3 py-1 text-xs font-semibold text-white">
-                  {form.type}
-                </span>
-
-                {form.featured ? (
-                  <span className="rounded-full bg-orange-400 px-3 py-1 text-xs font-semibold text-white">
-                    Öne Çıkan
-                  </span>
-                ) : null}
+                <span className="rounded-full bg-white/92 px-3 py-1 text-xs font-semibold text-blue-900">{form.grade}. Sınıf</span>
+                <span className="rounded-full bg-white/20 px-3 py-1 text-xs font-semibold text-white">{form.type}</span>
+                {form.featured ? <span className="rounded-full bg-orange-400 px-3 py-1 text-xs font-semibold text-white">Öne Çıkan</span> : null}
               </div>
-
-              <h3 className="text-xl font-black leading-tight tracking-[-0.02em]">
-                {form.title || "Başlık burada görünecek"}
-              </h3>
-
-              <p className="mt-3 text-sm leading-7 text-blue-50">
-                {form.description || "Açıklama burada görünecek."}
-              </p>
+              <h3 className="text-xl font-black leading-tight tracking-[-0.02em]">{form.title || "Başlık burada görünecek"}</h3>
+              <p className="mt-3 text-sm leading-7 text-blue-50">{form.description || "Açıklama burada görünecek."}</p>
+              <div className="mt-4 text-sm font-semibold text-white/90">{form.topic || "Konu seçilmedi"}{form.subtopic ? ` • ${form.subtopic}` : ""}</div>
             </div>
           </div>
         </div>

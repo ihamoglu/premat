@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import AdminDocumentForm from "@/components/admin/AdminDocumentForm";
 import AdminDocumentsList from "@/components/admin/AdminDocumentsList";
 import AdminBulkImport from "@/components/admin/AdminBulkImport";
-import AdminStorageCleanup from "@/components/admin/AdminStorageCleanup";
+import AdminReviewQueue from "@/components/admin/AdminReviewQueue";
 import { useAuth } from "@/components/providers/AuthProvider";
 import {
   DocumentsProvider,
@@ -158,12 +158,15 @@ function PanelPageInner() {
                 Panel akışı
               </h2>
               <p className="mt-2 text-sm leading-7 text-slate-600">
-                Yeni kayıt ekleme, toplu giriş ve mevcut kayıt düzenleme aynı
-                sayfada akıcı şekilde toplandı.
+                Yeni kayıt ekleme, toplu giriş, inceleme sırası ve mevcut kayıt
+                düzenleme aynı sayfada akıcı şekilde toplandı.
               </p>
             </div>
 
             <div className="flex flex-wrap gap-2.5">
+              <span className="rounded-full border border-red-200 bg-red-50 px-4 py-2 text-xs font-semibold text-red-800">
+                İnceleme
+              </span>
               <span className="rounded-full border border-blue-200 bg-blue-50 px-4 py-2 text-xs font-semibold text-blue-800">
                 Form
               </span>
@@ -173,14 +176,16 @@ function PanelPageInner() {
               <span className="rounded-full border border-emerald-200 bg-emerald-50 px-4 py-2 text-xs font-semibold text-emerald-800">
                 Liste ve Düzenleme
               </span>
-              <span className="rounded-full border border-rose-200 bg-rose-50 px-4 py-2 text-xs font-semibold text-rose-800">
-                Storage Temizliği
-              </span>
             </div>
           </div>
         </div>
 
         <div className="grid gap-8">
+          <AdminReviewQueue
+            documents={documents}
+            onEdit={(doc) => setEditingDoc(doc)}
+          />
+
           <AdminDocumentForm
             editingDoc={editingDoc}
             onCancelEdit={() => setEditingDoc(null)}
@@ -188,8 +193,6 @@ function PanelPageInner() {
           />
 
           <AdminBulkImport />
-
-          <AdminStorageCleanup />
 
           <AdminDocumentsList onEdit={(doc) => setEditingDoc(doc)} />
         </div>
