@@ -1,14 +1,16 @@
 import type { MetadataRoute } from "next";
-
-const siteUrl = "https://www.premat.com.tr";
+import { absoluteUrl } from "@/lib/site";
 
 export default function robots(): MetadataRoute.Robots {
   return {
-    rules: {
-      userAgent: "*",
-      allow: "/",
-      disallow: ["/panel", "/panel-giris"],
-    },
-    sitemap: `${siteUrl}/sitemap.xml`,
+    rules: [
+      {
+        userAgent: "*",
+        allow: "/",
+        disallow: ["/panel", "/panel-giris", "/api/"],
+      },
+    ],
+    sitemap: absoluteUrl("/sitemap.xml"),
+    host: absoluteUrl(),
   };
 }

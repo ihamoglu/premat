@@ -1,99 +1,67 @@
 import type { MetadataRoute } from "next";
+import { absoluteUrl } from "@/lib/site";
 import { getPublishedDocumentsForSitemap } from "@/lib/server-documents";
 
-const siteUrl = "https://www.premat.com.tr";
-
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const now = new Date();
-  const documents = await getPublishedDocumentsForSitemap();
+  const docs = await getPublishedDocumentsForSitemap();
 
-  const staticPages: MetadataRoute.Sitemap = [
+  const staticRoutes: MetadataRoute.Sitemap = [
     {
-      url: `${siteUrl}`,
-      lastModified: now,
+      url: absoluteUrl("/"),
+      lastModified: new Date(),
       changeFrequency: "daily",
       priority: 1,
     },
     {
-      url: `${siteUrl}/documents`,
-      lastModified: now,
+      url: absoluteUrl("/documents"),
+      lastModified: new Date(),
       changeFrequency: "daily",
-      priority: 0.9,
+      priority: 0.95,
     },
     {
-      url: `${siteUrl}/sinif/5`,
-      lastModified: now,
+      url: absoluteUrl("/sinif/5"),
+      lastModified: new Date(),
+      changeFrequency: "daily",
+      priority: 0.85,
+    },
+    {
+      url: absoluteUrl("/sinif/6"),
+      lastModified: new Date(),
+      changeFrequency: "daily",
+      priority: 0.85,
+    },
+    {
+      url: absoluteUrl("/sinif/7"),
+      lastModified: new Date(),
+      changeFrequency: "daily",
+      priority: 0.85,
+    },
+    {
+      url: absoluteUrl("/sinif/8"),
+      lastModified: new Date(),
+      changeFrequency: "daily",
+      priority: 0.85,
+    },
+    {
+      url: absoluteUrl("/kocluk"),
+      lastModified: new Date(),
       changeFrequency: "weekly",
-      priority: 0.8,
+      priority: 0.7,
     },
     {
-      url: `${siteUrl}/sinif/6`,
-      lastModified: now,
+      url: absoluteUrl("/ogretmen"),
+      lastModified: new Date(),
       changeFrequency: "weekly",
-      priority: 0.8,
-    },
-    {
-      url: `${siteUrl}/sinif/7`,
-      lastModified: now,
-      changeFrequency: "weekly",
-      priority: 0.8,
-    },
-    {
-      url: `${siteUrl}/sinif/8`,
-      lastModified: now,
-      changeFrequency: "weekly",
-      priority: 0.8,
-    },
-    {
-      url: `${siteUrl}/kocluk`,
-      lastModified: now,
-      changeFrequency: "monthly",
-      priority: 0.6,
-    },
-    {
-      url: `${siteUrl}/ogretmen`,
-      lastModified: now,
-      changeFrequency: "monthly",
-      priority: 0.6,
-    },
-    {
-      url: `${siteUrl}/hakkimizda`,
-      lastModified: now,
-      changeFrequency: "monthly",
-      priority: 0.5,
-    },
-    {
-      url: `${siteUrl}/iletisim`,
-      lastModified: now,
-      changeFrequency: "monthly",
-      priority: 0.5,
-    },
-    {
-      url: `${siteUrl}/kullanim-kosullari`,
-      lastModified: now,
-      changeFrequency: "monthly",
-      priority: 0.4,
-    },
-    {
-      url: `${siteUrl}/gizlilik-politikasi`,
-      lastModified: now,
-      changeFrequency: "monthly",
-      priority: 0.3,
-    },
-    {
-      url: `${siteUrl}/cerez-politikasi`,
-      lastModified: now,
-      changeFrequency: "monthly",
-      priority: 0.3,
+      priority: 0.7,
     },
   ];
 
-  const documentPages: MetadataRoute.Sitemap = documents.map((doc) => ({
-    url: `${siteUrl}/documents/${doc.slug}`,
+  const documentRoutes: MetadataRoute.Sitemap = docs.map((doc) => ({
+    url: absoluteUrl(`/documents/${doc.slug}`),
     lastModified: new Date(doc.created_at),
     changeFrequency: "weekly",
-    priority: 0.7,
+    priority: 0.8,
   }));
 
-  return [...staticPages, ...documentPages];
+  return [...staticRoutes, ...documentRoutes];
 }

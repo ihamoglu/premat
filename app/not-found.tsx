@@ -1,63 +1,41 @@
 import Link from "next/link";
+import EmptyState from "@/components/ui/EmptyState";
+import SectionHeader from "@/components/ui/SectionHeader";
 
 export default function NotFound() {
   return (
     <main className="min-h-screen bg-[linear-gradient(180deg,#eef5ff_0%,#f8fbff_18%,#f8fafc_100%)] px-4 py-12 md:px-6 md:py-16">
       <div className="mx-auto max-w-4xl overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-[0_18px_60px_rgba(15,23,42,0.06)]">
         <div className="bg-[linear-gradient(135deg,#1d4f91_0%,#2f6eb7_55%,#ea580c_100%)] px-8 py-8 text-white md:px-10">
-          <div className="inline-flex rounded-full border border-white/20 bg-white/10 px-4 py-2 text-xs font-semibold tracking-[0.08em] text-white/90">
-            404 SAYFA BULUNAMADI
-          </div>
-
-          <h1 className="mt-5 text-3xl font-black tracking-[-0.03em] md:text-4xl">
-            Aradığın sayfa burada değil
-          </h1>
-
-          <p className="mt-4 max-w-2xl text-sm leading-7 text-blue-50 md:text-base">
-            Bağlantı hatalı olabilir, içerik yayından kaldırılmış olabilir ya da
-            doğrudan geçersiz bir adrese gelmiş olabilirsin.
-          </p>
+          <SectionHeader
+            eyebrow="404 SAYFA BULUNAMADI"
+            title="Aradığın sayfa burada değil"
+            description="Bağlantı hatalı olabilir, içerik yayından kaldırılmış olabilir ya da doğrudan geçersiz bir adrese gelmiş olabilirsin."
+          />
         </div>
 
         <div className="px-8 py-8 md:px-10 md:py-10">
-          <div className="grid gap-4 md:grid-cols-3">
-            <div className="rounded-[1.4rem] border border-slate-200 bg-slate-50 p-5">
-              <div className="text-sm font-medium text-slate-500">Durum</div>
-              <div className="mt-2 text-xl font-black tracking-[-0.03em] text-slate-950">
-                Sayfa yok
+          <EmptyState
+            title="Sayfa yok"
+            description="Ana sayfaya dönebilir veya doküman arşivini açabilirsin."
+            action={
+              <div className="flex flex-col gap-3 sm:flex-row sm:justify-center">
+                <Link
+                  href="/"
+                  className="rounded-2xl border border-slate-300 bg-white px-5 py-3 text-center text-sm font-semibold text-slate-700 transition hover:border-blue-300 hover:text-blue-800"
+                >
+                  Ana Sayfaya Dön
+                </Link>
+
+                <Link
+                  href="/documents"
+                  className="rounded-2xl bg-[linear-gradient(135deg,#1d4f91_0%,#2f6eb7_55%,#3b82f6_100%)] px-5 py-3 text-center text-sm font-semibold text-white shadow-lg shadow-blue-900/20 transition hover:-translate-y-0.5 hover:shadow-xl"
+                >
+                  Dökümanları Aç
+                </Link>
               </div>
-            </div>
-
-            <div className="rounded-[1.4rem] border border-slate-200 bg-slate-50 p-5">
-              <div className="text-sm font-medium text-slate-500">Öneri</div>
-              <div className="mt-2 text-xl font-black tracking-[-0.03em] text-slate-950">
-                Arşive dön
-              </div>
-            </div>
-
-            <div className="rounded-[1.4rem] border border-slate-200 bg-slate-50 p-5">
-              <div className="text-sm font-medium text-slate-500">Alternatif</div>
-              <div className="mt-2 text-xl font-black tracking-[-0.03em] text-slate-950">
-                Ana sayfayı aç
-              </div>
-            </div>
-          </div>
-
-          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-            <Link
-              href="/"
-              className="rounded-2xl border border-slate-300 bg-white px-5 py-3 text-center text-sm font-semibold text-slate-700 transition hover:border-blue-300 hover:text-blue-800"
-            >
-              Ana Sayfaya Dön
-            </Link>
-
-            <Link
-              href="/documents"
-              className="rounded-2xl bg-[linear-gradient(135deg,#1d4f91_0%,#2f6eb7_55%,#3b82f6_100%)] px-5 py-3 text-center text-sm font-semibold text-white shadow-lg shadow-blue-900/20 transition hover:-translate-y-0.5 hover:shadow-xl"
-            >
-              Dökümanları Aç
-            </Link>
-          </div>
+            }
+          />
         </div>
       </div>
     </main>

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import ContentImage from "@/components/common/ContentImage";
 import { useState } from "react";
 import DocumentCard from "@/components/documents/DocumentCard";
 import { DocumentItem } from "@/types/document";
@@ -85,9 +86,12 @@ export default function DocumentDetailPageClient({
 
           {doc.coverImageUrl ? (
             <div className="mb-8 overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-sm">
-              <img
+              <ContentImage
                 src={doc.coverImageUrl}
                 alt={doc.title}
+                width={1600}
+                height={900}
+                priority
                 className="h-[240px] w-full object-cover md:h-[360px]"
               />
             </div>

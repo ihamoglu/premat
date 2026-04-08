@@ -61,7 +61,6 @@ export const metadata: Metadata = {
     shortcut: "/brand/logo-square.png",
     apple: "/brand/logo-square.png",
   },
-  manifest: "/manifest.webmanifest",
 };
 
 export default function RootLayout({

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import ContentImage from "@/components/common/ContentImage";
 import { DocumentItem } from "@/types/document";
 
 type DocumentCardProps = {
@@ -11,9 +12,11 @@ export default function DocumentCard({ doc }: DocumentCardProps) {
       <Link href={`/documents/${doc.slug}`} className="block">
         {doc.coverImageUrl ? (
           <div className="overflow-hidden bg-slate-100">
-            <img
+            <ContentImage
               src={doc.coverImageUrl}
               alt={doc.title}
+              width={1200}
+              height={800}
               className="h-[200px] w-full object-cover transition duration-300 hover:scale-[1.02]"
             />
           </div>
@@ -66,16 +69,16 @@ export default function DocumentCard({ doc }: DocumentCardProps) {
             href={`/documents/${doc.slug}`}
             className="flex-1 rounded-2xl border border-blue-200 bg-white px-4 py-3 text-center text-sm font-bold text-blue-800 transition hover:bg-blue-50"
           >
-            Detayı İncele
+            İncele
           </Link>
 
           <a
             href={doc.fileUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex-1 rounded-2xl bg-[linear-gradient(135deg,#1d4f91_0%,#2f6eb7_55%,#3b82f6_100%)] px-4 py-3 text-center text-sm font-bold !text-white transition hover:brightness-[1.03] visited:!text-white"
+            className="flex-1 rounded-2xl bg-blue-800 px-4 py-3 text-center text-sm font-bold text-white transition hover:bg-blue-900"
           >
-            Dökümanı Aç
+            Aç
           </a>
         </div>
       </div>

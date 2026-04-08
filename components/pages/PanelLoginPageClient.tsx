@@ -1,172 +1,162 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import Image from "next/image";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import AdminDocumentForm from "@/components/admin/AdminDocumentForm";
-import AdminDocumentsList from "@/components/admin/AdminDocumentsList";
-import AdminBulkImport from "@/components/admin/AdminBulkImport";
-import AdminStorageCleanup from "@/components/admin/AdminStorageCleanup";
-import { useAuth } from "@/components/providers/AuthProvider";
-import {
-  DocumentsProvider,
-  useDocuments,
-} from "@/components/providers/DocumentsProvider";
+import EmptyState from "@/components/ui/EmptyState";
 import SectionHeader from "@/components/ui/SectionHeader";
-import StatCard from "@/components/ui/StatCard";
-import { DocumentItem } from "@/types/document";
+import { useAuth } from "@/components/providers/AuthProvider";
 
-function PanelPageInner() {
+export default function PanelLoginPageClient() {
   const router = useRouter();
-  const { isAuthenticated, isAdmin, isLoading, logout, userEmail } = useAuth();
-  const { documents } = useDocuments();
-  const [editingDoc, setEditingDoc] = useState<DocumentItem | null>(null);
+  const { login, logout, isAuthenticated, isAdmin, isLoading, userEmail } =
+    useAuth();
+
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    if (!isLoading && (!isAuthenticated || !isAdmin)) {
-      router.replace("/panel-giris");
+    if (!isLoading && isAuthenticated && isAdmin) {
+      router.replace("/panel");
     }
   }, [isAuthenticated, isAdmin, isLoading, router]);
 
-  const publishedCount = useMemo(
-    () => documents.filter((doc) => doc.published).length,
-    [documents]
-  );
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setSubmitting(true);
 
-  const featuredCount = useMemo(
-    () => documents.filter((doc) => doc.published && doc.featured).length,
-    [documents]
-  );
+    const result = await login(email, password);
 
-  const solvedCount = useMemo(
-    () => documents.filter((doc) => doc.published && doc.solutionUrl).length,
-    [documents]
-  );
+    if (!result.ok) {
+      setError(result.message || "Giriş başarısız.");
+      setSubmitting(false);
+      return;
+    }
 
-  const unpublishedCount = useMemo(
-    () => documents.filter((doc) => !doc.published).length,
-    [documents]
-  );
-
-  if (isLoading) {
-    return (
-      <main className="min-h-screen bg-[linear-gradient(180deg,#eef5ff_0%,#f8fbff_20%,#f8fafc_100%)] px-4 py-12 sm:px-6 sm:py-16">
-        <div className="mx-auto max-w-2xl rounded-[2rem] border border-slate-200 bg-white p-10 text-center shadow-[0_18px_60px_rgba(15,23,42,0.06)]">
-          <h1 className="text-2xl font-black tracking-[-0.03em] text-slate-950">
-            Panel yükleniyor...
-          </h1>
-        </div>
-      </main>
-    );
-  }
-
-  if (!isAuthenticated || !isAdmin) {
-    return (
-      <main className="min-h-screen bg-[linear-gradient(180deg,#eef5ff_0%,#f8fbff_20%,#f8fafc_100%)] px-4 py-12 sm:px-6 sm:py-16">
-        <div className="mx-auto max-w-2xl rounded-[2rem] border border-slate-200 bg-white p-10 text-center shadow-[0_18px_60px_rgba(15,23,42,0.06)]">
-          <h1 className="text-2xl font-black tracking-[-0.03em] text-slate-950">
-            Yetkisiz erişim
-          </h1>
-          <p className="mt-3 text-slate-600">
-            Bu alan yalnızca tanımlı admin hesabına açıktır.
-          </p>
-        </div>
-      </main>
-    );
+    setError("");
+    setSubmitting(false);
+    router.replace("/panel");
   }
 
   return (
-    <main className="min-h-screen bg-[linear-gradient(180deg,#eef5ff_0%,#f8fbff_18%,#f8fafc_100%)]">
-      <section className="border-b border-slate-200 bg-[linear-gradient(135deg,#103b73_0%,#1d4f91_28%,#2f6eb7_62%,#f8fbff_62%,#f8fbff_100%)]">
-        <div className="mx-auto max-w-7xl px-4 py-8 md:px-6 md:py-12">
-          <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-            <div>
-              <div className="inline-flex rounded-full border border-blue-100 bg-white/90 px-4 py-2 text-xs font-semibold tracking-[0.08em] text-blue-800 shadow-sm">
-                YÖNETİM ALANI
-              </div>
-
-              <h1 className="mt-5 text-3xl font-black leading-[1.05] tracking-[-0.03em] text-white md:text-5xl">
-                İçerik yönetimi
-              </h1>
-
-              <p className="mt-4 max-w-3xl text-sm leading-7 text-blue-50 md:text-lg md:leading-8">
-                Yeni kayıt ekleme, mevcut içerikleri düzenleme ve arşiv akışını
-                yönetme işlemleri bu panelden yapılır.
-              </p>
-
-              {userEmail ? (
-                <p className="mt-4 text-sm font-semibold text-blue-100">
-                  Oturum: {userEmail}
-                </p>
-              ) : null}
+    <main className="min-h-screen bg-[radial-gradient(circle_at_top,#dbeafe_0%,#eff6ff_34%,#f8fafc_100%)]">
+      <section className="mx-auto flex min-h-screen max-w-7xl items-center justify-center px-4 py-10 md:px-6">
+        <div className="grid w-full max-w-6xl overflow-hidden rounded-[2.2rem] border border-slate-200 bg-white shadow-[0_30px_90px_rgba(15,23,42,0.12)] lg:grid-cols-[1.05fr_0.95fr]">
+          <div className="relative hidden overflow-hidden bg-[linear-gradient(135deg,#103b73_0%,#1d4f91_28%,#2f6eb7_62%,#ea580c_100%)] p-10 text-white lg:block">
+            <div className="absolute inset-0 opacity-30">
+              <div className="absolute left-8 top-8 h-40 w-40 rounded-full bg-sky-200 blur-3xl" />
+              <div className="absolute bottom-10 right-10 h-44 w-44 rounded-full bg-orange-200 blur-3xl" />
+              <div className="absolute left-1/2 top-1/2 h-32 w-32 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white/20 blur-3xl" />
             </div>
 
-            <button
-              type="button"
-              onClick={async () => {
-                await logout();
-                router.push("/panel-giris");
-              }}
-              className="rounded-2xl bg-red-600 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-red-700/20 transition hover:-translate-y-0.5 hover:bg-red-700 hover:shadow-xl"
-            >
-              Çıkış Yap
-            </button>
-          </div>
-
-          <div className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            <StatCard label="Yayındaki Kayıt" value={publishedCount} tone="white" />
-            <StatCard label="Öne Çıkan" value={featuredCount} tone="white" />
-            <StatCard label="Çözüm Bağlantılı" value={solvedCount} tone="white" />
-            <StatCard label="Yayın Dışı" value={unpublishedCount} tone="white" />
-          </div>
-        </div>
-      </section>
-
-      <section className="mx-auto max-w-7xl px-4 py-8 md:px-6 md:py-10">
-        <div className="mb-8 rounded-[2rem] border border-slate-200 bg-white p-5 shadow-[0_18px_60px_rgba(15,23,42,0.05)] md:p-6">
-          <SectionHeader
-            title="Panel akışı"
-            description="Yeni kayıt ekleme, toplu giriş, storage temizliği ve mevcut kayıt düzenleme aynı sayfada toplandı."
-            actions={
-              <div className="flex flex-wrap gap-2.5">
-                <span className="rounded-full border border-blue-200 bg-blue-50 px-4 py-2 text-xs font-semibold text-blue-800">
-                  Form
-                </span>
-                <span className="rounded-full border border-orange-200 bg-orange-50 px-4 py-2 text-xs font-semibold text-orange-800">
-                  Toplu Giriş
-                </span>
-                <span className="rounded-full border border-fuchsia-200 bg-fuchsia-50 px-4 py-2 text-xs font-semibold text-fuchsia-800">
-                  Storage
-                </span>
-                <span className="rounded-full border border-emerald-200 bg-emerald-50 px-4 py-2 text-xs font-semibold text-emerald-800">
-                  Liste
-                </span>
+            <div className="relative">
+              <div className="mb-8">
+                <Image
+                  src="/brand/logo-horizontal.png"
+                  alt="premat logo"
+                  width={300}
+                  height={90}
+                  className="h-auto w-[210px]"
+                  priority
+                />
               </div>
-            }
-          />
-        </div>
 
-        <div className="grid gap-8">
-          <AdminDocumentForm
-            editingDoc={editingDoc}
-            onCancelEdit={() => setEditingDoc(null)}
-            onFinish={() => setEditingDoc(null)}
-          />
+              <SectionHeader
+                eyebrow="YÖNETİM GİRİŞİ"
+                title="İçerik yönetimi için kontrollü giriş"
+                description="Arşivdeki içeriklerin düzenlenmesi, yeni kayıt eklenmesi ve seçili dökümanların yönetimi bu alandan yapılır."
+              />
+            </div>
+          </div>
 
-          <AdminBulkImport />
+          <div className="p-8 md:p-10 lg:p-12">
+            <div className="mb-8 text-center lg:text-left">
+              <div className="mx-auto mb-5 lg:mx-0">
+                <Image
+                  src="/brand/logo-square.png"
+                  alt="premat kare logo"
+                  width={140}
+                  height={140}
+                  className="h-auto w-[84px] md:w-[94px]"
+                  priority
+                />
+              </div>
 
-          <AdminStorageCleanup />
+              <SectionHeader
+                eyebrow="PREMAT PANEL"
+                title="İçerik girişi"
+                description="Devam etmek için e-posta ve şifreni gir. Bu alan yalnızca içerik yönetimi için kullanılır."
+              />
+            </div>
 
-          <AdminDocumentsList onEdit={(doc) => setEditingDoc(doc)} />
+            {!isLoading && isAuthenticated && !isAdmin ? (
+              <div className="mb-5 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-4 text-sm text-amber-800">
+                <div className="font-semibold">Yanlış oturum açık</div>
+                <p className="mt-2 leading-7">
+                  Şu an açık hesap admin olarak tanımlı değil:
+                  <span className="ml-1 font-semibold">{userEmail}</span>
+                </p>
+
+                <button
+                  type="button"
+                  onClick={async () => {
+                    await logout();
+                  }}
+                  className="mt-3 rounded-xl border border-amber-300 bg-white px-4 py-2 text-sm font-semibold text-amber-800 transition hover:bg-amber-100"
+                >
+                  Bu oturumdan çık
+                </button>
+              </div>
+            ) : null}
+
+            <form onSubmit={handleSubmit} className="space-y-5">
+              <div>
+                <label className="mb-2 block text-sm font-semibold text-slate-700">
+                  E-posta
+                </label>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-blue-400"
+                  placeholder="ornek@mail.com"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="mb-2 block text-sm font-semibold text-slate-700">
+                  Şifre
+                </label>
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-blue-400"
+                  placeholder="Şifre"
+                  required
+                />
+              </div>
+
+              {error ? (
+                <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">
+                  {error}
+                </div>
+              ) : null}
+
+              <button
+                type="submit"
+                disabled={submitting}
+                className="w-full rounded-2xl bg-[linear-gradient(135deg,#1d4f91_0%,#2f6eb7_55%,#3b82f6_100%)] px-5 py-4 text-sm font-semibold text-white shadow-lg shadow-blue-900/20 transition hover:-translate-y-0.5 hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-70"
+              >
+                {submitting ? "Giriş Yapılıyor..." : "Giriş Yap"}
+              </button>
+            </form>
+          </div>
         </div>
       </section>
     </main>
-  );
-}
-
-export default function PanelPageClient() {
-  return (
-    <DocumentsProvider scope="admin">
-      <PanelPageInner />
-    </DocumentsProvider>
   );
 }
