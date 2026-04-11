@@ -11,6 +11,21 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+
+  async redirects() {
+    return [
+      {
+        source: "/kocluk",
+        destination: "https://prekoc.com.tr",
+        permanent: true,
+      },
+      {
+        source: "/kocluk/:path*",
+        destination: "https://prekoc.com.tr/:path*",
+        permanent: true,
+      },
+    ];
+  },
 };
 
 export default nextConfig;
