@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import Image from "next/image";
 import Link from "next/link";
@@ -15,29 +15,29 @@ type NavItem = {
 
 const desktopNavItems: NavItem[] = [
   { href: "/", label: "Ana Sayfa" },
-  { href: "/documents", label: "DÃ¶kÃ¼manlar" },
+  { href: "/documents", label: "Dökümanlar" },
   { href: "/testler", label: "Testler" },
-  { href: "/sinif/5", label: "5. SÄ±nÄ±f" },
-  { href: "/sinif/6", label: "6. SÄ±nÄ±f" },
-  { href: "/sinif/7", label: "7. SÄ±nÄ±f" },
-  { href: "/sinif/8", label: "8. SÄ±nÄ±f" },
-  { href: "https://prekoc.com.tr", label: "KoÃ§luk", external: true },
-  { href: "/ogretmen", label: "Ã–ÄŸretmen" },
+  { href: "/sinif/5", label: "5. Sınıf" },
+  { href: "/sinif/6", label: "6. Sınıf" },
+  { href: "/sinif/7", label: "7. Sınıf" },
+  { href: "/sinif/8", label: "8. Sınıf" },
+  { href: "https://prekoc.com.tr", label: "Koçluk", external: true },
+  { href: "/ogretmen", label: "Öğretmen" },
 ];
 
 const mobileMainItems: NavItem[] = [
   { href: "/", label: "Ana Sayfa" },
-  { href: "/documents", label: "DÃ¶kÃ¼manlar" },
+  { href: "/documents", label: "Dökümanlar" },
   { href: "/testler", label: "Testler" },
-  { href: "https://prekoc.com.tr", label: "KoÃ§luk", external: true },
-  { href: "/ogretmen", label: "Ã–ÄŸretmen" },
+  { href: "https://prekoc.com.tr", label: "Koçluk", external: true },
+  { href: "/ogretmen", label: "Öğretmen" },
 ];
 
 const mobileGradeItems = [
-  { grade: "5", label: "5. SÄ±nÄ±f" },
-  { grade: "6", label: "6. SÄ±nÄ±f" },
-  { grade: "7", label: "7. SÄ±nÄ±f" },
-  { grade: "8", label: "8. SÄ±nÄ±f" },
+  { grade: "5", label: "5. Sınıf" },
+  { grade: "6", label: "6. Sınıf" },
+  { grade: "7", label: "7. Sınıf" },
+  { grade: "8", label: "8. Sınıf" },
 ] as const;
 
 function isActive(pathname: string, href: string) {
@@ -72,8 +72,10 @@ export default function Navbar() {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 8);
     };
+
     handleScroll();
     window.addEventListener("scroll", handleScroll, { passive: true });
+
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
@@ -99,12 +101,10 @@ export default function Navbar() {
 
   return (
     <>
-      {/* Gradient border Ã§izgisi â€” nav altÄ±nda */}
       <div className="sticky top-0 z-50">
         <header
           className={`border-b border-slate-200/70 transition-all duration-300 ${headerBg}`}
         >
-          {/* Ãœst gradient ÅŸerit â€” Ã§ok ince */}
           <div
             className="absolute inset-x-0 top-0 h-[2px]"
             style={{
@@ -119,7 +119,7 @@ export default function Navbar() {
                 type="button"
                 onClick={() => setMobileMenuOpen(true)}
                 className="group inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-700 shadow-sm transition hover:border-blue-300 hover:bg-blue-50 hover:text-blue-800 xl:hidden"
-                aria-label="MenÃ¼yÃ¼ aÃ§"
+                aria-label="Menüyü aç"
               >
                 <svg
                   viewBox="0 0 24 24"
@@ -156,10 +156,8 @@ export default function Navbar() {
 
                   const baseClass =
                     "relative rounded-full px-4 py-2 text-sm font-semibold tracking-[0.01em] transition duration-200";
-
                   const inactiveClass =
                     "text-slate-700 hover:bg-blue-50 hover:text-blue-900";
-
                   const className = `${baseClass} ${
                     active ? "" : inactiveClass
                   }`;
@@ -207,11 +205,10 @@ export default function Navbar() {
             type="button"
             onClick={() => setMobileMenuOpen(false)}
             className="absolute inset-0 bg-slate-950/40 backdrop-blur-[3px]"
-            aria-label="MenÃ¼yÃ¼ kapat"
+            aria-label="Menüyü kapat"
           />
 
           <aside className="premat-drawer-in absolute left-0 top-0 flex h-full w-[88%] max-w-[360px] flex-col shadow-2xl shadow-slate-900/25">
-            {/* Drawer header â€” beyaz arka plan, logo rengi korunsun */}
             <div className="flex items-center justify-between border-b border-slate-200 bg-white px-4 py-4">
               <Image
                 src="/brand/logo-horizontal.png"
@@ -226,7 +223,7 @@ export default function Navbar() {
                 type="button"
                 onClick={() => setMobileMenuOpen(false)}
                 className="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-700 transition hover:border-blue-200 hover:text-blue-800"
-                aria-label="MenÃ¼yÃ¼ kapat"
+                aria-label="Menüyü kapat"
               >
                 <svg
                   viewBox="0 0 24 24"
@@ -242,7 +239,6 @@ export default function Navbar() {
               </button>
             </div>
 
-            {/* Drawer Ã¼st gradient ÅŸerit */}
             <div
               className="h-[3px] w-full"
               style={{
@@ -251,11 +247,12 @@ export default function Navbar() {
               }}
             />
 
-            {/* Nav iÃ§erik */}
             <nav className="flex-1 overflow-y-auto bg-white px-4 py-4">
               <div className="space-y-2">
                 {mobileMainItems.map((item) => {
-                  const active = item.external ? false : isActive(pathname, item.href);
+                  const active = item.external
+                    ? false
+                    : isActive(pathname, item.href);
                   const className = `flex items-center justify-between rounded-2xl px-4 py-3 text-sm font-semibold transition ${
                     active
                       ? "bg-[linear-gradient(135deg,#1d4f91_0%,#2f6eb7_100%)] text-white shadow-md shadow-blue-900/20"
@@ -273,7 +270,9 @@ export default function Navbar() {
                       className={className}
                     >
                       <span>{item.label}</span>
-                      <span className="text-lg leading-none opacity-60">â€º</span>
+                      <span className="text-lg leading-none opacity-60">
+                        &gt;
+                      </span>
                     </a>
                   ) : (
                     <Link
@@ -286,15 +285,16 @@ export default function Navbar() {
                       className={className}
                     >
                       <span>{item.label}</span>
-                      <span className="text-lg leading-none opacity-60">â€º</span>
+                      <span className="text-lg leading-none opacity-60">
+                        &gt;
+                      </span>
                     </Link>
                   );
                 })}
 
-                {/* Grade separator */}
                 <div className="px-1 pb-1 pt-3">
                   <div className="mb-2 text-[10px] font-black uppercase tracking-[0.12em] text-slate-400">
-                    SÄ±nÄ±f ArÅŸivleri
+                    Sınıf Arşivleri
                   </div>
                 </div>
 
@@ -333,7 +333,9 @@ export default function Navbar() {
                         </div>
                         <svg
                           viewBox="0 0 24 24"
-                          className={`h-4 w-4 transition-transform duration-200 ${isOpen ? "rotate-90" : ""}`}
+                          className={`h-4 w-4 transition-transform duration-200 ${
+                            isOpen ? "rotate-90" : ""
+                          }`}
                           fill="none"
                           stroke="currentColor"
                           strokeWidth="2.2"
@@ -375,9 +377,8 @@ export default function Navbar() {
               </div>
             </nav>
 
-            {/* Drawer footer */}
             <div className="border-t border-slate-100 bg-slate-50 px-4 py-3 text-center text-[10px] font-semibold tracking-[0.08em] text-slate-400">
-              PREMAT â€” MATEMATÄ°K ARÅÄ°VÄ°
+              PREMAT - MATEMATİK ARŞİVİ
             </div>
           </aside>
         </div>
@@ -385,4 +386,3 @@ export default function Navbar() {
     </>
   );
 }
-
