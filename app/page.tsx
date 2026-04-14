@@ -43,7 +43,7 @@ export default async function HomePage() {
       description: siteConfig.longDescription,
       potentialAction: {
         "@type": "SearchAction",
-        target: `${siteConfig.url}/documents?topic={search_term_string}`,
+        target: `${siteConfig.url}/documents?q={search_term_string}`,
         "query-input": "required name=search_term_string",
       },
     },

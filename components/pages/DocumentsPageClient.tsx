@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import DocumentCard from "@/components/documents/DocumentCard";
@@ -10,6 +10,10 @@ import {
   getAllTopics,
   getTopicsByGrade,
 } from "@/data/catalog";
+import {
+  documentMatchesSearch,
+  sortDocumentsForSearch,
+} from "@/lib/document-search";
 
 const gradePills: Array<{ value: "Tümü" | GradeLevel; label: string }> = [
   { value: "Tümü", label: "Tümü" },
@@ -31,6 +35,8 @@ export default function DocumentsPageClient({
   const selectedGradeParam = searchParams.get("grade");
   const selectedTopic = searchParams.get("topic") || "";
   const selectedType = searchParams.get("type") || "";
+  const selectedQuery = searchParams.get("q") || "";
+  const [searchInput, setSearchInput] = useState(selectedQuery);
 
   const selectedGrade: "Tümü" | GradeLevel =
     selectedGradeParam === "5" ||
@@ -40,17 +46,28 @@ export default function DocumentsPageClient({
       ? selectedGradeParam
       : "Tümü";
 
+  useEffect(() => {
+    setSearchInput(selectedQuery);
+  }, [selectedQuery]);
+
   const filteredDocs = useMemo(() => {
-    return documents.filter((doc) => {
+    const filtered = documents.filter((doc) => {
       const matchesGrade =
         selectedGrade === "Tümü" ? true : doc.grade === selectedGrade;
 
       const matchesTopic = selectedTopic ? doc.topic === selectedTopic : true;
       const matchesType = selectedType ? doc.type === selectedType : true;
+      const matchesQuery = selectedQuery
+        ? documentMatchesSearch(doc, selectedQuery)
+        : true;
 
-      return matchesGrade && matchesTopic && matchesType;
+      return matchesGrade && matchesTopic && matchesType && matchesQuery;
     });
-  }, [documents, selectedGrade, selectedTopic, selectedType]);
+
+    return selectedQuery
+      ? sortDocumentsForSearch(filtered, selectedQuery)
+      : filtered;
+  }, [documents, selectedGrade, selectedTopic, selectedType, selectedQuery]);
 
   const topicOptions = useMemo(() => {
     return selectedGrade === "Tümü"
@@ -67,18 +84,21 @@ export default function DocumentsPageClient({
     selectedGrade !== "Tümü" ? `${selectedGrade}. Sınıf` : null,
     selectedTopic || null,
     selectedType || null,
+    selectedQuery ? `Arama: ${selectedQuery}` : null,
   ].filter(Boolean);
 
   function updateFilters(next: {
     grade?: "Tümü" | GradeLevel;
     topic?: string;
     type?: string;
+    q?: string;
   }) {
     const params = new URLSearchParams(searchParams.toString());
 
     const nextGrade = next.grade ?? selectedGrade;
     const nextTopic = next.topic ?? selectedTopic;
     const nextType = next.type ?? selectedType;
+    const nextQuery = next.q ?? selectedQuery;
 
     if (nextGrade === "Tümü") {
       params.delete("grade");
@@ -98,6 +118,12 @@ export default function DocumentsPageClient({
       params.delete("type");
     }
 
+    if (nextQuery.trim()) {
+      params.set("q", nextQuery.trim());
+    } else {
+      params.delete("q");
+    }
+
     const query = params.toString();
     router.replace(query ? `${pathname}?${query}` : pathname, {
       scroll: false,
@@ -105,6 +131,7 @@ export default function DocumentsPageClient({
   }
 
   function resetFilters() {
+    setSearchInput("");
     router.replace(pathname, { scroll: false });
   }
 
@@ -276,7 +303,20 @@ export default function DocumentsPageClient({
             </div>
           </div>
 
-          <div className="mt-5 grid gap-4 md:grid-cols-3">
+          <div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-[1.15fr_0.85fr_1fr_1fr]">
+            <input
+              type="search"
+              value={searchInput}
+              onChange={(e) => {
+                setSearchInput(e.target.value);
+                updateFilters({
+                  q: e.target.value,
+                });
+              }}
+              placeholder="Başlık, konu veya açıklama ara"
+              className="w-full min-w-0 max-w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700 outline-none transition focus:border-blue-400 focus:shadow-[0_0_0_3px_rgba(29,79,145,0.10)]"
+            />
+
             <select
               value={selectedGrade}
               onChange={(e) =>

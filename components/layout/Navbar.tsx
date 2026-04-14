@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { documentTypeCatalog } from "@/data/catalog";
+import QuickSearch from "@/components/layout/QuickSearch";
 
 type NavItem = {
   href: string;
@@ -57,8 +58,12 @@ export default function Navbar() {
   );
 
   useEffect(() => {
-    setMobileMenuOpen(false);
-    setOpenGrade(null);
+    const timeoutId = window.setTimeout(() => {
+      setMobileMenuOpen(false);
+      setOpenGrade(null);
+    }, 0);
+
+    return () => window.clearTimeout(timeoutId);
   }, [locationKey]);
 
   useEffect(() => {
@@ -140,37 +145,56 @@ export default function Navbar() {
               </Link>
             </div>
 
-            <nav className="hidden items-center gap-1 xl:flex">
-              {desktopNavItems.map((item) => {
-                const active = item.external ? false : isActive(pathname, item.href);
+            <div className="flex items-center gap-2">
+              <nav className="hidden items-center gap-1 xl:flex">
+                {desktopNavItems.map((item) => {
+                  const active = item.external
+                    ? false
+                    : isActive(pathname, item.href);
 
-                const baseClass =
-                  "relative rounded-full px-4 py-2 text-sm font-semibold tracking-[0.01em] transition duration-200";
+                  const baseClass =
+                    "relative rounded-full px-4 py-2 text-sm font-semibold tracking-[0.01em] transition duration-200";
 
-                const inactiveClass =
-                  "text-slate-700 hover:bg-blue-50 hover:text-blue-900";
+                  const inactiveClass =
+                    "text-slate-700 hover:bg-blue-50 hover:text-blue-900";
 
-                const className = `${baseClass} ${active ? "" : inactiveClass}`;
+                  const className = `${baseClass} ${
+                    active ? "" : inactiveClass
+                  }`;
 
-                const activeStyle = active
-                  ? {
-                      background: "linear-gradient(135deg, #1d4f91 0%, #2f6eb7 100%)",
-                      color: "#ffffff",
-                      boxShadow: "0 4px 12px rgba(29,79,145,0.22)",
-                    }
-                  : undefined;
+                  const activeStyle = active
+                    ? {
+                        background:
+                          "linear-gradient(135deg, #1d4f91 0%, #2f6eb7 100%)",
+                        color: "#ffffff",
+                        boxShadow: "0 4px 12px rgba(29,79,145,0.22)",
+                      }
+                    : undefined;
 
-                return item.external ? (
-                  <a key={item.label} href={item.href} className={className} style={activeStyle}>
-                    {item.label}
-                  </a>
-                ) : (
-                  <Link key={item.label} href={item.href} className={className} style={activeStyle}>
-                    {item.label}
-                  </Link>
-                );
-              })}
-            </nav>
+                  return item.external ? (
+                    <a
+                      key={item.label}
+                      href={item.href}
+                      className={className}
+                      style={activeStyle}
+                    >
+                      {item.label}
+                    </a>
+                  ) : (
+                    <Link
+                      key={item.label}
+                      href={item.href}
+                      className={className}
+                      style={activeStyle}
+                    >
+                      {item.label}
+                    </Link>
+                  );
+                })}
+              </nav>
+
+              <QuickSearch />
+            </div>
           </div>
         </header>
       </div>
