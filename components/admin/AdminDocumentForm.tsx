@@ -16,6 +16,7 @@ import {
 import {
   DocumentDifficulty,
   DocumentItem,
+  DocumentLinkKind,
   GradeLevel,
   SourceType,
 } from "@/types/document";
@@ -44,6 +45,11 @@ type FormState = {
   hasVideoSolution: boolean;
   featured: boolean;
   published: boolean;
+  links: Array<{
+    kind: DocumentLinkKind;
+    label: string;
+    url: string;
+  }>;
 };
 
 type AdminDocumentFormProps = {
@@ -73,6 +79,7 @@ const initialState: FormState = {
   hasVideoSolution: false,
   featured: false,
   published: true,
+  links: [],
 };
 
 function slugifyTr(text: string) {
@@ -103,6 +110,17 @@ function parsePositiveInteger(value: string) {
   const parsed = Number(value);
 
   return Number.isInteger(parsed) && parsed > 0 ? parsed : undefined;
+}
+
+function buildDocumentLinks(form: FormState) {
+  return form.links
+    .filter((link) => link.label.trim() && link.url.trim())
+    .map((link, index) => ({
+      kind: link.kind,
+      label: link.label.trim(),
+      url: link.url.trim(),
+      position: index * 10,
+    }));
 }
 
 function FieldLabel({ children }: { children: React.ReactNode }) {
@@ -236,11 +254,45 @@ export default function AdminDocumentForm({ editingDoc, onCancelEdit, onFinish }
       hasVideoSolution: editingDoc.hasVideoSolution,
       featured: editingDoc.featured,
       published: editingDoc.published,
+      links: (editingDoc.links ?? []).map((link) => ({
+        kind: link.kind,
+        label: link.label,
+        url: link.url,
+      })),
     });
   }, [editingDoc]);
 
   function updateField<K extends keyof FormState>(key: K, value: FormState[K]) {
     setForm((prev) => ({ ...prev, [key]: value }));
+  }
+
+  function addExtraLink() {
+    updateField("links", [
+      ...form.links,
+      { kind: "extra", label: "", url: "" },
+    ]);
+  }
+
+  function updateExtraLink(
+    index: number,
+    key: "kind" | "label" | "url",
+    value: string
+  ) {
+    updateField(
+      "links",
+      form.links.map((link, itemIndex) =>
+        itemIndex === index
+          ? { ...link, [key]: key === "kind" ? (value as DocumentLinkKind) : value }
+          : link
+      )
+    );
+  }
+
+  function removeExtraLink(index: number) {
+    updateField(
+      "links",
+      form.links.filter((_, itemIndex) => itemIndex !== index)
+    );
   }
 
   function resetFormCompletely() {
@@ -359,6 +411,7 @@ export default function AdminDocumentForm({ editingDoc, onCancelEdit, onFinish }
           hasVideoSolution: form.hasVideoSolution || Boolean(form.solutionUrl),
           featured: form.featured,
           published: form.published,
+          links: buildDocumentLinks(form),
         };
 
         await updateDocument(updatedDoc);
@@ -401,6 +454,7 @@ export default function AdminDocumentForm({ editingDoc, onCancelEdit, onFinish }
         featured: form.featured,
         published: form.published,
         createdAt: new Date().toISOString().slice(0, 10),
+        links: buildDocumentLinks(form),
       };
 
       await addDocument(newDoc);
@@ -597,6 +651,42 @@ export default function AdminDocumentForm({ editingDoc, onCancelEdit, onFinish }
                 <div>
                   <FieldLabel>Cevap Anahtarı Bağlantısı</FieldLabel>
                   <input type="url" value={form.answerKeyUrl} onChange={(e) => updateField("answerKeyUrl", e.target.value)} placeholder="Opsiyonel cevap anahtarı bağlantısı" className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-blue-400" />
+                </div>
+              </div>
+              <div className="rounded-[1.5rem] border border-blue-100 bg-blue-50 p-4">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <FieldLabel>Ek Bağlantılar</FieldLabel>
+                    <p className="text-xs leading-5 text-blue-800">
+                      Birden fazla video, ek kaynak veya öğretmen notu ekle.
+                    </p>
+                  </div>
+                  <button type="button" onClick={addExtraLink} className="rounded-2xl border border-blue-200 bg-white px-4 py-2 text-sm font-semibold text-blue-800 transition hover:bg-blue-100">
+                    Bağlantı Ekle
+                  </button>
+                </div>
+                <div className="mt-4 grid gap-3">
+                  {form.links.length === 0 ? (
+                    <div className="rounded-2xl border border-dashed border-blue-200 bg-white/70 px-4 py-3 text-sm font-semibold text-blue-700">
+                      Henüz ek bağlantı yok.
+                    </div>
+                  ) : (
+                    form.links.map((link, index) => (
+                      <div key={index} className="grid gap-3 rounded-2xl border border-blue-100 bg-white p-3 md:grid-cols-[0.75fr_1fr_1.4fr_auto]">
+                        <select value={link.kind} onChange={(e) => updateExtraLink(index, "kind", e.target.value)} className="rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none transition focus:border-blue-400">
+                          <option value="video">Video</option>
+                          <option value="solution">Çözüm</option>
+                          <option value="answer_key">Cevap</option>
+                          <option value="extra">Ek</option>
+                        </select>
+                        <input type="text" value={link.label} onChange={(e) => updateExtraLink(index, "label", e.target.value)} placeholder="Etiket" className="rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none transition focus:border-blue-400" />
+                        <input type="url" value={link.url} onChange={(e) => updateExtraLink(index, "url", e.target.value)} placeholder="https://..." className="rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none transition focus:border-blue-400" />
+                        <button type="button" onClick={() => removeExtraLink(index)} className="rounded-2xl border border-red-200 bg-red-50 px-4 py-2 text-sm font-semibold text-red-700 transition hover:bg-red-100">
+                          Sil
+                        </button>
+                      </div>
+                    ))
+                  )}
                 </div>
               </div>
               <div className="rounded-[1.5rem] border border-slate-200 bg-slate-50 p-4">

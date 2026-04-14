@@ -9,7 +9,10 @@ import { DocumentItem } from "@/types/document";
 import { absoluteUrl } from "@/lib/site";
 import { topicToSlug } from "@/lib/topic-slugs";
 import WorklistAddButton from "@/components/worklist/WorklistAddButton";
-import { getDocumentLinks } from "@/lib/document-links";
+import {
+  getDocumentEventTypeForLink,
+  getDocumentLinks,
+} from "@/lib/document-links";
 
 type DocumentDetailPageClientProps = {
   doc: DocumentItem;
@@ -328,6 +331,28 @@ export default function DocumentDetailPageClient({
                     Cevap Anahtarını Aç
                   </a>
                 ) : null}
+
+                {documentLinks
+                  .filter(
+                    (link) =>
+                      ![doc.fileUrl, doc.solutionUrl, doc.answerKeyUrl]
+                        .filter(Boolean)
+                        .includes(link.url)
+                  )
+                  .map((link) => (
+                    <a
+                      key={`${link.kind}-${link.position}-${link.url}`}
+                      href={link.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={() =>
+                        trackDocumentEvent(getDocumentEventTypeForLink(link.kind))
+                      }
+                      className="block rounded-2xl border border-blue-200 bg-blue-50 px-5 py-4 text-center text-sm font-bold text-blue-800 transition hover:-translate-y-0.5 hover:bg-blue-100 hover:shadow-sm"
+                    >
+                      {link.label}
+                    </a>
+                  ))}
 
                 {!doc.solutionUrl && !doc.answerKeyUrl ? (
                   <div className="rounded-2xl border border-slate-200 bg-slate-50 px-5 py-4 text-center text-sm font-bold text-slate-500">

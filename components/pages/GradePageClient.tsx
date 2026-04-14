@@ -6,6 +6,7 @@ import DocumentCard from "@/components/documents/DocumentCard";
 import SectionHeader from "@/components/ui/SectionHeader";
 import EmptyState from "@/components/ui/EmptyState";
 import { DocumentItem } from "@/types/document";
+import { topicToSlug } from "@/lib/topic-slugs";
 
 type GradePageClientProps = {
   grade: string;
@@ -23,6 +24,30 @@ export default function GradePageClient({
 
   const topicCount = useMemo(
     () => new Set(documents.map((doc) => doc.topic)).size,
+    [documents]
+  );
+
+  const topicBlocks = useMemo(() => {
+    return Array.from(new Set(documents.map((doc) => doc.topic)))
+      .map((topic) => {
+        const topicDocs = documents.filter((doc) => doc.topic === topic);
+
+        return {
+          topic,
+          count: topicDocs.length,
+          video: topicDocs.filter((doc) => doc.hasVideoSolution).length,
+          answerKey: topicDocs.filter((doc) => doc.answerKeyUrl).length,
+        };
+      })
+      .sort((a, b) => b.count - a.count);
+  }, [documents]);
+
+  const popularDocs = useMemo(
+    () =>
+      [...documents]
+        .filter((doc) => (doc.popularityScore ?? 0) > 0)
+        .sort((a, b) => (b.popularityScore ?? 0) - (a.popularityScore ?? 0))
+        .slice(0, 4),
     [documents]
   );
 
@@ -141,6 +166,52 @@ export default function GradePageClient({
         ) : (
           <div>
             <SectionHeader
+              title="Konu kırılımı"
+              description={`${grade}. sınıf içindeki konuları yoğunluk ve kaynak sinyalleriyle incele.`}
+            />
+
+            <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+              {topicBlocks.map((item) => (
+                <Link
+                  key={item.topic}
+                  href={`/konu/${topicToSlug(item.topic)}`}
+                  className="rounded-[1.6rem] border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-blue-200 hover:shadow-md"
+                >
+                  <div className="text-sm font-bold text-blue-800">
+                    {item.count} döküman
+                  </div>
+                  <h2 className="mt-2 text-xl font-black tracking-[-0.02em] text-slate-950">
+                    {item.topic}
+                  </h2>
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    <span className="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
+                      Video {item.video}
+                    </span>
+                    <span className="rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700">
+                      Cevap {item.answerKey}
+                    </span>
+                  </div>
+                </Link>
+              ))}
+            </div>
+
+            {popularDocs.length > 0 ? (
+              <div className="mt-10">
+                <SectionHeader
+                  title="Bu sınıfta popüler"
+                  description="Son kullanım sinyallerine göre öne çıkan kayıtlar."
+                />
+
+                <div className="mt-6 grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
+                  {popularDocs.map((doc) => (
+                    <DocumentCard key={doc.id} doc={doc} />
+                  ))}
+                </div>
+              </div>
+            ) : null}
+
+            <div className="mt-10">
+            <SectionHeader
               title="Yayınlanan içerikler"
               description={`${grade}. sınıf düzeyine ait aktif döküman listesi.`}
             />
@@ -149,6 +220,7 @@ export default function GradePageClient({
               {documents.map((doc) => (
                 <DocumentCard key={doc.id} doc={doc} />
               ))}
+            </div>
             </div>
           </div>
         )}

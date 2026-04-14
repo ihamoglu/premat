@@ -78,6 +78,17 @@ export default async function TopicPage({ params }: PageProps) {
   }));
 
   const typeCount = new Set(data.documents.map((doc) => doc.type)).size;
+  const difficultyCounts = ["Başlangıç", "Orta", "İleri", "Karma"].map(
+    (difficulty) => ({
+      difficulty,
+      count: data.documents.filter((doc) => doc.difficulty === difficulty)
+        .length,
+    })
+  );
+  const popularDocs = [...data.documents]
+    .filter((doc) => (doc.popularityScore ?? 0) > 0)
+    .sort((a, b) => (b.popularityScore ?? 0) - (a.popularityScore ?? 0))
+    .slice(0, 4);
 
   const structuredData = {
     "@context": "https://schema.org",
@@ -176,6 +187,55 @@ export default async function TopicPage({ params }: PageProps) {
               </Link>
             ))}
           </div>
+
+          <div className="mb-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            {difficultyCounts.map((item) => (
+              <Link
+                key={item.difficulty}
+                href={`/documents?topic=${encodeURIComponent(
+                  data.topic
+                )}&difficulty=${encodeURIComponent(item.difficulty)}`}
+                className="rounded-[1.4rem] border border-slate-200 bg-white p-4 shadow-sm transition hover:border-blue-200 hover:shadow-md"
+              >
+                <div className="text-xs font-semibold text-slate-500">
+                  Zorluk
+                </div>
+                <div className="mt-1 text-xl font-black text-slate-950">
+                  {item.difficulty}
+                </div>
+                <div className="mt-2 text-sm font-bold text-blue-800">
+                  {item.count} kayıt
+                </div>
+              </Link>
+            ))}
+          </div>
+
+          {popularDocs.length > 0 ? (
+            <div className="mb-10">
+              <div className="mb-5 flex items-start gap-3">
+                <div
+                  className="mt-1 h-6 w-1.5 shrink-0 rounded-full"
+                  style={{
+                    background: "linear-gradient(180deg, #1d4f91, #ea580c)",
+                  }}
+                />
+                <div>
+                  <h2 className="text-2xl font-black tracking-[-0.03em] text-slate-950">
+                    Bu konuda popüler
+                  </h2>
+                  <p className="mt-2 text-sm text-slate-600">
+                    Son kullanım sinyallerine göre öne çıkan kayıtlar.
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
+                {popularDocs.map((doc) => (
+                  <DocumentCard key={doc.id} doc={doc} />
+                ))}
+              </div>
+            </div>
+          ) : null}
 
           <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
             {data.documents.map((doc) => (

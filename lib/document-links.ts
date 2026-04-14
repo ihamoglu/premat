@@ -9,12 +9,6 @@ const linkLabels: Record<DocumentLink["kind"], string> = {
 };
 
 export function getDocumentLinks(doc: DocumentItem): DocumentLink[] {
-  const explicitLinks = (doc.links ?? []).filter((link) => link.url.trim());
-
-  if (explicitLinks.length > 0) {
-    return [...explicitLinks].sort((a, b) => a.position - b.position);
-  }
-
   const links: DocumentLink[] = [
     {
       kind: "file",
@@ -42,7 +36,23 @@ export function getDocumentLinks(doc: DocumentItem): DocumentLink[] {
     });
   }
 
-  return links;
+  const usedUrls = new Set(links.map((link) => link.url.trim()));
+  const explicitLinks = (doc.links ?? [])
+    .filter((link) => link.url.trim())
+    .filter((link) => {
+      const url = link.url.trim();
+      if (usedUrls.has(url)) {
+        return false;
+      }
+      usedUrls.add(url);
+      return true;
+    })
+    .map((link, index) => ({
+      ...link,
+      position: 100 + index * 10,
+    }));
+
+  return [...links, ...explicitLinks].sort((a, b) => a.position - b.position);
 }
 
 export function getDocumentEventTypeForLink(kind: DocumentLink["kind"]) {

@@ -9,7 +9,12 @@ import {
   useState,
 } from "react";
 import { supabase } from "@/lib/supabase";
-import { DocumentDifficulty, DocumentItem } from "@/types/document";
+import {
+  DocumentDifficulty,
+  DocumentItem,
+  DocumentLink,
+  DocumentLinkKind,
+} from "@/types/document";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { extractPublicStoragePath } from "@/lib/storage-paths";
 
@@ -54,6 +59,15 @@ type SupabaseDocumentRow = {
   featured: boolean;
   published: boolean;
   created_at: string;
+};
+
+type SupabaseDocumentLinkRow = {
+  id: string;
+  document_id: string;
+  kind: string;
+  label: string;
+  url: string;
+  position: number;
 };
 
 function mapOptionalNumber(value: number | null | undefined) {
@@ -102,6 +116,82 @@ function getDocumentMetadataPayload(doc: DocumentItem) {
     is_print_ready: doc.isPrintReady,
     has_video_solution: doc.hasVideoSolution || Boolean(doc.solutionUrl),
   };
+}
+
+function mapRowToDocumentLink(row: SupabaseDocumentLinkRow): DocumentLink {
+  return {
+    id: row.id,
+    kind: row.kind as DocumentLinkKind,
+    label: row.label,
+    url: row.url,
+    position: row.position,
+  };
+}
+
+async function attachDocumentLinks(documents: DocumentItem[]) {
+  if (documents.length === 0) {
+    return documents;
+  }
+
+  const { data, error } = await supabase
+    .from("document_links")
+    .select("*")
+    .in(
+      "document_id",
+      documents.map((doc) => doc.id)
+    )
+    .order("position", { ascending: true });
+
+  if (error) {
+    return documents;
+  }
+
+  const grouped = new Map<string, DocumentLink[]>();
+
+  ((data ?? []) as SupabaseDocumentLinkRow[]).forEach((row) => {
+    const current = grouped.get(row.document_id) ?? [];
+    current.push(mapRowToDocumentLink(row));
+    grouped.set(row.document_id, current);
+  });
+
+  return documents.map((doc) => ({
+    ...doc,
+    links: grouped.get(doc.id) ?? [],
+  }));
+}
+
+async function syncDocumentLinks(doc: DocumentItem) {
+  const explicitLinks = (doc.links ?? [])
+    .filter((link) => link.url.trim() && link.label.trim())
+    .map((link, index) => ({
+      document_id: doc.id,
+      kind: link.kind,
+      label: link.label.trim(),
+      url: link.url.trim(),
+      position: index * 10,
+    }));
+
+  const { error: deleteError } = await supabase
+    .from("document_links")
+    .delete()
+    .eq("document_id", doc.id);
+
+  if (deleteError) {
+    console.error("Doküman ek bağlantıları temizlenemedi:", deleteError.message);
+    return;
+  }
+
+  if (explicitLinks.length === 0) {
+    return;
+  }
+
+  const { error: insertError } = await supabase
+    .from("document_links")
+    .insert(explicitLinks);
+
+  if (insertError) {
+    console.error("Doküman ek bağlantıları kaydedilemedi:", insertError.message);
+  }
 }
 
 async function revalidatePublicContent(payload?: {
@@ -179,7 +269,8 @@ export function DocumentsProvider({
       return;
     }
 
-    setDocuments((data as SupabaseDocumentRow[]).map(mapRowToDocument));
+    const mapped = (data as SupabaseDocumentRow[]).map(mapRowToDocument);
+    setDocuments(await attachDocumentLinks(mapped));
   }, [scope, isLoading, isAuthenticated, isAdmin]);
 
   useEffect(() => {
@@ -194,6 +285,7 @@ export function DocumentsProvider({
     ensureAdminAccess();
 
     const insertPayload = {
+      id: doc.id,
       slug: doc.slug,
       title: doc.title,
       description: doc.description,
@@ -218,6 +310,7 @@ export function DocumentsProvider({
       throw error;
     }
 
+    await syncDocumentLinks(doc);
     await refreshDocuments();
     await revalidatePublicContent({
       slug: doc.slug,
@@ -233,6 +326,7 @@ export function DocumentsProvider({
     }
 
     const insertPayload = docs.map((doc) => ({
+      id: doc.id,
       slug: doc.slug,
       title: doc.title,
       description: doc.description,
@@ -257,6 +351,7 @@ export function DocumentsProvider({
       throw error;
     }
 
+    await Promise.all(docs.map((doc) => syncDocumentLinks(doc)));
     await refreshDocuments();
     await revalidatePublicContent();
   }, [ensureAdminAccess, refreshDocuments]);
@@ -301,6 +396,7 @@ export function DocumentsProvider({
       await removeCoverImageByPublicUrl(oldCoverUrl);
     }
 
+    await syncDocumentLinks(updatedDoc);
     await refreshDocuments();
     await revalidatePublicContent({
       slug: updatedDoc.slug,
