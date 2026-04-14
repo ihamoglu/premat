@@ -8,6 +8,7 @@ import AdminBulkImport from "@/components/admin/AdminBulkImport";
 import AdminReviewQueue from "@/components/admin/AdminReviewQueue";
 import AdminLinkHealthCheck from "@/components/admin/AdminLinkHealthCheck";
 import AdminOperationsReport from "@/components/admin/AdminOperationsReport";
+import AdminStorageCleanup from "@/components/admin/AdminStorageCleanup";
 import { useAuth } from "@/components/providers/AuthProvider";
 import {
   DocumentsProvider,
@@ -199,6 +200,8 @@ function PanelPageInner() {
           <AdminOperationsReport documents={documents} />
 
           <AdminLinkHealthCheck />
+
+          <AdminStorageCleanup />
 
           <AdminDocumentsList onEdit={(doc) => setEditingDoc(doc)} />
         </div>
