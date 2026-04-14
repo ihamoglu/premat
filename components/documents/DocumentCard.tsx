@@ -2,6 +2,8 @@ import Link from "next/link";
 import { DocumentItem } from "@/types/document";
 import ContentImage from "@/components/common/ContentImage";
 import { topicToSlug } from "@/lib/topic-slugs";
+import WorklistAddButton from "@/components/worklist/WorklistAddButton";
+import TrackedDocumentLink from "@/components/documents/TrackedDocumentLink";
 
 type DocumentCardProps = {
   doc: DocumentItem;
@@ -136,10 +138,10 @@ export default function DocumentCard({ doc }: DocumentCardProps) {
             İncele
           </Link>
 
-          <a
+          <TrackedDocumentLink
+            documentId={doc.id}
             href={doc.fileUrl}
-            target="_blank"
-            rel="noopener noreferrer"
+            eventType="file_open"
             className="flex-1 rounded-2xl px-4 py-3 text-center text-sm font-bold text-white shadow-md shadow-blue-900/15 transition hover:-translate-y-0.5 hover:brightness-[1.06] hover:shadow-blue-900/25 visited:text-white"
             style={{
               background:
@@ -148,7 +150,11 @@ export default function DocumentCard({ doc }: DocumentCardProps) {
             }}
           >
             <span style={{ color: "#ffffff" }}>Aç</span>
-          </a>
+          </TrackedDocumentLink>
+        </div>
+
+        <div className="mt-3">
+          <WorklistAddButton doc={doc} />
         </div>
       </div>
     </article>

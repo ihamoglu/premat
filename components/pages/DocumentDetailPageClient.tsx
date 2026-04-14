@@ -2,12 +2,13 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import DocumentCard from "@/components/documents/DocumentCard";
 import ContentImage from "@/components/common/ContentImage";
 import { DocumentItem } from "@/types/document";
 import { absoluteUrl } from "@/lib/site";
 import { topicToSlug } from "@/lib/topic-slugs";
+import WorklistAddButton from "@/components/worklist/WorklistAddButton";
 
 type DocumentDetailPageClientProps = {
   doc: DocumentItem;
@@ -34,6 +35,25 @@ export default function DocumentDetailPageClient({
     doc.answerKeyUrl ? "Cevap anahtarı mevcut" : null,
     doc.solutionUrl ? "Çözüm bağlantısı mevcut" : null,
   ].filter(Boolean);
+
+  const trackDocumentEvent = useCallback((
+    eventType: "detail_view" | "file_open" | "solution_open" | "answer_key_open"
+  ) => {
+    void fetch("/api/documents/events", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        documentId: doc.id,
+        eventType,
+      }),
+    }).catch(() => undefined);
+  }, [doc.id]);
+
+  useEffect(() => {
+    trackDocumentEvent("detail_view");
+  }, [trackDocumentEvent]);
 
   async function handleCopyLink() {
     try {
@@ -264,6 +284,7 @@ export default function DocumentDetailPageClient({
                   href={doc.fileUrl}
                   target="_blank"
                   rel="noopener noreferrer"
+                  onClick={() => trackDocumentEvent("file_open")}
                   className="block rounded-2xl px-5 py-4 text-center text-sm font-bold text-white shadow-lg shadow-blue-800/20 transition hover:-translate-y-0.5 hover:brightness-[1.06] hover:shadow-blue-800/30 visited:text-white"
                   style={{
                     background:
@@ -274,11 +295,14 @@ export default function DocumentDetailPageClient({
                   <span style={{ color: "#ffffff" }}>Dokümanı Aç</span>
                 </a>
 
+                <WorklistAddButton doc={doc} variant="detail" />
+
                 {doc.solutionUrl ? (
                   <a
                     href={doc.solutionUrl}
                     target="_blank"
                     rel="noopener noreferrer"
+                    onClick={() => trackDocumentEvent("solution_open")}
                     className="block rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-4 text-center text-sm font-bold text-emerald-700 transition hover:-translate-y-0.5 hover:bg-emerald-100 hover:shadow-sm"
                   >
                     Çözümü Aç
@@ -290,6 +314,7 @@ export default function DocumentDetailPageClient({
                     href={doc.answerKeyUrl}
                     target="_blank"
                     rel="noopener noreferrer"
+                    onClick={() => trackDocumentEvent("answer_key_open")}
                     className="block rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4 text-center text-sm font-bold text-amber-700 transition hover:-translate-y-0.5 hover:bg-amber-100 hover:shadow-sm"
                   >
                     Cevap Anahtarını Aç

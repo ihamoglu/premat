@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { useDocuments } from "@/components/providers/DocumentsProvider";
 import SectionHeader from "@/components/ui/SectionHeader";
@@ -128,6 +128,7 @@ export default function AdminDocumentForm({ editingDoc, onCancelEdit, onFinish }
   const [statusType, setStatusType] = useState<"success" | "error" | "warning" | "">("");
   const [coverImageFile, setCoverImageFile] = useState<File | null>(null);
   const [localCoverPreviewUrl, setLocalCoverPreviewUrl] = useState("");
+  const localCoverPreviewUrlRef = useRef("");
   const [fileInputKey, setFileInputKey] = useState(0);
   const [slugCopied, setSlugCopied] = useState(false);
 
@@ -151,17 +152,26 @@ export default function AdminDocumentForm({ editingDoc, onCancelEdit, onFinish }
     [form, livePreviewImage]
   );
 
+  function updateLocalCoverPreviewUrl(value: string) {
+    localCoverPreviewUrlRef.current = value;
+    setLocalCoverPreviewUrl(value);
+  }
+
   useEffect(() => {
     return () => {
-      if (localCoverPreviewUrl) URL.revokeObjectURL(localCoverPreviewUrl);
+      if (localCoverPreviewUrlRef.current) {
+        URL.revokeObjectURL(localCoverPreviewUrlRef.current);
+      }
     };
-  }, [localCoverPreviewUrl]);
+  }, []);
 
   useEffect(() => {
-    if (localCoverPreviewUrl) URL.revokeObjectURL(localCoverPreviewUrl);
+    if (localCoverPreviewUrlRef.current) {
+      URL.revokeObjectURL(localCoverPreviewUrlRef.current);
+    }
 
     setCoverImageFile(null);
-    setLocalCoverPreviewUrl("");
+    updateLocalCoverPreviewUrl("");
     setFileInputKey((prev) => prev + 1);
     setSlugCopied(false);
 
@@ -201,10 +211,12 @@ export default function AdminDocumentForm({ editingDoc, onCancelEdit, onFinish }
   }
 
   function resetFormCompletely() {
-    if (localCoverPreviewUrl) URL.revokeObjectURL(localCoverPreviewUrl);
+    if (localCoverPreviewUrlRef.current) {
+      URL.revokeObjectURL(localCoverPreviewUrlRef.current);
+    }
     setForm(initialState);
     setCoverImageFile(null);
-    setLocalCoverPreviewUrl("");
+    updateLocalCoverPreviewUrl("");
     setFileInputKey((prev) => prev + 1);
     setStatusMessage("");
     setStatusType("");
@@ -229,19 +241,23 @@ export default function AdminDocumentForm({ editingDoc, onCancelEdit, onFinish }
       return;
     }
 
-    if (localCoverPreviewUrl) URL.revokeObjectURL(localCoverPreviewUrl);
+    if (localCoverPreviewUrlRef.current) {
+      URL.revokeObjectURL(localCoverPreviewUrlRef.current);
+    }
 
     const previewUrl = URL.createObjectURL(file);
     setCoverImageFile(file);
-    setLocalCoverPreviewUrl(previewUrl);
+    updateLocalCoverPreviewUrl(previewUrl);
     setStatusType("warning");
     setStatusMessage("Görsel seçildi. Kaydı kaydettiğinde yüklenecek.");
   }
 
   function clearCoverImage() {
-    if (localCoverPreviewUrl) URL.revokeObjectURL(localCoverPreviewUrl);
+    if (localCoverPreviewUrlRef.current) {
+      URL.revokeObjectURL(localCoverPreviewUrlRef.current);
+    }
     setCoverImageFile(null);
-    setLocalCoverPreviewUrl("");
+    updateLocalCoverPreviewUrl("");
     updateField("coverImageUrl", "");
     setFileInputKey((prev) => prev + 1);
     setStatusType("");
@@ -309,8 +325,10 @@ export default function AdminDocumentForm({ editingDoc, onCancelEdit, onFinish }
         setCreatedDoc(updatedDoc);
         setForm(initialState);
         setCoverImageFile(null);
-        if (localCoverPreviewUrl) URL.revokeObjectURL(localCoverPreviewUrl);
-        setLocalCoverPreviewUrl("");
+        if (localCoverPreviewUrlRef.current) {
+          URL.revokeObjectURL(localCoverPreviewUrlRef.current);
+        }
+        updateLocalCoverPreviewUrl("");
         setFileInputKey((prev) => prev + 1);
         setStatusType("success");
         setStatusMessage("Kayıt başarıyla güncellendi.");
@@ -349,8 +367,10 @@ export default function AdminDocumentForm({ editingDoc, onCancelEdit, onFinish }
       setCreatedDoc(newDoc);
       setForm(initialState);
       setCoverImageFile(null);
-      if (localCoverPreviewUrl) URL.revokeObjectURL(localCoverPreviewUrl);
-      setLocalCoverPreviewUrl("");
+      if (localCoverPreviewUrlRef.current) {
+        URL.revokeObjectURL(localCoverPreviewUrlRef.current);
+      }
+      updateLocalCoverPreviewUrl("");
       setFileInputKey((prev) => prev + 1);
       setStatusType("success");
       setStatusMessage("Kayıt başarıyla oluşturuldu.");
@@ -564,6 +584,7 @@ export default function AdminDocumentForm({ editingDoc, onCancelEdit, onFinish }
           <div className="mt-5 space-y-4">
             {livePreviewImage ? (
               <div className="overflow-hidden rounded-[1.5rem] border border-slate-200 bg-slate-50">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={livePreviewImage} alt={form.title || "Tanıtım görseli"} className="h-[240px] w-full object-cover" />
               </div>
             ) : (

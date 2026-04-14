@@ -7,6 +7,7 @@ import AdminDocumentsList from "@/components/admin/AdminDocumentsList";
 import AdminBulkImport from "@/components/admin/AdminBulkImport";
 import AdminReviewQueue from "@/components/admin/AdminReviewQueue";
 import AdminLinkHealthCheck from "@/components/admin/AdminLinkHealthCheck";
+import AdminOperationsReport from "@/components/admin/AdminOperationsReport";
 import { useAuth } from "@/components/providers/AuthProvider";
 import {
   DocumentsProvider,
@@ -194,6 +195,8 @@ function PanelPageInner() {
           />
 
           <AdminBulkImport />
+
+          <AdminOperationsReport documents={documents} />
 
           <AdminLinkHealthCheck />
 

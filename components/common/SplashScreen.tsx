@@ -41,22 +41,18 @@ const SYMBOLS = [
 export default function SplashScreen({ onFinish }: { onFinish?: () => void }) {
   const [phase, setPhase] = useState<"enter" | "hold" | "exit">("enter");
   const [progress, setProgress] = useState(0);
-  const [particles, setParticles] = useState<Particle[]>([]);
+  const [particles] = useState<Particle[]>(() =>
+    Array.from({ length: 24 }, (_, index) => ({
+      id: index,
+      x: Math.random() * 100,
+      y: Math.random() * 100,
+      size: 30 + Math.random() * 26,
+      duration: 3.2 + Math.random() * 2.6,
+      delay: Math.random() * 2.2,
+      symbol: SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)],
+    }))
+  );
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
-
-  useEffect(() => {
-    setParticles(
-      Array.from({ length: 24 }, (_, index) => ({
-        id: index,
-        x: Math.random() * 100,
-        y: Math.random() * 100,
-        size: 30 + Math.random() * 26,
-        duration: 3.2 + Math.random() * 2.6,
-        delay: Math.random() * 2.2,
-        symbol: SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)],
-      }))
-    );
-  }, []);
 
   useEffect(() => {
     timerRef.current = setInterval(() => {

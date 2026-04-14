@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import SplashScreen from "@/components/common/SplashScreen";
+import WorklistDrawer from "@/components/worklist/WorklistDrawer";
 
 function NavbarFallback() {
   return <div className="h-[74px] border-b border-slate-200 bg-white/90" />;
@@ -32,18 +33,22 @@ export default function AppShell({
       return;
     }
 
-    const tabAlreadyOpened =
-      window.sessionStorage.getItem("premat-tab-opened") === "1";
+    const timeoutId = window.setTimeout(() => {
+      const tabAlreadyOpened =
+        window.sessionStorage.getItem("premat-tab-opened") === "1";
 
-    if (!tabAlreadyOpened) {
-      window.sessionStorage.setItem("premat-tab-opened", "1");
+      if (!tabAlreadyOpened) {
+        window.sessionStorage.setItem("premat-tab-opened", "1");
 
-      if (isHomeRoute) {
-        setShowSplash(true);
+        if (isHomeRoute) {
+          setShowSplash(true);
+        }
       }
-    }
 
-    setHasCheckedSplash(true);
+      setHasCheckedSplash(true);
+    }, 0);
+
+    return () => window.clearTimeout(timeoutId);
   }, [isHomeRoute]);
 
   useEffect(() => {
@@ -83,6 +88,7 @@ export default function AppShell({
         <div className="flex-1">{children}</div>
 
         {!isPanelRoute ? <Footer /> : null}
+        {!isPanelRoute ? <WorklistDrawer /> : null}
       </div>
     </>
   );

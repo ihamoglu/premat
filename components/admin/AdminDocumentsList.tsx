@@ -35,7 +35,7 @@ function slugifyTr(text: string) {
 }
 
 function buildUniqueCopyTitle(baseTitle: string, existingTitles: string[]) {
-  let candidate = `${baseTitle} Kopya`;
+  const candidate = `${baseTitle} Kopya`;
   if (!existingTitles.includes(candidate)) return candidate;
   let counter = 2;
   while (existingTitles.includes(`${baseTitle} Kopya ${counter}`)) counter += 1;
@@ -43,7 +43,7 @@ function buildUniqueCopyTitle(baseTitle: string, existingTitles: string[]) {
 }
 
 function buildUniqueSlug(baseSlug: string, existingSlugs: string[]) {
-  let candidate = `${baseSlug}-kopya`;
+  const candidate = `${baseSlug}-kopya`;
   if (!existingSlugs.includes(candidate)) return candidate;
   let counter = 2;
   while (existingSlugs.includes(`${baseSlug}-kopya-${counter}`)) counter += 1;

@@ -33,15 +33,19 @@ export function ConsentProvider({
   const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
-    const saved = window.localStorage.getItem(STORAGE_KEY);
+    const timeoutId = window.setTimeout(() => {
+      const saved = window.localStorage.getItem(STORAGE_KEY);
 
-    if (saved === "accepted" || saved === "rejected") {
-      setConsent(saved);
-    } else {
-      setConsent("unset");
-    }
+      if (saved === "accepted" || saved === "rejected") {
+        setConsent(saved);
+      } else {
+        setConsent("unset");
+      }
 
-    setIsReady(true);
+      setIsReady(true);
+    }, 0);
+
+    return () => window.clearTimeout(timeoutId);
   }, []);
 
   function acceptConsent() {

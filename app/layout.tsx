@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import "./globals.css";
 import AppShell from "@/components/layout/AppShell";
 import { AuthProvider } from "@/components/providers/AuthProvider";
+import { WorklistProvider } from "@/components/providers/WorklistProvider";
 import GoogleAnalytics from "@/components/analytics/GoogleAnalytics";
 import AutoAdsLoader from "@/components/ads/AutoAdsLoader";
 import { absoluteUrl, siteConfig } from "@/lib/site";
@@ -60,11 +61,13 @@ export default function RootLayout({
     <html lang="tr">
       <body>
         <AuthProvider>
-          <Suspense fallback={null}>
-            <GoogleAnalytics />
-          </Suspense>
-          <AutoAdsLoader />
-          <AppShell>{children}</AppShell>
+          <WorklistProvider>
+            <Suspense fallback={null}>
+              <GoogleAnalytics />
+            </Suspense>
+            <AutoAdsLoader />
+            <AppShell>{children}</AppShell>
+          </WorklistProvider>
         </AuthProvider>
       </body>
     </html>
