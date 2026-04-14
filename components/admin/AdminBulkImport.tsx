@@ -7,11 +7,17 @@ import InlineNotice from "@/components/ui/InlineNotice";
 import SectionHeader from "@/components/ui/SectionHeader";
 import StatCard from "@/components/ui/StatCard";
 import {
+  documentDifficultyCatalog,
   documentTypeCatalog,
   getTopicsByGrade,
   sourceTypeCatalog,
 } from "@/data/catalog";
-import { DocumentItem, GradeLevel, SourceType } from "@/types/document";
+import {
+  DocumentDifficulty,
+  DocumentItem,
+  GradeLevel,
+  SourceType,
+} from "@/types/document";
 
 type CanonicalHeader =
   | "title"
@@ -25,6 +31,13 @@ type CanonicalHeader =
   | "solutionUrl"
   | "answerKeyUrl"
   | "coverImageUrl"
+  | "difficulty"
+  | "pageCount"
+  | "questionCount"
+  | "sourceYear"
+  | "curriculumCode"
+  | "isPrintReady"
+  | "hasVideoSolution"
   | "featured"
   | "published";
 
@@ -67,6 +80,13 @@ const HEADER_ALIASES: Record<CanonicalHeader, string[]> = {
     "tanitimgorseli",
     "gorselurl",
   ],
+  difficulty: ["difficulty", "zorluk", "seviye"],
+  pageCount: ["pagecount", "sayfasayisi", "sayfa"],
+  questionCount: ["questioncount", "sorusayisi", "soru"],
+  sourceYear: ["sourceyear", "kaynakyili", "yil"],
+  curriculumCode: ["curriculumcode", "kazanimkodu"],
+  isPrintReady: ["isprintready", "yazdirmayahazir"],
+  hasVideoSolution: ["hasvideosolution", "videocozum", "videocozumvar"],
   featured: ["featured", "onecikan"],
   published: ["published", "yayinda", "yayin"],
 };
@@ -141,8 +161,14 @@ function isValidUrl(value: string) {
   }
 }
 
+function parsePositiveInteger(value: string) {
+  const parsed = Number(value);
+
+  return Number.isInteger(parsed) && parsed > 0 ? parsed : undefined;
+}
+
 function buildUniqueSlug(baseSlug: string, reserved: Set<string>) {
-  let candidate = baseSlug || "kayit";
+  const candidate = baseSlug || "kayit";
 
   if (!reserved.has(candidate)) {
     reserved.add(candidate);
@@ -172,6 +198,13 @@ const templateText = [
     "solutionUrl",
     "answerKeyUrl",
     "coverImageUrl",
+    "difficulty",
+    "pageCount",
+    "questionCount",
+    "sourceYear",
+    "curriculumCode",
+    "isPrintReady",
+    "hasVideoSolution",
     "featured",
     "published",
   ].join("\t"),
@@ -187,6 +220,13 @@ const templateText = [
     "https://ornek.com/cozum.pdf",
     "https://ornek.com/cevap.pdf",
     "https://ornek.com/gorsel.jpg",
+    "Orta",
+    "4",
+    "24",
+    "2026",
+    "M.8.2.1.1",
+    "evet",
+    "evet",
     "evet",
     "evet",
   ].join("\t"),
@@ -301,6 +341,13 @@ export default function AdminBulkImport() {
       const solutionUrl = getCell("solutionUrl");
       const answerKeyUrl = getCell("answerKeyUrl");
       const coverImageUrl = getCell("coverImageUrl");
+      const difficulty = getCell("difficulty");
+      const pageCount = getCell("pageCount");
+      const questionCount = getCell("questionCount");
+      const sourceYear = getCell("sourceYear");
+      const curriculumCode = getCell("curriculumCode");
+      const isPrintReady = getCell("isPrintReady");
+      const hasVideoSolution = getCell("hasVideoSolution");
       const featured = getCell("featured");
       const published = getCell("published");
 
@@ -352,6 +399,32 @@ export default function AdminBulkImport() {
         errors.push("Kapak görseli bağlantısı geçersiz.");
       }
 
+      if (
+        difficulty &&
+        !documentDifficultyCatalog.includes(difficulty as DocumentDifficulty)
+      ) {
+        errors.push("Zorluk Başlangıç, Orta, İleri veya Karma olmalı.");
+      }
+
+      const parsedPageCount = parsePositiveInteger(pageCount);
+      const parsedQuestionCount = parsePositiveInteger(questionCount);
+      const parsedSourceYear = parsePositiveInteger(sourceYear);
+
+      if (pageCount && !parsedPageCount) {
+        errors.push("Sayfa sayısı pozitif tam sayı olmalı.");
+      }
+
+      if (questionCount && !parsedQuestionCount) {
+        errors.push("Soru sayısı pozitif tam sayı olmalı.");
+      }
+
+      if (
+        sourceYear &&
+        (!parsedSourceYear || parsedSourceYear < 2000 || parsedSourceYear > 2100)
+      ) {
+        errors.push("Kaynak yılı 2000-2100 aralığında olmalı.");
+      }
+
       const slug = buildUniqueSlug(slugifyTr(title), existingSlugs);
 
       parsed.push({
@@ -372,6 +445,16 @@ export default function AdminBulkImport() {
           solutionUrl: solutionUrl || undefined,
           answerKeyUrl: answerKeyUrl || undefined,
           coverImageUrl: coverImageUrl || undefined,
+          difficulty: difficulty
+            ? (difficulty as DocumentDifficulty)
+            : undefined,
+          pageCount: parsedPageCount,
+          questionCount: parsedQuestionCount,
+          sourceYear: parsedSourceYear,
+          curriculumCode: curriculumCode || undefined,
+          isPrintReady: parseBoolean(isPrintReady, false),
+          hasVideoSolution:
+            parseBoolean(hasVideoSolution, false) || Boolean(solutionUrl),
           featured: parseBoolean(featured, false),
           published: parseBoolean(published, true),
           createdAt: new Date().toISOString().slice(0, 10),
@@ -481,7 +564,7 @@ export default function AdminBulkImport() {
 
         <div className="space-y-4">
           <InlineNotice title="Beklenen başlıklar">
-            title, description, grade, topic, subtopic, type, sourceType, fileUrl, solutionUrl, answerKeyUrl, coverImageUrl, featured, published
+            title, description, grade, topic, subtopic, type, sourceType, fileUrl, solutionUrl, answerKeyUrl, coverImageUrl, difficulty, pageCount, questionCount, sourceYear, curriculumCode, isPrintReady, hasVideoSolution, featured, published
           </InlineNotice>
 
           <InlineNotice tone="info" title="En temiz yöntem">

@@ -1,4 +1,8 @@
-import type { GradeLevel, SourceType } from "@/types/document";
+import type {
+  DocumentDifficulty,
+  GradeLevel,
+  SourceType,
+} from "@/types/document";
 
 export const gradeCatalog: Record<GradeLevel, string[]> = {
   "5": [
@@ -61,6 +65,13 @@ export const sourceTypeCatalog: SourceType[] = [
   "OneDrive",
   "Dropbox",
   "Diğer",
+];
+
+export const documentDifficultyCatalog: DocumentDifficulty[] = [
+  "Başlangıç",
+  "Orta",
+  "İleri",
+  "Karma",
 ];
 
 export function getTopicsByGrade(grade: string): string[] {

@@ -38,6 +38,9 @@ function getDocumentSearchFields(doc: DocumentItem) {
     doc.subtopic || "",
     doc.type,
     doc.slug,
+    doc.difficulty || "",
+    doc.curriculumCode || "",
+    doc.sourceYear ? String(doc.sourceYear) : "",
   ];
 }
 
@@ -67,6 +70,8 @@ export function getDocumentSearchScore(doc: DocumentItem, query: string) {
   const topic = normalizeDocumentSearchText(doc.topic);
   const type = normalizeDocumentSearchText(doc.type);
   const slug = normalizeDocumentSearchText(doc.slug);
+  const difficulty = normalizeDocumentSearchText(doc.difficulty || "");
+  const curriculumCode = normalizeDocumentSearchText(doc.curriculumCode || "");
 
   let score = 0;
 
@@ -76,6 +81,8 @@ export function getDocumentSearchScore(doc: DocumentItem, query: string) {
   if (topic.includes(normalizedQuery)) score += 20;
   if (type.includes(normalizedQuery)) score += 12;
   if (slug.includes(normalizedQuery)) score += 10;
+  if (difficulty.includes(normalizedQuery)) score += 8;
+  if (curriculumCode.includes(normalizedQuery)) score += 8;
   if (doc.featured) score += 5;
 
   return score;

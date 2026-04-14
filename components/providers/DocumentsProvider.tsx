@@ -2,13 +2,14 @@
 
 import {
   createContext,
+  useCallback,
   useContext,
   useEffect,
   useMemo,
   useState,
 } from "react";
 import { supabase } from "@/lib/supabase";
-import { DocumentItem } from "@/types/document";
+import { DocumentDifficulty, DocumentItem } from "@/types/document";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { extractPublicStoragePath } from "@/lib/storage-paths";
 
@@ -43,10 +44,23 @@ type SupabaseDocumentRow = {
   solution_url: string | null;
   answer_key_url: string | null;
   cover_image_url: string | null;
+  difficulty?: string | null;
+  page_count?: number | null;
+  question_count?: number | null;
+  source_year?: number | null;
+  curriculum_code?: string | null;
+  is_print_ready?: boolean | null;
+  has_video_solution?: boolean | null;
   featured: boolean;
   published: boolean;
   created_at: string;
 };
+
+function mapOptionalNumber(value: number | null | undefined) {
+  return typeof value === "number" && Number.isFinite(value)
+    ? value
+    : undefined;
+}
 
 function mapRowToDocument(row: SupabaseDocumentRow): DocumentItem {
   return {
@@ -63,9 +77,30 @@ function mapRowToDocument(row: SupabaseDocumentRow): DocumentItem {
     solutionUrl: row.solution_url || undefined,
     answerKeyUrl: row.answer_key_url || undefined,
     coverImageUrl: row.cover_image_url || undefined,
+    difficulty: (row.difficulty || undefined) as
+      | DocumentDifficulty
+      | undefined,
+    pageCount: mapOptionalNumber(row.page_count),
+    questionCount: mapOptionalNumber(row.question_count),
+    sourceYear: mapOptionalNumber(row.source_year),
+    curriculumCode: row.curriculum_code || undefined,
+    isPrintReady: Boolean(row.is_print_ready),
+    hasVideoSolution: Boolean(row.has_video_solution || row.solution_url),
     featured: row.featured,
     published: row.published,
     createdAt: row.created_at.slice(0, 10),
+  };
+}
+
+function getDocumentMetadataPayload(doc: DocumentItem) {
+  return {
+    difficulty: doc.difficulty || null,
+    page_count: doc.pageCount || null,
+    question_count: doc.questionCount || null,
+    source_year: doc.sourceYear || null,
+    curriculum_code: doc.curriculumCode || null,
+    is_print_ready: doc.isPrintReady,
+    has_video_solution: doc.hasVideoSolution || Boolean(doc.solutionUrl),
   };
 }
 
@@ -110,13 +145,13 @@ export function DocumentsProvider({
   const { isAuthenticated, isLoading, isAdmin } = useAuth();
   const [documents, setDocuments] = useState<DocumentItem[]>([]);
 
-  function ensureAdminAccess() {
+  const ensureAdminAccess = useCallback(() => {
     if (scope !== "admin" || !isAuthenticated || !isAdmin) {
       throw new Error("Bu işlem yalnızca admin scope içinde çalışır.");
     }
-  }
+  }, [scope, isAuthenticated, isAdmin]);
 
-  async function refreshDocuments() {
+  const refreshDocuments = useCallback(async () => {
     if (scope === "admin") {
       if (isLoading) {
         return;
@@ -145,20 +180,17 @@ export function DocumentsProvider({
     }
 
     setDocuments((data as SupabaseDocumentRow[]).map(mapRowToDocument));
-  }
+  }, [scope, isLoading, isAuthenticated, isAdmin]);
 
   useEffect(() => {
-    if (scope === "public") {
-      refreshDocuments();
-      return;
-    }
+    const timeoutId = window.setTimeout(() => {
+      void refreshDocuments();
+    }, 0);
 
-    if (!isLoading) {
-      refreshDocuments();
-    }
-  }, [scope, isAuthenticated, isAdmin, isLoading]);
+    return () => window.clearTimeout(timeoutId);
+  }, [refreshDocuments]);
 
-  async function addDocument(doc: DocumentItem) {
+  const addDocument = useCallback(async (doc: DocumentItem) => {
     ensureAdminAccess();
 
     const insertPayload = {
@@ -174,6 +206,7 @@ export function DocumentsProvider({
       solution_url: doc.solutionUrl || null,
       answer_key_url: doc.answerKeyUrl || null,
       cover_image_url: doc.coverImageUrl || null,
+      ...getDocumentMetadataPayload(doc),
       featured: doc.featured,
       published: doc.published,
     };
@@ -190,9 +223,9 @@ export function DocumentsProvider({
       slug: doc.slug,
       grade: doc.grade,
     });
-  }
+  }, [ensureAdminAccess, refreshDocuments]);
 
-  async function bulkAddDocuments(docs: DocumentItem[]) {
+  const bulkAddDocuments = useCallback(async (docs: DocumentItem[]) => {
     ensureAdminAccess();
 
     if (docs.length === 0) {
@@ -212,6 +245,7 @@ export function DocumentsProvider({
       solution_url: doc.solutionUrl || null,
       answer_key_url: doc.answerKeyUrl || null,
       cover_image_url: doc.coverImageUrl || null,
+      ...getDocumentMetadataPayload(doc),
       featured: doc.featured,
       published: doc.published,
     }));
@@ -225,9 +259,9 @@ export function DocumentsProvider({
 
     await refreshDocuments();
     await revalidatePublicContent();
-  }
+  }, [ensureAdminAccess, refreshDocuments]);
 
-  async function updateDocument(updatedDoc: DocumentItem) {
+  const updateDocument = useCallback(async (updatedDoc: DocumentItem) => {
     ensureAdminAccess();
 
     const existingDoc = documents.find((doc) => doc.id === updatedDoc.id);
@@ -245,6 +279,7 @@ export function DocumentsProvider({
       solution_url: updatedDoc.solutionUrl || null,
       answer_key_url: updatedDoc.answerKeyUrl || null,
       cover_image_url: updatedDoc.coverImageUrl || null,
+      ...getDocumentMetadataPayload(updatedDoc),
       featured: updatedDoc.featured,
       published: updatedDoc.published,
     };
@@ -271,9 +306,9 @@ export function DocumentsProvider({
       slug: updatedDoc.slug,
       grade: updatedDoc.grade,
     });
-  }
+  }, [documents, ensureAdminAccess, refreshDocuments]);
 
-  async function deleteDocument(id: string) {
+  const deleteDocument = useCallback(async (id: string) => {
     ensureAdminAccess();
 
     const targetDoc = documents.find((doc) => doc.id === id);
@@ -294,7 +329,7 @@ export function DocumentsProvider({
       slug: targetDoc?.slug,
       grade: targetDoc?.grade,
     });
-  }
+  }, [documents, ensureAdminAccess, refreshDocuments]);
 
   const value = useMemo(
     () => ({
@@ -305,7 +340,14 @@ export function DocumentsProvider({
       deleteDocument,
       refreshDocuments,
     }),
-    [documents, scope, isAuthenticated, isAdmin, isLoading]
+    [
+      documents,
+      addDocument,
+      bulkAddDocuments,
+      updateDocument,
+      deleteDocument,
+      refreshDocuments,
+    ]
   );
 
   return (

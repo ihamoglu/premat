@@ -6,6 +6,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import DocumentCard from "@/components/documents/DocumentCard";
 import { DocumentItem, GradeLevel } from "@/types/document";
 import {
+  documentDifficultyCatalog,
   documentTypeCatalog,
   getAllTopics,
   getTopicsByGrade,
@@ -36,6 +37,11 @@ export default function DocumentsPageClient({
   const selectedTopic = searchParams.get("topic") || "";
   const selectedType = searchParams.get("type") || "";
   const selectedQuery = searchParams.get("q") || "";
+  const selectedDifficulty = searchParams.get("difficulty") || "";
+  const selectedVideo = searchParams.get("video") || "";
+  const selectedAnswerKey = searchParams.get("answerKey") || "";
+  const selectedPrintReady = searchParams.get("printReady") || "";
+  const selectedYear = searchParams.get("year") || "";
   const [searchInput, setSearchInput] = useState(selectedQuery);
 
   const selectedGrade: "Tümü" | GradeLevel =
@@ -60,14 +66,55 @@ export default function DocumentsPageClient({
       const matchesQuery = selectedQuery
         ? documentMatchesSearch(doc, selectedQuery)
         : true;
+      const matchesDifficulty = selectedDifficulty
+        ? doc.difficulty === selectedDifficulty
+        : true;
+      const matchesVideo =
+        selectedVideo === "var"
+          ? doc.hasVideoSolution
+          : selectedVideo === "yok"
+            ? !doc.hasVideoSolution
+            : true;
+      const matchesAnswerKey =
+        selectedAnswerKey === "var"
+          ? Boolean(doc.answerKeyUrl)
+          : selectedAnswerKey === "yok"
+            ? !doc.answerKeyUrl
+            : true;
+      const matchesPrintReady =
+        selectedPrintReady === "var" ? doc.isPrintReady : true;
+      const matchesYear = selectedYear
+        ? String(doc.sourceYear || "") === selectedYear
+        : true;
 
-      return matchesGrade && matchesTopic && matchesType && matchesQuery;
+      return (
+        matchesGrade &&
+        matchesTopic &&
+        matchesType &&
+        matchesQuery &&
+        matchesDifficulty &&
+        matchesVideo &&
+        matchesAnswerKey &&
+        matchesPrintReady &&
+        matchesYear
+      );
     });
 
     return selectedQuery
       ? sortDocumentsForSearch(filtered, selectedQuery)
       : filtered;
-  }, [documents, selectedGrade, selectedTopic, selectedType, selectedQuery]);
+  }, [
+    documents,
+    selectedGrade,
+    selectedTopic,
+    selectedType,
+    selectedQuery,
+    selectedDifficulty,
+    selectedVideo,
+    selectedAnswerKey,
+    selectedPrintReady,
+    selectedYear,
+  ]);
 
   const topicOptions = useMemo(() => {
     return selectedGrade === "Tümü"
@@ -80,11 +127,34 @@ export default function DocumentsPageClient({
     [filteredDocs]
   );
 
+  const yearOptions = useMemo(() => {
+    return Array.from(
+      new Set(
+        documents
+          .map((doc) => doc.sourceYear)
+          .filter((year): year is number => typeof year === "number")
+      )
+    ).sort((a, b) => b - a);
+  }, [documents]);
+
   const activeFilters = [
     selectedGrade !== "Tümü" ? `${selectedGrade}. Sınıf` : null,
     selectedTopic || null,
     selectedType || null,
     selectedQuery ? `Arama: ${selectedQuery}` : null,
+    selectedDifficulty ? `Zorluk: ${selectedDifficulty}` : null,
+    selectedVideo === "var"
+      ? "Video çözüm var"
+      : selectedVideo === "yok"
+        ? "Video çözüm yok"
+        : null,
+    selectedAnswerKey === "var"
+      ? "Cevap anahtarı var"
+      : selectedAnswerKey === "yok"
+        ? "Cevap anahtarı yok"
+        : null,
+    selectedPrintReady === "var" ? "Yazdırmaya hazır" : null,
+    selectedYear ? `Yıl: ${selectedYear}` : null,
   ].filter(Boolean);
 
   function updateFilters(next: {
@@ -92,6 +162,11 @@ export default function DocumentsPageClient({
     topic?: string;
     type?: string;
     q?: string;
+    difficulty?: string;
+    video?: string;
+    answerKey?: string;
+    printReady?: string;
+    year?: string;
   }) {
     const params = new URLSearchParams(searchParams.toString());
 
@@ -99,6 +174,11 @@ export default function DocumentsPageClient({
     const nextTopic = next.topic ?? selectedTopic;
     const nextType = next.type ?? selectedType;
     const nextQuery = next.q ?? selectedQuery;
+    const nextDifficulty = next.difficulty ?? selectedDifficulty;
+    const nextVideo = next.video ?? selectedVideo;
+    const nextAnswerKey = next.answerKey ?? selectedAnswerKey;
+    const nextPrintReady = next.printReady ?? selectedPrintReady;
+    const nextYear = next.year ?? selectedYear;
 
     if (nextGrade === "Tümü") {
       params.delete("grade");
@@ -122,6 +202,36 @@ export default function DocumentsPageClient({
       params.set("q", nextQuery.trim());
     } else {
       params.delete("q");
+    }
+
+    if (nextDifficulty) {
+      params.set("difficulty", nextDifficulty);
+    } else {
+      params.delete("difficulty");
+    }
+
+    if (nextVideo) {
+      params.set("video", nextVideo);
+    } else {
+      params.delete("video");
+    }
+
+    if (nextAnswerKey) {
+      params.set("answerKey", nextAnswerKey);
+    } else {
+      params.delete("answerKey");
+    }
+
+    if (nextPrintReady) {
+      params.set("printReady", nextPrintReady);
+    } else {
+      params.delete("printReady");
+    }
+
+    if (nextYear) {
+      params.set("year", nextYear);
+    } else {
+      params.delete("year");
     }
 
     const query = params.toString();
@@ -367,6 +477,83 @@ export default function DocumentsPageClient({
               {documentTypeCatalog.map((item) => (
                 <option key={item} value={item}>
                   {item}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+            <select
+              value={selectedDifficulty}
+              onChange={(e) =>
+                updateFilters({
+                  difficulty: e.target.value,
+                })
+              }
+              className="w-full min-w-0 max-w-full appearance-none rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700 outline-none transition focus:border-blue-400 focus:shadow-[0_0_0_3px_rgba(29,79,145,0.10)]"
+            >
+              <option value="">Tüm zorluklar</option>
+              {documentDifficultyCatalog.map((item) => (
+                <option key={item} value={item}>
+                  {item}
+                </option>
+              ))}
+            </select>
+
+            <select
+              value={selectedVideo}
+              onChange={(e) =>
+                updateFilters({
+                  video: e.target.value,
+                })
+              }
+              className="w-full min-w-0 max-w-full appearance-none rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700 outline-none transition focus:border-blue-400 focus:shadow-[0_0_0_3px_rgba(29,79,145,0.10)]"
+            >
+              <option value="">Video çözüm</option>
+              <option value="var">Video çözüm var</option>
+              <option value="yok">Video çözüm yok</option>
+            </select>
+
+            <select
+              value={selectedAnswerKey}
+              onChange={(e) =>
+                updateFilters({
+                  answerKey: e.target.value,
+                })
+              }
+              className="w-full min-w-0 max-w-full appearance-none rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700 outline-none transition focus:border-blue-400 focus:shadow-[0_0_0_3px_rgba(29,79,145,0.10)]"
+            >
+              <option value="">Cevap anahtarı</option>
+              <option value="var">Cevap anahtarı var</option>
+              <option value="yok">Cevap anahtarı yok</option>
+            </select>
+
+            <select
+              value={selectedPrintReady}
+              onChange={(e) =>
+                updateFilters({
+                  printReady: e.target.value,
+                })
+              }
+              className="w-full min-w-0 max-w-full appearance-none rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700 outline-none transition focus:border-blue-400 focus:shadow-[0_0_0_3px_rgba(29,79,145,0.10)]"
+            >
+              <option value="">Yazdırma durumu</option>
+              <option value="var">Yazdırmaya hazır</option>
+            </select>
+
+            <select
+              value={selectedYear}
+              onChange={(e) =>
+                updateFilters({
+                  year: e.target.value,
+                })
+              }
+              className="w-full min-w-0 max-w-full appearance-none rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700 outline-none transition focus:border-blue-400 focus:shadow-[0_0_0_3px_rgba(29,79,145,0.10)]"
+            >
+              <option value="">Tüm yıllar</option>
+              {yearOptions.map((year) => (
+                <option key={year} value={year}>
+                  {year}
                 </option>
               ))}
             </select>

@@ -1,6 +1,11 @@
 import { unstable_cache } from "next/cache";
 import { createClient } from "@supabase/supabase-js";
-import { DocumentItem, GradeLevel, SourceType } from "@/types/document";
+import {
+  DocumentDifficulty,
+  DocumentItem,
+  GradeLevel,
+  SourceType,
+} from "@/types/document";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabasePublishableKey =
@@ -22,10 +27,23 @@ export type ServerDocumentRow = {
   solution_url: string | null;
   answer_key_url: string | null;
   cover_image_url: string | null;
+  difficulty?: string | null;
+  page_count?: number | null;
+  question_count?: number | null;
+  source_year?: number | null;
+  curriculum_code?: string | null;
+  is_print_ready?: boolean | null;
+  has_video_solution?: boolean | null;
   featured: boolean;
   published: boolean;
   created_at: string;
 };
+
+function mapOptionalNumber(value: number | null | undefined) {
+  return typeof value === "number" && Number.isFinite(value)
+    ? value
+    : undefined;
+}
 
 function mapRowToDocument(row: ServerDocumentRow): DocumentItem {
   return {
@@ -42,6 +60,15 @@ function mapRowToDocument(row: ServerDocumentRow): DocumentItem {
     solutionUrl: row.solution_url || undefined,
     answerKeyUrl: row.answer_key_url || undefined,
     coverImageUrl: row.cover_image_url || undefined,
+    difficulty: (row.difficulty || undefined) as
+      | DocumentDifficulty
+      | undefined,
+    pageCount: mapOptionalNumber(row.page_count),
+    questionCount: mapOptionalNumber(row.question_count),
+    sourceYear: mapOptionalNumber(row.source_year),
+    curriculumCode: row.curriculum_code || undefined,
+    isPrintReady: Boolean(row.is_print_ready),
+    hasVideoSolution: Boolean(row.has_video_solution || row.solution_url),
     featured: row.featured,
     published: row.published,
     createdAt: row.created_at.slice(0, 10),
@@ -189,7 +216,7 @@ const getPublishedDocumentsForSitemapCached = unstable_cache(
   async () => {
     const { data, error } = await supabase
       .from("documents")
-      .select("slug, created_at")
+      .select("slug, topic, created_at")
       .eq("published", true)
       .order("created_at", { ascending: false });
 
@@ -198,7 +225,7 @@ const getPublishedDocumentsForSitemapCached = unstable_cache(
       return [];
     }
 
-    return (data ?? []) as { slug: string; created_at: string }[];
+    return (data ?? []) as { slug: string; topic: string; created_at: string }[];
   },
   ["documents-public-sitemap"],
   {

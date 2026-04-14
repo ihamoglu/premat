@@ -1,12 +1,22 @@
 import Link from "next/link";
 import { DocumentItem } from "@/types/document";
 import ContentImage from "@/components/common/ContentImage";
+import { topicToSlug } from "@/lib/topic-slugs";
 
 type DocumentCardProps = {
   doc: DocumentItem;
 };
 
 export default function DocumentCard({ doc }: DocumentCardProps) {
+  const metadataBadges = [
+    doc.difficulty || null,
+    doc.pageCount ? `${doc.pageCount} sayfa` : null,
+    doc.questionCount ? `${doc.questionCount} soru` : null,
+    doc.hasVideoSolution ? "Video çözüm" : null,
+    doc.answerKeyUrl ? "Cevap anahtarı" : null,
+    doc.isPrintReady ? "Yazdırmaya hazır" : null,
+  ].filter(Boolean);
+
   return (
     <article className="premat-card-3d group overflow-hidden rounded-[1.75rem] border border-slate-200/80 bg-white shadow-sm hover:border-blue-200/70 hover:shadow-blue-900/10">
       <Link href={`/documents/${doc.slug}`} className="block">
@@ -84,6 +94,19 @@ export default function DocumentCard({ doc }: DocumentCardProps) {
           ) : null}
         </div>
 
+        {metadataBadges.length > 0 ? (
+          <div className="mb-3 flex flex-wrap gap-2">
+            {metadataBadges.slice(0, 4).map((badge) => (
+              <span
+                key={badge}
+                className="rounded-full border border-blue-100 bg-blue-50 px-2.5 py-1 text-[11px] font-bold text-blue-800"
+              >
+                {badge}
+              </span>
+            ))}
+          </div>
+        ) : null}
+
         <Link href={`/documents/${doc.slug}`} className="block">
           <h3 className="line-clamp-2 text-xl font-black leading-tight text-slate-950 transition group-hover:text-blue-900">
             {doc.title}
@@ -95,7 +118,13 @@ export default function DocumentCard({ doc }: DocumentCardProps) {
         </p>
 
         <div className="mt-4 text-sm text-slate-500">
-          <span className="font-bold text-slate-700">Konu:</span> {doc.topic}
+          <span className="font-bold text-slate-700">Konu:</span>{" "}
+          <Link
+            href={`/konu/${topicToSlug(doc.topic)}`}
+            className="font-semibold transition hover:text-blue-800"
+          >
+            {doc.topic}
+          </Link>
           {doc.subtopic ? ` • ${doc.subtopic}` : ""}
         </div>
 

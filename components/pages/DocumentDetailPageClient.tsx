@@ -1,10 +1,13 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import DocumentCard from "@/components/documents/DocumentCard";
 import ContentImage from "@/components/common/ContentImage";
 import { DocumentItem } from "@/types/document";
+import { absoluteUrl } from "@/lib/site";
+import { topicToSlug } from "@/lib/topic-slugs";
 
 type DocumentDetailPageClientProps = {
   doc: DocumentItem;
@@ -19,10 +22,18 @@ export default function DocumentDetailPageClient({
 }: DocumentDetailPageClientProps) {
   const [copied, setCopied] = useState(false);
 
-  const topicArchiveHref = `/documents?grade=${doc.grade}&topic=${encodeURIComponent(
-    doc.topic
-  )}`;
+  const topicArchiveHref = `/konu/${topicToSlug(doc.topic)}`;
   const gradeArchiveHref = `/sinif/${doc.grade}`;
+  const detailUrl = absoluteUrl(`/documents/${doc.slug}`);
+  const qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&margin=10&data=${encodeURIComponent(
+    detailUrl
+  )}`;
+  const documentSignals = [
+    doc.isPrintReady ? "Yazdırmaya hazır" : null,
+    doc.hasVideoSolution ? "Video çözüm mevcut" : null,
+    doc.answerKeyUrl ? "Cevap anahtarı mevcut" : null,
+    doc.solutionUrl ? "Çözüm bağlantısı mevcut" : null,
+  ].filter(Boolean);
 
   async function handleCopyLink() {
     try {
@@ -188,6 +199,26 @@ export default function DocumentDetailPageClient({
                     label: "Cevap Anahtarı",
                     value: doc.answerKeyUrl ? "Bağlantı mevcut" : "Bağlantı yok",
                   },
+                  { label: "Zorluk", value: doc.difficulty || "Belirtilmedi" },
+                  {
+                    label: "Sayfa / Soru",
+                    value:
+                      doc.pageCount || doc.questionCount
+                        ? `${doc.pageCount ? `${doc.pageCount} sayfa` : "Sayfa yok"} / ${
+                            doc.questionCount
+                              ? `${doc.questionCount} soru`
+                              : "Soru yok"
+                          }`
+                        : "Belirtilmedi",
+                  },
+                  {
+                    label: "Kazanım",
+                    value: doc.curriculumCode || "Belirtilmedi",
+                  },
+                  {
+                    label: "Kaynak Yılı",
+                    value: doc.sourceYear ? String(doc.sourceYear) : "Belirtilmedi",
+                  },
                 ].map((item) => (
                   <div
                     key={item.label}
@@ -272,6 +303,45 @@ export default function DocumentDetailPageClient({
                 ) : null}
               </div>
 
+              {documentSignals.length > 0 ? (
+                <div className="mt-6 rounded-[1.35rem] border border-blue-100 bg-blue-50 p-4 sm:rounded-[1.5rem] sm:p-5">
+                  <div className="text-xs font-semibold text-blue-700 sm:text-sm">
+                    Kullanım Sinyalleri
+                  </div>
+
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {documentSignals.map((signal) => (
+                      <span
+                        key={signal}
+                        className="rounded-full border border-blue-200 bg-white px-3 py-1 text-xs font-bold text-blue-800"
+                      >
+                        {signal}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+
+              <div className="mt-6 rounded-[1.35rem] border border-slate-200 bg-white p-4 text-center sm:rounded-[1.5rem] sm:p-5">
+                <div className="text-xs font-semibold text-slate-500 sm:text-sm">
+                  Mobil Erişim
+                </div>
+
+                <div className="mx-auto mt-4 w-fit rounded-2xl border border-slate-200 bg-slate-50 p-3">
+                  <Image
+                    src={qrImageUrl}
+                    alt={`${doc.title} mobil erişim QR kodu`}
+                    width={180}
+                    height={180}
+                    className="h-[150px] w-[150px] sm:h-[180px] sm:w-[180px]"
+                  />
+                </div>
+
+                <p className="mt-3 text-xs leading-5 text-slate-500">
+                  QR kod bu Premat detay sayfasına yönlendirir.
+                </p>
+              </div>
+
               {/* Kayıt özeti */}
               <div className="mt-6 rounded-[1.35rem] border border-slate-200 bg-slate-50 p-4 sm:rounded-[1.5rem] sm:p-5">
                 <div className="text-xs font-semibold text-slate-500 sm:text-sm">
@@ -284,6 +354,11 @@ export default function DocumentDetailPageClient({
                     { label: "Kaynak", value: doc.sourceType },
                     { label: "Seviye", value: `${doc.grade}. Sınıf` },
                     { label: "Konu", value: doc.topic },
+                    { label: "Zorluk", value: doc.difficulty || "Belirtilmedi" },
+                    {
+                      label: "Yıl",
+                      value: doc.sourceYear ? String(doc.sourceYear) : "Belirtilmedi",
+                    },
                   ].map((item) => (
                     <div
                       key={item.label}

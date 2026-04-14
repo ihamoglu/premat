@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 import { getPublishedDocumentsForSitemap } from "@/lib/server-documents";
 import { siteUrl } from "@/lib/site";
+import { topicToSlug } from "@/lib/topic-slugs";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const documents = await getPublishedDocumentsForSitemap();
@@ -29,5 +30,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.7,
   }));
 
-  return [...staticEntries, ...documentEntries];
+  const topicEntries: MetadataRoute.Sitemap = Array.from(
+    new Set(documents.map((doc) => doc.topic))
+  ).map((topic) => ({
+    url: `${siteUrl}/konu/${topicToSlug(topic)}`,
+    lastModified: now,
+    changeFrequency: "weekly",
+    priority: 0.65,
+  }));
+
+  return [...staticEntries, ...documentEntries, ...topicEntries];
 }

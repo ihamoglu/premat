@@ -4,6 +4,8 @@ export type DocumentType = string;
 
 export type SourceType = "Google Drive" | "OneDrive" | "Dropbox" | "Diğer";
 
+export type DocumentDifficulty = "Başlangıç" | "Orta" | "İleri" | "Karma";
+
 export type DocumentItem = {
   id: string;
   slug: string;
@@ -18,6 +20,13 @@ export type DocumentItem = {
   solutionUrl?: string;
   answerKeyUrl?: string;
   coverImageUrl?: string;
+  difficulty?: DocumentDifficulty;
+  pageCount?: number;
+  questionCount?: number;
+  sourceYear?: number;
+  curriculumCode?: string;
+  isPrintReady: boolean;
+  hasVideoSolution: boolean;
   featured: boolean;
   published: boolean;
   createdAt: string;

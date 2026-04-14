@@ -8,11 +8,17 @@ import InlineNotice from "@/components/ui/InlineNotice";
 import QualityPill from "@/components/ui/QualityPill";
 import { assessDraftQuality } from "@/lib/document-quality";
 import {
+  documentDifficultyCatalog,
   documentTypeCatalog,
   getTopicsByGrade,
   sourceTypeCatalog,
 } from "@/data/catalog";
-import { DocumentItem, GradeLevel, SourceType } from "@/types/document";
+import {
+  DocumentDifficulty,
+  DocumentItem,
+  GradeLevel,
+  SourceType,
+} from "@/types/document";
 
 const gradeOptions: GradeLevel[] = ["5", "6", "7", "8"];
 const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
@@ -29,6 +35,13 @@ type FormState = {
   solutionUrl: string;
   answerKeyUrl: string;
   coverImageUrl: string;
+  difficulty: "" | DocumentDifficulty;
+  pageCount: string;
+  questionCount: string;
+  sourceYear: string;
+  curriculumCode: string;
+  isPrintReady: boolean;
+  hasVideoSolution: boolean;
   featured: boolean;
   published: boolean;
 };
@@ -51,6 +64,13 @@ const initialState: FormState = {
   solutionUrl: "",
   answerKeyUrl: "",
   coverImageUrl: "",
+  difficulty: "",
+  pageCount: "",
+  questionCount: "",
+  sourceYear: "",
+  curriculumCode: "",
+  isPrintReady: false,
+  hasVideoSolution: false,
   featured: false,
   published: true,
 };
@@ -77,6 +97,12 @@ function getFileExtension(file: File) {
   if (file.type === "image/png") return "png";
   if (file.type === "image/webp") return "webp";
   return "jpg";
+}
+
+function parsePositiveInteger(value: string) {
+  const parsed = Number(value);
+
+  return Number.isInteger(parsed) && parsed > 0 ? parsed : undefined;
 }
 
 function FieldLabel({ children }: { children: React.ReactNode }) {
@@ -156,6 +182,15 @@ export default function AdminDocumentForm({ editingDoc, onCancelEdit, onFinish }
       solutionUrl: editingDoc.solutionUrl || "",
       answerKeyUrl: editingDoc.answerKeyUrl || "",
       coverImageUrl: editingDoc.coverImageUrl || "",
+      difficulty: editingDoc.difficulty || "",
+      pageCount: editingDoc.pageCount ? String(editingDoc.pageCount) : "",
+      questionCount: editingDoc.questionCount
+        ? String(editingDoc.questionCount)
+        : "",
+      sourceYear: editingDoc.sourceYear ? String(editingDoc.sourceYear) : "",
+      curriculumCode: editingDoc.curriculumCode || "",
+      isPrintReady: editingDoc.isPrintReady,
+      hasVideoSolution: editingDoc.hasVideoSolution,
       featured: editingDoc.featured,
       published: editingDoc.published,
     });
@@ -258,6 +293,13 @@ export default function AdminDocumentForm({ editingDoc, onCancelEdit, onFinish }
           solutionUrl: form.solutionUrl || undefined,
           answerKeyUrl: form.answerKeyUrl || undefined,
           coverImageUrl: uploadedCoverImageUrl,
+          difficulty: form.difficulty || undefined,
+          pageCount: parsePositiveInteger(form.pageCount),
+          questionCount: parsePositiveInteger(form.questionCount),
+          sourceYear: parsePositiveInteger(form.sourceYear),
+          curriculumCode: form.curriculumCode.trim() || undefined,
+          isPrintReady: form.isPrintReady,
+          hasVideoSolution: form.hasVideoSolution || Boolean(form.solutionUrl),
           featured: form.featured,
           published: form.published,
         };
@@ -290,6 +332,13 @@ export default function AdminDocumentForm({ editingDoc, onCancelEdit, onFinish }
         solutionUrl: form.solutionUrl || undefined,
         answerKeyUrl: form.answerKeyUrl || undefined,
         coverImageUrl: uploadedCoverImageUrl,
+        difficulty: form.difficulty || undefined,
+        pageCount: parsePositiveInteger(form.pageCount),
+        questionCount: parsePositiveInteger(form.questionCount),
+        sourceYear: parsePositiveInteger(form.sourceYear),
+        curriculumCode: form.curriculumCode.trim() || undefined,
+        isPrintReady: form.isPrintReady,
+        hasVideoSolution: form.hasVideoSolution || Boolean(form.solutionUrl),
         featured: form.featured,
         published: form.published,
         createdAt: new Date().toISOString().slice(0, 10),
@@ -414,6 +463,44 @@ export default function AdminDocumentForm({ editingDoc, onCancelEdit, onFinish }
             </div>
           </FieldCard>
 
+          <FieldCard title="Doküman bilgileri">
+            <div className="grid gap-5 md:grid-cols-2">
+              <div>
+                <FieldLabel>Zorluk</FieldLabel>
+                <select value={form.difficulty} onChange={(e) => updateField("difficulty", e.target.value as FormState["difficulty"])} className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-blue-400">
+                  <option value="">Belirtilmedi</option>
+                  {documentDifficultyCatalog.map((item) => <option key={item} value={item}>{item}</option>)}
+                </select>
+              </div>
+              <div>
+                <FieldLabel>Kazanım Kodu</FieldLabel>
+                <input type="text" value={form.curriculumCode} onChange={(e) => updateField("curriculumCode", e.target.value)} placeholder="Örn: M.8.2.1.1" className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-blue-400" />
+              </div>
+              <div>
+                <FieldLabel>Sayfa Sayısı</FieldLabel>
+                <input type="number" min={1} value={form.pageCount} onChange={(e) => updateField("pageCount", e.target.value)} placeholder="Opsiyonel" className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-blue-400" />
+              </div>
+              <div>
+                <FieldLabel>Soru Sayısı</FieldLabel>
+                <input type="number" min={1} value={form.questionCount} onChange={(e) => updateField("questionCount", e.target.value)} placeholder="Opsiyonel" className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-blue-400" />
+              </div>
+              <div>
+                <FieldLabel>Kaynak Yılı</FieldLabel>
+                <input type="number" min={2000} max={2100} value={form.sourceYear} onChange={(e) => updateField("sourceYear", e.target.value)} placeholder="Örn: 2026" className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-blue-400" />
+              </div>
+              <div className="grid gap-3">
+                <label className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-4 text-sm font-semibold text-slate-700">
+                  <input type="checkbox" checked={form.isPrintReady} onChange={(e) => updateField("isPrintReady", e.target.checked)} className="h-4 w-4" />
+                  Yazdırmaya hazır
+                </label>
+                <label className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-4 text-sm font-semibold text-slate-700">
+                  <input type="checkbox" checked={form.hasVideoSolution} onChange={(e) => updateField("hasVideoSolution", e.target.checked)} className="h-4 w-4" />
+                  Video çözüm mevcut
+                </label>
+              </div>
+            </div>
+          </FieldCard>
+
           <FieldCard title="Bağlantılar ve görsel">
             <div className="grid gap-5">
               <div>
@@ -487,6 +574,8 @@ export default function AdminDocumentForm({ editingDoc, onCancelEdit, onFinish }
               <div className="mb-3 flex flex-wrap gap-2">
                 <span className="rounded-full bg-white/92 px-3 py-1 text-xs font-semibold text-blue-900">{form.grade}. Sınıf</span>
                 <span className="rounded-full bg-white/20 px-3 py-1 text-xs font-semibold text-white">{form.type}</span>
+                {form.difficulty ? <span className="rounded-full bg-white/20 px-3 py-1 text-xs font-semibold text-white">{form.difficulty}</span> : null}
+                {form.hasVideoSolution || form.solutionUrl ? <span className="rounded-full bg-white/20 px-3 py-1 text-xs font-semibold text-white">Video Çözüm</span> : null}
                 {form.featured ? <span className="rounded-full bg-orange-400 px-3 py-1 text-xs font-semibold text-white">Öne Çıkan</span> : null}
               </div>
               <h3 className="text-xl font-black leading-tight tracking-[-0.02em]">{form.title || "Başlık burada görünecek"}</h3>
