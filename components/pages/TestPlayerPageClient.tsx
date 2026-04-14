@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { TestSetDetail } from "@/types/test";
 import { supabase } from "@/lib/supabase";
+import type { TestSetDetail } from "@/types/test";
 
 export default function TestPlayerPageClient({ test }: { test: TestSetDetail }) {
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -102,13 +102,28 @@ export default function TestPlayerPageClient({ test }: { test: TestSetDetail }) 
       });
   }, [answers, finished, result, test.id, test.questions]);
 
+  function restartTest() {
+    setFinished(false);
+    reportedRef.current = false;
+    setAnswers({});
+    setCurrentIndex(0);
+    setSecondsLeft((test.durationMinutes || 20) * 60);
+  }
+
   if (test.questions.length === 0) {
     return (
       <main className="min-h-screen bg-slate-50 px-4 py-10">
         <div className="mx-auto max-w-3xl rounded-[2rem] border border-slate-200 bg-white p-8 text-center">
-          <h1 className="text-2xl font-black text-slate-950">Test hazır değil</h1>
-          <p className="mt-3 text-slate-600">Bu testte yayınlanmış soru yok.</p>
-          <Link href="/testler" className="mt-6 inline-flex rounded-2xl border border-blue-200 px-5 py-3 text-sm font-bold text-blue-800">
+          <h1 className="text-2xl font-black text-slate-950">
+            Test hazır değil
+          </h1>
+          <p className="mt-3 text-slate-600">
+            Bu testte yayınlanmış soru yok.
+          </p>
+          <Link
+            href="/testler"
+            className="mt-6 inline-flex rounded-2xl border border-blue-200 px-5 py-3 text-sm font-bold text-blue-800"
+          >
             Testlere Dön
           </Link>
         </div>
@@ -146,19 +161,33 @@ export default function TestPlayerPageClient({ test }: { test: TestSetDetail }) 
               </h2>
               <div className="mt-6 grid gap-4 sm:grid-cols-3">
                 <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-5">
-                  <div className="text-sm font-semibold text-emerald-700">Doğru</div>
-                  <div className="mt-2 text-4xl font-black text-emerald-800">{result.correct}</div>
+                  <div className="text-sm font-semibold text-emerald-700">
+                    Doğru
+                  </div>
+                  <div className="mt-2 text-4xl font-black text-emerald-800">
+                    {result.correct}
+                  </div>
                 </div>
                 <div className="rounded-2xl border border-red-200 bg-red-50 p-5">
-                  <div className="text-sm font-semibold text-red-700">Yanlış</div>
-                  <div className="mt-2 text-4xl font-black text-red-800">{result.wrong}</div>
+                  <div className="text-sm font-semibold text-red-700">
+                    Yanlış
+                  </div>
+                  <div className="mt-2 text-4xl font-black text-red-800">
+                    {result.wrong}
+                  </div>
                 </div>
                 <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5">
                   <div className="text-sm font-semibold text-slate-600">Boş</div>
-                  <div className="mt-2 text-4xl font-black text-slate-900">{result.blank}</div>
+                  <div className="mt-2 text-4xl font-black text-slate-900">
+                    {result.blank}
+                  </div>
                 </div>
               </div>
-              <button type="button" onClick={() => { setFinished(false); reportedRef.current = false; setAnswers({}); setCurrentIndex(0); setSecondsLeft((test.durationMinutes || 20) * 60); }} className="mt-6 rounded-2xl border border-blue-200 bg-white px-5 py-3 text-sm font-bold text-blue-800 transition hover:bg-blue-50">
+              <button
+                type="button"
+                onClick={restartTest}
+                className="mt-6 rounded-2xl border border-blue-200 bg-white px-5 py-3 text-sm font-bold text-blue-800 transition hover:bg-blue-50"
+              >
                 Yeniden Başlat
               </button>
             </div>
@@ -176,6 +205,17 @@ export default function TestPlayerPageClient({ test }: { test: TestSetDetail }) 
               <h2 className="text-2xl font-black leading-snug text-slate-950">
                 {currentQuestion.questionText}
               </h2>
+
+              {currentQuestion.questionImageUrl ? (
+                <div className="mt-6 overflow-auto rounded-[1.5rem] border border-slate-200 bg-slate-50 p-3 sm:p-4">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={currentQuestion.questionImageUrl}
+                    alt={`Soru ${currentIndex + 1} görseli`}
+                    className="mx-auto h-auto max-h-[70vh] max-w-full object-contain"
+                  />
+                </div>
+              ) : null}
 
               <div className="mt-6 grid gap-3">
                 {currentQuestion.options.map((option) => {
@@ -197,20 +237,50 @@ export default function TestPlayerPageClient({ test }: { test: TestSetDetail }) 
                           : "border-slate-200 bg-white text-slate-700 hover:border-blue-200"
                       }`}
                     >
-                      {option.label}) {option.text}
+                      <span>
+                        {option.label}) {option.text}
+                      </span>
+                      {option.imageUrl ? (
+                        <span className="mt-3 block overflow-auto rounded-xl border border-slate-200 bg-slate-50 p-2">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={option.imageUrl}
+                            alt={`${option.label} seçeneği görseli`}
+                            className="mx-auto h-auto max-h-[220px] max-w-full object-contain"
+                          />
+                        </span>
+                      ) : null}
                     </button>
                   );
                 })}
               </div>
 
               <div className="mt-6 flex flex-wrap gap-3">
-                <button type="button" onClick={() => setCurrentIndex((value) => Math.max(0, value - 1))} className="rounded-2xl border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-700">
+                <button
+                  type="button"
+                  onClick={() =>
+                    setCurrentIndex((value) => Math.max(0, value - 1))
+                  }
+                  className="rounded-2xl border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-700"
+                >
                   Önceki
                 </button>
-                <button type="button" onClick={() => setCurrentIndex((value) => Math.min(test.questions.length - 1, value + 1))} className="rounded-2xl border border-blue-200 bg-blue-50 px-5 py-3 text-sm font-semibold text-blue-800">
+                <button
+                  type="button"
+                  onClick={() =>
+                    setCurrentIndex((value) =>
+                      Math.min(test.questions.length - 1, value + 1)
+                    )
+                  }
+                  className="rounded-2xl border border-blue-200 bg-blue-50 px-5 py-3 text-sm font-semibold text-blue-800"
+                >
                   Sonraki
                 </button>
-                <button type="button" onClick={() => setFinished(true)} className="rounded-2xl bg-[linear-gradient(135deg,#1d4f91_0%,#2f6eb7_55%,#ea580c_100%)] px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-900/20">
+                <button
+                  type="button"
+                  onClick={() => setFinished(true)}
+                  className="rounded-2xl bg-[linear-gradient(135deg,#1d4f91_0%,#2f6eb7_55%,#ea580c_100%)] px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-900/20"
+                >
                   Sınavı Bitir
                 </button>
               </div>
@@ -219,7 +289,9 @@ export default function TestPlayerPageClient({ test }: { test: TestSetDetail }) 
         </div>
 
         <aside className="rounded-[2rem] border border-slate-200 bg-white p-5 shadow-sm">
-          <div className="text-sm font-black text-slate-950">Soru Navigasyonu</div>
+          <div className="text-sm font-black text-slate-950">
+            Soru Navigasyonu
+          </div>
           <div className="mt-4 grid grid-cols-5 gap-2">
             {test.questions.map((question, index) => (
               <button

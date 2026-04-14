@@ -79,23 +79,36 @@ async function listFilesRecursively(
   return collected;
 }
 
-async function getReferencedCoverPaths(
+async function getReferencedStoragePaths(
   supabase: Awaited<ReturnType<typeof createClient>>
 ) {
-  const { data, error } = await supabase
+  const { data: documents, error: documentsError } = await supabase
     .from("documents")
     .select("cover_image_url")
     .not("cover_image_url", "is", null);
 
-  if (error) {
-    throw error;
+  if (documentsError) {
+    throw documentsError;
   }
 
-  return new Set(
-    (data ?? [])
-      .map((row) => extractPublicStoragePath(BUCKET, row.cover_image_url))
-      .filter((path): path is string => !!path)
-  );
+  const { data: questions, error: questionsError } = await supabase
+    .from("questions")
+    .select("question_image_url")
+    .not("question_image_url", "is", null);
+
+  if (questionsError) {
+    throw questionsError;
+  }
+
+  const documentCoverPaths = (documents ?? [])
+    .map((row) => extractPublicStoragePath(BUCKET, row.cover_image_url))
+    .filter((path): path is string => !!path);
+
+  const questionImagePaths = (questions ?? [])
+    .map((row) => extractPublicStoragePath(BUCKET, row.question_image_url))
+    .filter((path): path is string => !!path);
+
+  return new Set([...documentCoverPaths, ...questionImagePaths]);
 }
 
 async function getFileMeta(
@@ -140,7 +153,7 @@ export async function GET() {
     }
 
     const [referencedPaths, allFiles] = await Promise.all([
-      getReferencedCoverPaths(supabase),
+      getReferencedStoragePaths(supabase),
       listFilesRecursively(supabase, ROOT_PREFIX),
     ]);
 
@@ -199,7 +212,7 @@ export async function DELETE(request: Request) {
 
     if (targetPaths.length === 0) {
       const [referencedPaths, allFiles] = await Promise.all([
-        getReferencedCoverPaths(supabase),
+        getReferencedStoragePaths(supabase),
         listFilesRecursively(supabase, ROOT_PREFIX),
       ]);
 

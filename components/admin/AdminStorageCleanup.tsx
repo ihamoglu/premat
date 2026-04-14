@@ -124,12 +124,13 @@ export default function AdminStorageCleanup() {
           </div>
 
           <h2 className="text-2xl font-black tracking-[-0.03em] text-slate-950 md:text-3xl">
-            Yetim kapak görsellerini tara
+            Yetim görselleri tara
           </h2>
 
           <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-600">
-            Veritabanında karşılığı kalmamış ama storage içinde duran kapak
-            görsellerini bulur. Buradaki amaç boşa duran dosyaları temizlemek.
+            Veritabanında karşılığı kalmamış ama storage içinde duran kapak ve
+            soru görsellerini bulur. Buradaki amaç boşa duran dosyaları
+            temizlemek.
           </p>
         </div>
 
