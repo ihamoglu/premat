@@ -360,6 +360,47 @@ export default function HomePageClient({
         </div>
       </section>
 
+      <section className="mx-auto max-w-7xl px-4 pb-8 md:px-6 md:pb-10">
+        <div className="overflow-hidden rounded-[1.75rem] border border-slate-200/80 bg-white shadow-xl shadow-slate-900/5 md:rounded-[2rem]">
+          <div className="grid gap-0 lg:grid-cols-[1fr_0.72fr]">
+            <div className="p-5 sm:p-6 md:p-8">
+              <div className="mb-4 inline-flex rounded-full border border-blue-200 bg-blue-50 px-4 py-2 text-xs font-black uppercase tracking-wide text-blue-800">
+                Online Testler
+              </div>
+              <h2 className="text-2xl font-black tracking-[-0.03em] text-slate-950 md:text-4xl">
+                Süreli test çözmeye başla
+              </h2>
+              <p className="mt-3 max-w-2xl text-sm leading-7 text-slate-600 md:text-base">
+                Yayındaki online testleri sınıf, konu ve zorluk seviyesine göre seç.
+                Cevaplarını işaretle, süreyi takip et ve sonucunu hemen gör.
+              </p>
+              <div className="mt-5 flex flex-wrap gap-3">
+                <Link
+                  href="/testler"
+                  className="rounded-2xl bg-[linear-gradient(135deg,#1d4f91_0%,#2f6eb7_55%,#ea580c_100%)] px-5 py-3 text-sm font-bold text-white shadow-lg shadow-blue-900/20 transition hover:-translate-y-0.5 hover:shadow-xl"
+                >
+                  Online Testleri Aç
+                </Link>
+                <Link
+                  href="/documents"
+                  className="rounded-2xl border border-blue-200 bg-white px-5 py-3 text-sm font-bold text-blue-900 transition hover:-translate-y-0.5 hover:bg-blue-50"
+                >
+                  Döküman Arşivi
+                </Link>
+              </div>
+            </div>
+            <div className="flex min-h-[220px] items-center justify-center bg-[linear-gradient(135deg,#0f2d5c_0%,#1d4f91_45%,#ea580c_100%)] p-8 text-white">
+              <div className="text-center">
+                <div className="text-6xl font-black tracking-[-0.06em]">20:00</div>
+                <div className="mt-3 text-sm font-black uppercase tracking-[0.18em] text-white/75">
+                  Soru · Süre · Sonuç
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* ── SINIFA GÖRE HIZLI GEÇİŞ ── */}
       <section className="mx-auto max-w-7xl px-4 pb-8 md:px-6 md:pb-10">
         <div className="rounded-[1.75rem] border border-slate-200/80 bg-white p-4 shadow-xl shadow-slate-900/5 sm:p-6 md:rounded-[2rem] md:p-8">
