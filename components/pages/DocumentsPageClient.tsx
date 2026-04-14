@@ -109,19 +109,61 @@ export default function DocumentsPageClient({
   }
 
   return (
-    <main className="min-h-screen bg-[linear-gradient(180deg,#eef5ff_0%,#f8fbff_18%,#f8fafc_100%)]">
-      <section className="border-b border-slate-200 bg-[linear-gradient(135deg,#1d4f91_0%,#2f6eb7_55%,#f8fbff_55%,#f8fbff_100%)]">
-        <div className="mx-auto max-w-7xl px-4 py-8 md:px-6 md:py-12">
+    <main
+      className="min-h-screen"
+      style={{
+        background:
+          "linear-gradient(180deg, #eef5ff 0%, #f8fbff 18%, #f8fafc 100%)",
+      }}
+    >
+      {/* ── HEADER ── */}
+      <section
+        className="relative overflow-hidden border-b border-slate-200/60"
+        style={{
+          background:
+            "linear-gradient(135deg, #0f2d5c 0%, #1d4f91 35%, #2f6eb7 65%, #ea580c 100%)",
+        }}
+      >
+        {/* Dekoratif glow overlay'ler */}
+        <div className="pointer-events-none absolute inset-0">
+          <div
+            className="absolute -right-16 -top-16 h-64 w-64 rounded-full opacity-20"
+            style={{
+              background: "radial-gradient(circle, #f97316, transparent)",
+            }}
+          />
+          <div
+            className="absolute -bottom-8 left-8 h-48 w-48 rounded-full opacity-15"
+            style={{
+              background: "radial-gradient(circle, #3b82f6, transparent)",
+            }}
+          />
+        </div>
+
+        {/* Hafif matematik sembolleri arka planda */}
+        <div className="pointer-events-none absolute inset-0 select-none overflow-hidden">
+          <span className="absolute right-[10%] top-[15%] text-7xl font-black text-white/5">
+            π
+          </span>
+          <span className="absolute bottom-[10%] left-[5%] text-6xl font-black text-white/5">
+            ∑
+          </span>
+          <span className="absolute right-[25%] bottom-[20%] text-5xl font-black text-white/5">
+            √
+          </span>
+        </div>
+
+        <div className="relative mx-auto max-w-7xl px-4 py-8 md:px-6 md:py-12">
           <Link
             href="/"
-            className="inline-flex rounded-full border border-white/40 bg-white/90 px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-blue-200 hover:text-blue-800"
+            className="inline-flex rounded-full border border-white/25 bg-white/15 px-4 py-2 text-sm font-semibold text-white backdrop-blur-sm transition hover:bg-white/25"
           >
             ← Ana Sayfaya Dön
           </Link>
 
           <div className="mt-6 grid gap-6 lg:grid-cols-[1.08fr_0.92fr] lg:items-end lg:gap-8">
             <div>
-              <div className="inline-flex rounded-full border border-blue-100 bg-white/90 px-4 py-2 text-xs font-semibold tracking-[0.08em] text-blue-800 shadow-sm">
+              <div className="inline-flex rounded-full border border-white/25 bg-white/15 px-4 py-2 text-xs font-semibold tracking-[0.10em] text-white/90 backdrop-blur-sm">
                 PREMAT ARŞİVİ
               </div>
 
@@ -129,7 +171,7 @@ export default function DocumentsPageClient({
                 Tüm dökümanlar
               </h1>
 
-              <p className="mt-4 max-w-3xl text-sm leading-7 text-blue-50 md:text-lg md:leading-8">
+              <p className="mt-4 max-w-3xl text-sm leading-7 text-blue-100 md:text-lg md:leading-8">
                 Yayındaki tüm içerikler burada listelenir. Filtreleri
                 kullanarak ihtiyacın olan kayıtlara daha hızlı, daha temiz ve
                 daha kontrollü şekilde ulaşabilirsin.
@@ -137,59 +179,67 @@ export default function DocumentsPageClient({
             </div>
 
             <div className="grid gap-3 sm:grid-cols-3">
-              <div className="rounded-[1.45rem] border border-white/40 bg-white/95 p-5 shadow-lg shadow-slate-900/10">
-                <div className="text-sm font-medium text-slate-500">
-                  Toplam Kayıt
+              {[
+                { label: "Toplam Kayıt", value: documents.length },
+                { label: "Gösterilen", value: filteredDocs.length },
+                { label: "Öne Çıkan", value: featuredCount },
+              ].map((stat, i) => (
+                <div
+                  key={stat.label}
+                  className="premat-fade-in-up rounded-[1.45rem] border border-white/30 bg-white/95 p-5 shadow-lg shadow-slate-900/10 backdrop-blur-sm transition hover:-translate-y-0.5 hover:shadow-xl"
+                  style={{ animationDelay: `${i * 0.1}s` }}
+                >
+                  <div className="text-sm font-medium text-slate-500">
+                    {stat.label}
+                  </div>
+                  <div
+                    className="mt-2 text-3xl font-black tracking-[-0.03em] bg-clip-text text-transparent"
+                    style={{
+                      backgroundImage:
+                        "linear-gradient(135deg, #1d4f91 0%, #2f6eb7 100%)",
+                    }}
+                  >
+                    {stat.value}
+                  </div>
                 </div>
-                <div className="mt-2 text-3xl font-black tracking-[-0.03em] text-slate-950">
-                  {documents.length}
-                </div>
-              </div>
-
-              <div className="rounded-[1.45rem] border border-white/40 bg-white/95 p-5 shadow-lg shadow-slate-900/10">
-                <div className="text-sm font-medium text-slate-500">
-                  Gösterilen
-                </div>
-                <div className="mt-2 text-3xl font-black tracking-[-0.03em] text-slate-950">
-                  {filteredDocs.length}
-                </div>
-              </div>
-
-              <div className="rounded-[1.45rem] border border-white/40 bg-white/95 p-5 shadow-lg shadow-slate-900/10">
-                <div className="text-sm font-medium text-slate-500">
-                  Öne Çıkan
-                </div>
-                <div className="mt-2 text-3xl font-black tracking-[-0.03em] text-slate-950">
-                  {featuredCount}
-                </div>
-              </div>
+              ))}
             </div>
           </div>
         </div>
       </section>
 
+      {/* ── FİLTRE BLOĞU ── */}
       <section className="mx-auto max-w-7xl px-4 py-8 md:px-6 md:py-10">
-        <div className="overflow-hidden rounded-[2rem] border border-slate-200 bg-white p-5 shadow-[0_18px_60px_rgba(15,23,42,0.05)] md:p-6">
+        <div className="overflow-hidden rounded-[2rem] border border-slate-200/80 bg-white/90 p-5 shadow-[0_18px_60px_rgba(15,23,42,0.05)] backdrop-blur-sm md:p-6">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-            <div>
-              <h2 className="text-xl font-black tracking-[-0.03em] text-slate-950 md:text-2xl">
-                Filtrele ve daralt
-              </h2>
-              <p className="mt-2 text-sm leading-7 text-slate-600">
-                Sınıf, konu ve içerik türü seçerek arşivi doğrudan ihtiyacın
-                olan alana indir.
-              </p>
+            <div className="flex items-start gap-3">
+              <div
+                className="mt-1 h-6 w-1.5 shrink-0 rounded-full"
+                style={{
+                  background: "linear-gradient(180deg, #1d4f91, #ea580c)",
+                }}
+              />
+              <div>
+                <h2 className="text-xl font-black tracking-[-0.03em] text-slate-950 md:text-2xl">
+                  Filtrele ve daralt
+                </h2>
+                <p className="mt-2 text-sm leading-7 text-slate-600">
+                  Sınıf, konu ve içerik türü seçerek arşivi doğrudan ihtiyacın
+                  olan alana indir.
+                </p>
+              </div>
             </div>
 
             <button
               type="button"
               onClick={resetFilters}
-              className="w-full rounded-2xl border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-blue-300 hover:text-blue-800 lg:w-auto"
+              className="w-full rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-600 transition hover:border-blue-300 hover:text-blue-800 lg:w-auto"
             >
               Filtreleri Temizle
             </button>
           </div>
 
+          {/* Grade pills */}
           <div className="-mx-1 mt-5 overflow-x-auto pb-1">
             <div className="flex min-w-max gap-2.5 px-1">
               {gradePills.map((item) => {
@@ -207,9 +257,17 @@ export default function DocumentsPageClient({
                     }
                     className={`whitespace-nowrap rounded-full px-4 py-2 text-sm font-semibold transition ${
                       active
-                        ? "bg-[linear-gradient(135deg,#1d4f91_0%,#2f6eb7_100%)] text-white shadow-md shadow-blue-900/20"
+                        ? "text-white shadow-md shadow-blue-900/20"
                         : "border border-slate-200 bg-white text-slate-700 hover:border-blue-200 hover:text-blue-800"
                     }`}
+                    style={
+                      active
+                        ? {
+                            background:
+                              "linear-gradient(135deg, #1d4f91 0%, #2f6eb7 100%)",
+                          }
+                        : undefined
+                    }
                   >
                     {item.label}
                   </button>
@@ -230,7 +288,7 @@ export default function DocumentsPageClient({
                   topic: "",
                 })
               }
-              className="w-full min-w-0 max-w-full appearance-none rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700 outline-none transition focus:border-blue-300"
+              className="w-full min-w-0 max-w-full appearance-none rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700 outline-none transition focus:border-blue-400 focus:shadow-[0_0_0_3px_rgba(29,79,145,0.10)]"
             >
               <option value="Tümü">Tüm sınıflar</option>
               <option value="5">5. Sınıf</option>
@@ -246,7 +304,7 @@ export default function DocumentsPageClient({
                   topic: e.target.value,
                 })
               }
-              className="w-full min-w-0 max-w-full appearance-none rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700 outline-none transition focus:border-blue-300"
+              className="w-full min-w-0 max-w-full appearance-none rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700 outline-none transition focus:border-blue-400 focus:shadow-[0_0_0_3px_rgba(29,79,145,0.10)]"
             >
               <option value="">Tüm konular</option>
               {topicOptions.map((topic) => (
@@ -263,7 +321,7 @@ export default function DocumentsPageClient({
                   type: e.target.value,
                 })
               }
-              className="w-full min-w-0 max-w-full appearance-none rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700 outline-none transition focus:border-blue-300"
+              className="w-full min-w-0 max-w-full appearance-none rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700 outline-none transition focus:border-blue-400 focus:shadow-[0_0_0_3px_rgba(29,79,145,0.10)]"
             >
               <option value="">Tüm türler</option>
               {documentTypeCatalog.map((item) => (
@@ -274,6 +332,7 @@ export default function DocumentsPageClient({
             </select>
           </div>
 
+          {/* Aktif filtre chip'leri */}
           <div className="mt-5 flex flex-wrap gap-2.5">
             {activeFilters.length > 0 ? (
               activeFilters.map((filter) => (
@@ -292,14 +351,23 @@ export default function DocumentsPageClient({
           </div>
         </div>
 
+        {/* Sonuç başlığı */}
         <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <h3 className="text-2xl font-black tracking-[-0.03em] text-slate-950">
-              Sonuçlar
-            </h3>
-            <p className="mt-2 text-sm leading-7 text-slate-600">
-              Filtrelere göre gösterilen yayınlanmış döküman listesi.
-            </p>
+          <div className="flex items-start gap-3">
+            <div
+              className="mt-1 h-6 w-1.5 shrink-0 rounded-full"
+              style={{
+                background: "linear-gradient(180deg, #2f6eb7, #3b82f6)",
+              }}
+            />
+            <div>
+              <h3 className="text-2xl font-black tracking-[-0.03em] text-slate-950">
+                Sonuçlar
+              </h3>
+              <p className="mt-2 text-sm leading-7 text-slate-600">
+                Filtrelere göre gösterilen yayınlanmış döküman listesi.
+              </p>
+            </div>
           </div>
 
           <div className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-600 shadow-sm">
@@ -322,7 +390,11 @@ export default function DocumentsPageClient({
                 <button
                   type="button"
                   onClick={resetFilters}
-                  className="mt-6 rounded-2xl bg-[linear-gradient(135deg,#1d4f91_0%,#2f6eb7_55%,#3b82f6_100%)] px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-900/20 transition hover:-translate-y-0.5 hover:shadow-xl"
+                  className="mt-6 rounded-2xl px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-900/20 transition hover:-translate-y-0.5 hover:shadow-xl"
+                  style={{
+                    background:
+                      "linear-gradient(135deg, #1d4f91 0%, #2f6eb7 55%, #3b82f6 100%)",
+                  }}
                 >
                   Filtreleri Temizle
                 </button>

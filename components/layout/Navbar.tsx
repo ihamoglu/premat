@@ -49,6 +49,7 @@ export default function Navbar() {
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [openGrade, setOpenGrade] = useState<string | null>(null);
+  const [isScrolled, setIsScrolled] = useState(false);
 
   const locationKey = useMemo(
     () => `${pathname}?${searchKey}`,
@@ -59,6 +60,15 @@ export default function Navbar() {
     setMobileMenuOpen(false);
     setOpenGrade(null);
   }, [locationKey]);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 8);
+    };
+    handleScroll();
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   useEffect(() => {
     if (mobileMenuOpen) {
@@ -72,78 +82,111 @@ export default function Navbar() {
     };
   }, [mobileMenuOpen]);
 
+  const isHomePage = pathname === "/";
+
+  const headerBg = isScrolled
+    ? "bg-white/97 backdrop-blur-xl shadow-sm shadow-slate-900/5"
+    : isHomePage
+      ? "bg-white/85 backdrop-blur-xl"
+      : "bg-white/95 backdrop-blur-lg";
+
   return (
     <>
-      <header className="sticky top-0 z-50 border-b border-slate-200/80 bg-white/90 backdrop-blur-xl supports-[backdrop-filter]:bg-white/80">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 md:px-6 md:py-4">
-          <div className="flex items-center gap-3">
-            <button
-              type="button"
-              onClick={() => setMobileMenuOpen(true)}
-              className="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-700 shadow-sm transition hover:border-blue-200 hover:text-blue-800 xl:hidden"
-              aria-label="Menüyü aç"
-            >
-              <svg
-                viewBox="0 0 24 24"
-                className="h-6 w-6"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.2"
-                strokeLinecap="round"
+      {/* Gradient border çizgisi — nav altında */}
+      <div className="sticky top-0 z-50">
+        <header
+          className={`border-b border-slate-200/70 transition-all duration-300 ${headerBg}`}
+        >
+          {/* Üst gradient şerit — çok ince */}
+          <div
+            className="absolute inset-x-0 top-0 h-[2px]"
+            style={{
+              background:
+                "linear-gradient(90deg, #1d4f91 0%, #2f6eb7 40%, #ea580c 80%, #f97316 100%)",
+            }}
+          />
+
+          <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 md:px-6 md:py-4">
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => setMobileMenuOpen(true)}
+                className="group inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-700 shadow-sm transition hover:border-blue-300 hover:bg-blue-50 hover:text-blue-800 xl:hidden"
+                aria-label="Menüyü aç"
               >
-                <path d="M4 7h16" />
-                <path d="M4 12h16" />
-                <path d="M4 17h16" />
-              </svg>
-            </button>
+                <svg
+                  viewBox="0 0 24 24"
+                  className="h-6 w-6 transition group-hover:scale-90"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.2"
+                  strokeLinecap="round"
+                >
+                  <path d="M4 7h16" />
+                  <path d="M4 12h12" />
+                  <path d="M4 17h8" />
+                </svg>
+              </button>
 
-            <Link href="/" className="shrink-0">
-              <Image
-                src="/brand/logo-horizontal.png"
-                alt="premat logo"
-                width={260}
-                height={80}
-                className="h-auto w-[140px] sm:w-[155px] md:w-[190px]"
-                priority
-              />
-            </Link>
+              <Link href="/" className="shrink-0 transition hover:opacity-85">
+                <Image
+                  src="/brand/logo-horizontal.png"
+                  alt="premat logo"
+                  width={260}
+                  height={80}
+                  className="h-auto w-[140px] sm:w-[155px] md:w-[190px]"
+                  priority
+                />
+              </Link>
+            </div>
+
+            <nav className="hidden items-center gap-1 xl:flex">
+              {desktopNavItems.map((item) => {
+                const active = item.external ? false : isActive(pathname, item.href);
+
+                const baseClass =
+                  "relative rounded-full px-4 py-2 text-sm font-semibold tracking-[0.01em] transition duration-200";
+
+                const inactiveClass =
+                  "text-slate-700 hover:bg-blue-50 hover:text-blue-900";
+
+                const className = `${baseClass} ${active ? "" : inactiveClass}`;
+
+                const activeStyle = active
+                  ? {
+                      background: "linear-gradient(135deg, #1d4f91 0%, #2f6eb7 100%)",
+                      color: "#ffffff",
+                      boxShadow: "0 4px 12px rgba(29,79,145,0.22)",
+                    }
+                  : undefined;
+
+                return item.external ? (
+                  <a key={item.label} href={item.href} className={className} style={activeStyle}>
+                    {item.label}
+                  </a>
+                ) : (
+                  <Link key={item.label} href={item.href} className={className} style={activeStyle}>
+                    {item.label}
+                  </Link>
+                );
+              })}
+            </nav>
           </div>
-
-          <nav className="hidden items-center gap-2 xl:flex">
-            {desktopNavItems.map((item) => {
-              const active = item.external ? false : isActive(pathname, item.href);
-
-              const className = `rounded-full px-4 py-2 text-sm font-semibold tracking-[0.01em] transition ${
-                active
-                  ? "bg-blue-50 text-blue-900 ring-1 ring-blue-100 shadow-sm"
-                  : "text-slate-700 hover:bg-slate-50 hover:text-blue-800"
-              }`;
-
-              return item.external ? (
-                <a key={item.label} href={item.href} className={className}>
-                  {item.label}
-                </a>
-              ) : (
-                <Link key={item.label} href={item.href} className={className}>
-                  {item.label}
-                </Link>
-              );
-            })}
-          </nav>
-        </div>
-      </header>
+        </header>
+      </div>
 
       {mobileMenuOpen ? (
         <div className="fixed inset-0 z-[70] xl:hidden">
           <button
             type="button"
             onClick={() => setMobileMenuOpen(false)}
-            className="absolute inset-0 bg-slate-950/35 backdrop-blur-[2px]"
+            className="absolute inset-0 bg-slate-950/40 backdrop-blur-[3px]"
             aria-label="Menüyü kapat"
           />
 
-          <aside className="absolute left-0 top-0 flex h-full w-[88%] max-w-[360px] flex-col border-r border-slate-200 bg-white shadow-2xl shadow-slate-900/20">
-            <div className="flex items-center justify-between border-b border-slate-200 px-4 py-4">
+          <aside className="premat-drawer-in absolute left-0 top-0 flex h-full w-[88%] max-w-[360px] flex-col shadow-2xl shadow-slate-900/25">
+            {/* Drawer header — beyaz arka plan, logo rengi korunsun */}
+            <div className="flex items-center justify-between border-b border-slate-200 bg-white px-4 py-4">
               <Image
                 src="/brand/logo-horizontal.png"
                 alt="premat logo"
@@ -156,7 +199,7 @@ export default function Navbar() {
               <button
                 type="button"
                 onClick={() => setMobileMenuOpen(false)}
-                className="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-700 shadow-sm transition hover:border-blue-200 hover:text-blue-800"
+                className="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-700 transition hover:border-blue-200 hover:text-blue-800"
                 aria-label="Menüyü kapat"
               >
                 <svg
@@ -173,14 +216,24 @@ export default function Navbar() {
               </button>
             </div>
 
-            <nav className="flex-1 overflow-y-auto px-4 py-4">
+            {/* Drawer üst gradient şerit */}
+            <div
+              className="h-[3px] w-full"
+              style={{
+                background:
+                  "linear-gradient(90deg, #1d4f91 0%, #2f6eb7 40%, #ea580c 80%, #f97316 100%)",
+              }}
+            />
+
+            {/* Nav içerik */}
+            <nav className="flex-1 overflow-y-auto bg-white px-4 py-4">
               <div className="space-y-2">
                 {mobileMainItems.map((item) => {
                   const active = item.external ? false : isActive(pathname, item.href);
                   const className = `flex items-center justify-between rounded-2xl px-4 py-3 text-sm font-semibold transition ${
                     active
-                      ? "bg-blue-50 text-blue-900 ring-1 ring-blue-100"
-                      : "text-slate-700 hover:bg-slate-50 hover:text-blue-800"
+                      ? "bg-[linear-gradient(135deg,#1d4f91_0%,#2f6eb7_100%)] text-white shadow-md shadow-blue-900/20"
+                      : "text-slate-700 hover:bg-blue-50 hover:text-blue-900"
                   }`;
 
                   return item.external ? (
@@ -194,7 +247,7 @@ export default function Navbar() {
                       className={className}
                     >
                       <span>{item.label}</span>
-                      <span className="text-lg leading-none">›</span>
+                      <span className="text-lg leading-none opacity-60">›</span>
                     </a>
                   ) : (
                     <Link
@@ -207,10 +260,17 @@ export default function Navbar() {
                       className={className}
                     >
                       <span>{item.label}</span>
-                      <span className="text-lg leading-none">›</span>
+                      <span className="text-lg leading-none opacity-60">›</span>
                     </Link>
                   );
                 })}
+
+                {/* Grade separator */}
+                <div className="px-1 pb-1 pt-3">
+                  <div className="mb-2 text-[10px] font-black uppercase tracking-[0.12em] text-slate-400">
+                    Sınıf Arşivleri
+                  </div>
+                </div>
 
                 {mobileGradeItems.map((item) => {
                   const isOpen = openGrade === item.grade;
@@ -227,12 +287,27 @@ export default function Navbar() {
                             prev === item.grade ? null : item.grade
                           )
                         }
-                        className="flex w-full items-center justify-between px-4 py-3 text-left text-sm font-semibold text-slate-700 transition hover:bg-slate-50 hover:text-blue-800"
+                        className={`flex w-full items-center justify-between px-4 py-3 text-left text-sm font-semibold transition ${
+                          isOpen
+                            ? "bg-blue-50 text-blue-900"
+                            : "text-slate-700 hover:bg-slate-50 hover:text-blue-800"
+                        }`}
                       >
-                        <span>{item.label}</span>
+                        <div className="flex items-center gap-2.5">
+                          <span
+                            className="inline-flex h-6 w-6 items-center justify-center rounded-full text-[10px] font-black text-white"
+                            style={{
+                              background:
+                                "linear-gradient(135deg,#1d4f91,#2f6eb7)",
+                            }}
+                          >
+                            {item.grade}
+                          </span>
+                          <span>{item.label}</span>
+                        </div>
                         <svg
                           viewBox="0 0 24 24"
-                          className={`h-5 w-5 transition ${isOpen ? "rotate-90" : ""}`}
+                          className={`h-4 w-4 transition-transform duration-200 ${isOpen ? "rotate-90" : ""}`}
                           fill="none"
                           stroke="currentColor"
                           strokeWidth="2.2"
@@ -244,7 +319,7 @@ export default function Navbar() {
                       </button>
 
                       {isOpen ? (
-                        <div className="border-t border-slate-200 bg-slate-50 px-3 py-3">
+                        <div className="border-t border-blue-100 bg-blue-50/60 px-3 py-3">
                           <div className="grid gap-2">
                             {documentTypeCatalog.map((type) => (
                               <Link
@@ -260,7 +335,7 @@ export default function Navbar() {
                                   setMobileMenuOpen(false);
                                   setOpenGrade(null);
                                 }}
-                                className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 transition hover:border-blue-200 hover:text-blue-800"
+                                className="rounded-xl border border-blue-100 bg-white px-3 py-2 text-xs font-semibold text-slate-700 transition hover:border-blue-300 hover:text-blue-800"
                               >
                                 {type}
                               </Link>
@@ -273,6 +348,11 @@ export default function Navbar() {
                 })}
               </div>
             </nav>
+
+            {/* Drawer footer */}
+            <div className="border-t border-slate-100 bg-slate-50 px-4 py-3 text-center text-[10px] font-semibold tracking-[0.08em] text-slate-400">
+              PREMAT — MATEMATİK ARŞİVİ
+            </div>
           </aside>
         </div>
       ) : null}

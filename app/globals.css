@@ -1,72 +1,291 @@
 @import "tailwindcss";
 
-:root {
-  color-scheme: light;
-  --font-sans: Arial, Helvetica, sans-serif;
+/* ============================================================
+   BASE KATMANI — Tailwind v4'te utility class'lar bu katmanı
+   geçersiz kılar. a { color: inherit } buraya konulmazsa
+   text-white gibi sınıflar link elementlerinde çalışmaz.
+   ============================================================ */
+@layer base {
+  :root {
+    color-scheme: light;
+    --font-sans: Arial, Helvetica, sans-serif;
+  }
+
+  html,
+  body {
+    margin: 0;
+    padding: 0;
+    min-height: 100%;
+    background: #f8fbff;
+    color: #0f172a;
+    font-family: var(--font-sans), system-ui, -apple-system, BlinkMacSystemFont,
+      "Segoe UI", sans-serif;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    overflow-x: hidden;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  *::selection {
+    background: rgba(37, 99, 235, 0.18);
+    color: #0f172a;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  button {
+    cursor: pointer;
+  }
+
+  input,
+  textarea,
+  select,
+  button {
+    font: inherit;
+  }
+
+  input,
+  textarea,
+  select {
+    color: #0f172a;
+    background-color: #ffffff;
+  }
+
+  input::placeholder,
+  textarea::placeholder {
+    color: #94a3b8;
+    opacity: 1;
+  }
+
+  img {
+    max-width: 100%;
+    height: auto;
+  }
+
+  :focus-visible {
+    outline: 2px solid rgba(37, 99, 235, 0.35);
+    outline-offset: 2px;
+  }
 }
 
-html,
-body {
-  margin: 0;
-  padding: 0;
-  min-height: 100%;
-  background: #f8fafc;
-  color: #0f172a;
-  font-family: var(--font-sans), system-ui, -apple-system, BlinkMacSystemFont,
-    "Segoe UI", sans-serif;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+/* ============================================================
+   PREMAT PREMIUM — CSS KEYFRAME ANİMASYONLARI
+   (@layer dışında — keyframe'ler layer'dan etkilenmez)
+   ============================================================ */
+
+@keyframes prematFloat {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  33% {
+    transform: translateY(-14px) rotate(2deg);
+  }
+  66% {
+    transform: translateY(-8px) rotate(-1.5deg);
+  }
 }
 
-body {
-  overflow-x: hidden;
+@keyframes prematGradientShift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
 }
 
-* {
-  box-sizing: border-box;
+@keyframes prematPulseGlow {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(29, 79, 145, 0);
+    opacity: 1;
+  }
+  50% {
+    box-shadow: 0 0 32px 8px rgba(29, 79, 145, 0.18);
+    opacity: 0.85;
+  }
 }
 
-*::selection {
-  background: rgba(37, 99, 235, 0.18);
-  color: #0f172a;
+@keyframes prematFadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-a {
-  color: inherit;
-  text-decoration: none;
+@keyframes prematShimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
 }
 
-button {
-  cursor: pointer;
+@keyframes prematOrbit {
+  from {
+    transform: rotate(0deg) translateX(32px) rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg) translateX(32px) rotate(-360deg);
+  }
 }
 
-input,
-textarea,
-select,
-button {
-  font: inherit;
+@keyframes prematRotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
-input,
-textarea,
-select {
-  color: #0f172a;
-  background-color: #ffffff;
+@keyframes prematCardReveal {
+  from {
+    opacity: 0;
+    transform: translateY(32px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
-input::placeholder,
-textarea::placeholder {
-  color: #94a3b8;
-  opacity: 1;
+@keyframes prematOrangePulse {
+  0%, 100% {
+    opacity: 0.55;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.85;
+    transform: scale(1.08);
+  }
 }
 
-img {
-  max-width: 100%;
-  height: auto;
+@keyframes prematSlideInLeft {
+  from {
+    transform: translateX(-100%);
+    opacity: 0.7;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
 }
 
-:focus-visible {
-  outline: 2px solid rgba(37, 99, 235, 0.35);
-  outline-offset: 2px;
+/* ============================================================
+   PREMAT PREMIUM — YARDIMCI SINIFLAR
+   (@layer utilities içinde — utility'lerle aynı öncelik)
+   ============================================================ */
+@layer utilities {
+  /* 3D kart hover efekti */
+  .premat-card-3d {
+    transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1),
+      box-shadow 0.35s ease;
+    will-change: transform;
+  }
+
+  .premat-card-3d:hover {
+    transform: perspective(900px) rotateX(2deg) rotateY(-2.5deg) translateZ(10px)
+      translateY(-4px);
+    box-shadow: 0 28px 56px rgba(29, 79, 145, 0.14),
+      0 8px 20px rgba(29, 79, 145, 0.06);
+  }
+
+  /* Fade-in yukarıdan */
+  .premat-fade-in-up {
+    animation: prematFadeInUp 0.55s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  }
+
+  /* Staggered delay varyantları */
+  .premat-delay-100 { animation-delay: 0.1s; }
+  .premat-delay-200 { animation-delay: 0.2s; }
+  .premat-delay-300 { animation-delay: 0.3s; }
+  .premat-delay-400 { animation-delay: 0.4s; }
+  .premat-delay-500 { animation-delay: 0.5s; }
+
+  /* Floating dekoratif öğe */
+  .premat-float {
+    animation: prematFloat 5s ease-in-out infinite;
+  }
+  .premat-float-slow {
+    animation: prematFloat 7s ease-in-out infinite;
+  }
+  .premat-float-fast {
+    animation: prematFloat 3.5s ease-in-out infinite;
+  }
+
+  /* Shimmer efekti */
+  .premat-shimmer {
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.5) 50%,
+      transparent 100%
+    );
+    background-size: 200% 100%;
+    animation: prematShimmer 2.4s ease-in-out infinite;
+  }
+
+  /* Animated gradient text */
+  .premat-gradient-text-animated {
+    background-size: 200% 200%;
+    animation: prematGradientShift 4s ease infinite;
+  }
+
+  /* Kart reveal */
+  .premat-card-reveal {
+    animation: prematCardReveal 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  }
+
+  /* Mobile drawer animasyonu */
+  .premat-drawer-in {
+    animation: prematSlideInLeft 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  }
+
+  /* Pulse glow */
+  .premat-pulse-glow {
+    animation: prematPulseGlow 3s ease-in-out infinite;
+  }
+}
+
+/* ============================================================
+   ERİŞİLEBİLİRLİK
+   ============================================================ */
+@media (prefers-reduced-motion: reduce) {
+  .premat-card-3d,
+  .premat-card-3d:hover {
+    transform: none !important;
+    transition: box-shadow 0.2s ease, border-color 0.2s ease !important;
+  }
+
+  .premat-fade-in-up,
+  .premat-float,
+  .premat-float-slow,
+  .premat-float-fast,
+  .premat-shimmer,
+  .premat-gradient-text-animated,
+  .premat-card-reveal,
+  .premat-drawer-in,
+  .premat-pulse-glow {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
 }

@@ -69,14 +69,59 @@ export default function HomePageClient({
   }
 
   return (
-    <main className="min-h-screen bg-[linear-gradient(180deg,#295c9c_0%,#4479be_18%,#eef5ff_18%,#f8fbff_100%)]">
+    <main
+      className="min-h-screen"
+      style={{
+        background:
+          "linear-gradient(180deg, #0f2d5c 0%, #1d4f91 12%, #2f6eb7 22%, #eef5ff 22%, #f8fbff 100%)",
+      }}
+    >
+      {/* ── HERO BÖLÜMİ ── */}
       <section className="mx-auto max-w-7xl px-4 pb-10 pt-6 sm:pb-12 sm:pt-8 md:px-6 md:pb-16 md:pt-12">
-        <div className="overflow-hidden rounded-[1.9rem] border border-white/30 bg-white/95 shadow-2xl shadow-blue-950/10 sm:rounded-[2.2rem]">
+        <div className="relative overflow-hidden rounded-[1.9rem] border border-white/40 bg-white/97 shadow-2xl shadow-blue-950/15 sm:rounded-[2.2rem]">
+          {/* Dekoratif glow blobs */}
+          <div className="pointer-events-none absolute inset-0 overflow-hidden">
+            <div
+              className="absolute -left-10 top-6 h-40 w-40 rounded-full opacity-40 blur-3xl"
+              style={{ background: "radial-gradient(circle, #bfdbfe, transparent)" }}
+            />
+            <div
+              className="absolute right-0 top-0 h-56 w-56 rounded-full opacity-30 blur-3xl"
+              style={{ background: "radial-gradient(circle, #dbeafe, transparent)" }}
+            />
+            <div
+              className="absolute bottom-8 left-1/3 h-32 w-32 rounded-full opacity-25 blur-3xl"
+              style={{ background: "radial-gradient(circle, #fed7aa, transparent)" }}
+            />
+          </div>
+
           <div className="relative px-4 py-6 sm:px-6 sm:py-8 md:px-10 md:py-14">
-            <div className="absolute inset-0 opacity-35">
-              <div className="absolute -left-8 top-8 h-28 w-28 rounded-full bg-sky-100 blur-3xl sm:h-40 sm:w-40" />
-              <div className="absolute right-0 top-0 h-32 w-32 rounded-full bg-blue-100 blur-3xl sm:h-56 sm:w-56" />
-              <div className="absolute bottom-0 left-1/3 h-24 w-24 rounded-full bg-orange-100 blur-3xl sm:h-32 sm:w-32" />
+            {/* Floating matematik sembolleri */}
+            <div className="pointer-events-none absolute inset-0 select-none overflow-hidden">
+              <span
+                className="premat-float absolute right-[8%] top-[12%] text-6xl font-black text-blue-100"
+                style={{ animationDelay: "0s" }}
+              >
+                π
+              </span>
+              <span
+                className="premat-float-slow absolute bottom-[15%] left-[6%] text-5xl font-black text-orange-100"
+                style={{ animationDelay: "1.2s" }}
+              >
+                ∑
+              </span>
+              <span
+                className="premat-float absolute right-[18%] bottom-[20%] text-4xl font-black text-blue-100"
+                style={{ animationDelay: "0.6s" }}
+              >
+                √
+              </span>
+              <span
+                className="premat-float-fast absolute left-[30%] top-[8%] text-3xl font-black text-slate-100"
+                style={{ animationDelay: "1.8s" }}
+              >
+                ∞
+              </span>
             </div>
 
             <div className="relative grid gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
@@ -94,10 +139,22 @@ export default function HomePageClient({
 
                 <h1 className="max-w-4xl text-3xl font-black leading-[0.98] tracking-[-0.04em] text-slate-950 sm:text-4xl md:text-6xl">
                   Matematik için
-                  <span className="block bg-[linear-gradient(90deg,#1d4f91_0%,#2f6eb7_42%,#ea580c_100%)] bg-clip-text text-transparent">
+                  <span
+                    className="block bg-clip-text text-transparent"
+                    style={{
+                      backgroundImage:
+                        "linear-gradient(90deg, #1d4f91 0%, #2f6eb7 42%, #ea580c 100%)",
+                    }}
+                  >
                     düzenli ve güvenilir
                   </span>
-                  <span className="block bg-[linear-gradient(90deg,#2f6eb7_0%,#5b6b96_52%,#c2410c_100%)] bg-clip-text text-transparent">
+                  <span
+                    className="block bg-clip-text text-transparent"
+                    style={{
+                      backgroundImage:
+                        "linear-gradient(90deg, #2f6eb7 0%, #5b6b96 52%, #c2410c 100%)",
+                    }}
+                  >
                     döküman arşivi
                   </span>
                 </h1>
@@ -111,11 +168,12 @@ export default function HomePageClient({
                   {[
                     "Seçili içerik yapısı",
                     "Sınıf ve konu filtresi",
-                    "Maarif Modeli’ne uygun",
-                  ].map((item) => (
+                    "Maarif Modeli'ne uygun",
+                  ].map((item, i) => (
                     <div
                       key={item}
-                      className="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-semibold text-emerald-700 sm:px-4 sm:text-sm"
+                      className="premat-fade-in-up rounded-full border border-blue-200 bg-blue-50 px-3 py-2 text-xs font-semibold text-blue-800 sm:px-4 sm:text-sm"
+                      style={{ animationDelay: `${i * 0.12}s` }}
                     >
                       ✓ {item}
                     </div>
@@ -125,11 +183,20 @@ export default function HomePageClient({
 
               <div className="w-full">
                 <a href="https://prekoc.com.tr" className="group block">
-                  <div className="relative overflow-hidden rounded-[2rem] border border-blue-100 bg-[linear-gradient(135deg,rgba(29,79,145,0.08)_0%,rgba(47,110,183,0.12)_55%,rgba(234,88,12,0.08)_100%)] p-4 shadow-[0_20px_50px_rgba(15,23,42,0.06)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_24px_60px_rgba(15,23,42,0.12)] sm:p-5 md:p-6">
+                  <div
+                    className="premat-card-3d relative overflow-hidden rounded-[2rem] border border-blue-100 p-4 shadow-[0_20px_50px_rgba(15,23,42,0.08)] sm:p-5 md:p-6"
+                    style={{
+                      background:
+                        "linear-gradient(135deg, rgba(29,79,145,0.07) 0%, rgba(47,110,183,0.10) 55%, rgba(234,88,12,0.07) 100%)",
+                    }}
+                  >
                     <div className="absolute inset-x-0 top-0 h-20 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.85)_0%,rgba(255,255,255,0)_72%)] opacity-80 transition duration-300 group-hover:opacity-100" />
 
                     <div className="relative flex items-center justify-between gap-3">
-                      <div className="inline-flex rounded-full border border-blue-200 bg-white px-4 py-2 text-xs font-bold tracking-[0.08em] text-blue-800">
+                      <div
+                        className="inline-flex rounded-full border border-blue-200/60 px-4 py-2 text-xs font-bold tracking-[0.08em] text-blue-800"
+                        style={{ background: "rgba(255,255,255,0.9)" }}
+                      >
                         KOÇLUK MODÜLÜ
                       </div>
 
@@ -181,8 +248,14 @@ export default function HomePageClient({
                       </p>
                     </div>
 
-                    <div className="relative mt-4 rounded-2xl bg-[linear-gradient(135deg,#1d4f91_0%,#2f6eb7_55%,#ea580c_100%)] px-5 py-4 text-sm font-bold text-white shadow-lg shadow-blue-900/15 transition duration-300 group-hover:shadow-xl group-hover:shadow-blue-900/20">
-                      preKoç'a Geç →
+                    <div
+                      className="relative mt-4 rounded-2xl px-5 py-4 text-sm font-bold text-white shadow-lg shadow-blue-900/15 transition duration-300 group-hover:shadow-xl group-hover:shadow-blue-900/20 group-hover:brightness-[1.06]"
+                      style={{
+                        background:
+                          "linear-gradient(135deg, #1d4f91 0%, #2f6eb7 55%, #ea580c 100%)",
+                      }}
+                    >
+                      preKoç&apos;a Geç →
                     </div>
                   </div>
                 </a>
@@ -190,11 +263,27 @@ export default function HomePageClient({
             </div>
           </div>
 
-          <div className="border-t border-slate-200 bg-slate-50 px-4 py-5 sm:px-6 md:px-10 md:py-6">
+          {/* Hızlı Arama */}
+          <div
+            className="border-t border-slate-200/70 px-4 py-5 sm:px-6 md:px-10 md:py-6"
+            style={{
+              background:
+                "linear-gradient(135deg, #f0f6ff 0%, #f8fbff 60%, #fff8f2 100%)",
+            }}
+          >
             <div className="mb-4">
-              <h2 className="text-base font-black text-slate-900 sm:text-lg">
-                Hızlı Arama
-              </h2>
+              <div className="flex items-center gap-2.5">
+                <div
+                  className="h-5 w-1 rounded-full"
+                  style={{
+                    background:
+                      "linear-gradient(180deg, #1d4f91, #ea580c)",
+                  }}
+                />
+                <h2 className="text-base font-black text-slate-900 sm:text-lg">
+                  Hızlı Arama
+                </h2>
+              </div>
               <p className="mt-1 text-xs text-slate-500 sm:text-sm">
                 Sınıf, konu ve tür seçerek doğrudan arşive geç.
               </p>
@@ -207,7 +296,7 @@ export default function HomePageClient({
                   setGrade(e.target.value);
                   setTopic("");
                 }}
-                className="min-w-0 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 outline-none transition focus:border-blue-300 sm:text-base"
+                className="min-w-0 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 outline-none transition focus:border-blue-400 focus:shadow-[0_0_0_3px_rgba(29,79,145,0.10)] sm:text-base"
               >
                 <option value="">Sınıf seç</option>
                 <option value="5">5. Sınıf</option>
@@ -219,7 +308,7 @@ export default function HomePageClient({
               <select
                 value={topic}
                 onChange={(e) => setTopic(e.target.value)}
-                className="min-w-0 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 outline-none transition focus:border-blue-300 sm:text-base"
+                className="min-w-0 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 outline-none transition focus:border-blue-400 focus:shadow-[0_0_0_3px_rgba(29,79,145,0.10)] sm:text-base"
               >
                 <option value="">Konu seç</option>
                 {topicOptions.map((item) => (
@@ -232,7 +321,7 @@ export default function HomePageClient({
               <select
                 value={type}
                 onChange={(e) => setType(e.target.value)}
-                className="min-w-0 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 outline-none transition focus:border-blue-300 sm:text-base"
+                className="min-w-0 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 outline-none transition focus:border-blue-400 focus:shadow-[0_0_0_3px_rgba(29,79,145,0.10)] sm:text-base"
               >
                 <option value="">İçerik türü</option>
                 {documentTypeCatalog.map((item) => (
@@ -245,7 +334,11 @@ export default function HomePageClient({
               <button
                 type="button"
                 onClick={handleSearch}
-                className="w-full rounded-2xl bg-[linear-gradient(135deg,#1d4f91_0%,#2f6eb7_55%,#3b82f6_100%)] px-8 py-3 text-base font-bold text-white shadow-lg shadow-blue-700/25 transition hover:-translate-y-0.5 hover:shadow-xl md:w-auto sm:text-lg"
+                className="w-full rounded-2xl px-8 py-3 text-base font-bold text-white shadow-lg shadow-blue-700/25 transition hover:-translate-y-0.5 hover:brightness-[1.06] hover:shadow-blue-700/35 md:w-auto sm:text-lg"
+                style={{
+                  background:
+                    "linear-gradient(135deg, #1d4f91 0%, #2f6eb7 55%, #ea580c 100%)",
+                }}
               >
                 Ara
               </button>
@@ -254,30 +347,54 @@ export default function HomePageClient({
         </div>
       </section>
 
+      {/* ── SINIFA GÖRE HIZLI GEÇİŞ ── */}
       <section className="mx-auto max-w-7xl px-4 pb-8 md:px-6 md:pb-10">
-        <div className="rounded-[1.75rem] border border-slate-200 bg-white p-4 shadow-xl shadow-slate-900/5 sm:p-6 md:rounded-[2rem] md:p-8">
-          <div className="mb-6">
-            <h2 className="text-xl font-black text-slate-900 sm:text-2xl md:text-3xl">
-              Sınıfa Göre Hızlı Geçiş
-            </h2>
-            <p className="mt-2 text-sm text-slate-600">
-              Her sınıf için mevcut içerik yoğunluğunu gör ve doğrudan ilgili
-              arşive geç.
-            </p>
+        <div className="rounded-[1.75rem] border border-slate-200/80 bg-white p-4 shadow-xl shadow-slate-900/5 sm:p-6 md:rounded-[2rem] md:p-8">
+          <div className="mb-6 flex items-start gap-3">
+            <div
+              className="mt-1 h-6 w-1.5 shrink-0 rounded-full"
+              style={{
+                background: "linear-gradient(180deg, #1d4f91, #ea580c)",
+              }}
+            />
+            <div>
+              <h2 className="text-xl font-black text-slate-900 sm:text-2xl md:text-3xl">
+                Sınıfa Göre Hızlı Geçiş
+              </h2>
+              <p className="mt-2 text-sm text-slate-600">
+                Her sınıf için mevcut içerik yoğunluğunu gör ve doğrudan ilgili
+                arşive geç.
+              </p>
+            </div>
           </div>
 
           <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
-            {gradeBlocks.map((item) => (
+            {gradeBlocks.map((item, i) => (
               <Link
                 key={item.level}
                 href={`/sinif/${item.level}`}
-                className="group rounded-[1.75rem] border border-slate-200 bg-slate-50 p-5 transition hover:-translate-y-1 hover:border-blue-200 hover:bg-white hover:shadow-lg"
+                className="premat-card-3d premat-fade-in-up group rounded-[1.75rem] border border-slate-200/80 bg-slate-50 p-5 hover:border-blue-200 hover:bg-white"
+                style={{ animationDelay: `${i * 0.08}s` }}
               >
-                <div className="inline-flex rounded-full bg-blue-100 px-3 py-1 text-xs font-black text-blue-800">
+                {/* Sınıf badge — gradient */}
+                <div
+                  className="inline-flex rounded-full px-3 py-1 text-xs font-black text-white"
+                  style={{
+                    background:
+                      "linear-gradient(135deg, #1d4f91 0%, #2f6eb7 100%)",
+                  }}
+                >
                   {item.level}. Sınıf
                 </div>
 
-                <div className="mt-4 text-4xl font-black tracking-[-0.04em] text-slate-950">
+                {/* Büyük sayı — gradient text */}
+                <div
+                  className="mt-4 text-4xl font-black tracking-[-0.04em] bg-clip-text text-transparent"
+                  style={{
+                    backgroundImage:
+                      "linear-gradient(135deg, #1d4f91 0%, #2f6eb7 100%)",
+                  }}
+                >
                   {item.count}
                 </div>
 
@@ -296,8 +413,11 @@ export default function HomePageClient({
                   </div>
                 </div>
 
-                <div className="mt-5 text-sm font-bold text-blue-800 transition group-hover:translate-x-1">
-                  Arşive Git →
+                <div className="mt-5 flex items-center gap-1 text-sm font-bold text-blue-800 transition group-hover:gap-2">
+                  <span>Arşive Git</span>
+                  <span className="transition-transform duration-200 group-hover:translate-x-1">
+                    →
+                  </span>
                 </div>
               </Link>
             ))}
@@ -305,21 +425,30 @@ export default function HomePageClient({
         </div>
       </section>
 
+      {/* ── ÖNE ÇIKAN DÖKÜMANLAR ── */}
       <section className="mx-auto max-w-7xl px-4 pb-8 md:px-6 md:pb-10">
-        <div className="rounded-[1.75rem] border border-slate-200 bg-white p-4 shadow-xl shadow-slate-900/5 sm:p-6 md:rounded-[2rem] md:p-8">
+        <div className="rounded-[1.75rem] border border-slate-200/80 bg-white p-4 shadow-xl shadow-slate-900/5 sm:p-6 md:rounded-[2rem] md:p-8">
           <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <h2 className="text-xl font-black text-slate-900 sm:text-2xl md:text-3xl">
-                Öne Çıkan Dökümanlar
-              </h2>
-              <p className="mt-2 text-sm text-slate-600">
-                Seçili içerikler burada görünür.
-              </p>
+            <div className="flex items-start gap-3">
+              <div
+                className="mt-1 h-6 w-1.5 shrink-0 rounded-full"
+                style={{
+                  background: "linear-gradient(180deg, #ea580c, #f97316)",
+                }}
+              />
+              <div>
+                <h2 className="text-xl font-black text-slate-900 sm:text-2xl md:text-3xl">
+                  Öne Çıkan Dökümanlar
+                </h2>
+                <p className="mt-2 text-sm text-slate-600">
+                  Seçili içerikler burada görünür.
+                </p>
+              </div>
             </div>
 
             <Link
               href="/documents"
-              className="rounded-2xl border border-blue-200 bg-white px-5 py-3 text-center text-sm font-bold text-blue-900 transition hover:bg-blue-50"
+              className="rounded-2xl border border-blue-200 bg-white px-5 py-3 text-center text-sm font-bold text-blue-900 transition hover:-translate-y-0.5 hover:bg-blue-50 hover:shadow-sm"
             >
               Dökümanları İncele
             </Link>
@@ -337,21 +466,30 @@ export default function HomePageClient({
         </div>
       </section>
 
+      {/* ── SON EKLENEN DÖKÜMANLAR ── */}
       <section className="mx-auto max-w-7xl px-4 pb-10 md:px-6 md:pb-14">
-        <div className="rounded-[1.75rem] border border-slate-200 bg-white p-4 shadow-xl shadow-slate-900/5 sm:p-6 md:rounded-[2rem] md:p-8">
+        <div className="rounded-[1.75rem] border border-slate-200/80 bg-white p-4 shadow-xl shadow-slate-900/5 sm:p-6 md:rounded-[2rem] md:p-8">
           <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <h2 className="text-xl font-black text-slate-900 sm:text-2xl md:text-3xl">
-                Son Eklenen Dökümanlar
-              </h2>
-              <p className="mt-2 text-sm text-slate-600">
-                Arşive en son eklenen yayınları hızlıca incele.
-              </p>
+            <div className="flex items-start gap-3">
+              <div
+                className="mt-1 h-6 w-1.5 shrink-0 rounded-full"
+                style={{
+                  background: "linear-gradient(180deg, #1d4f91, #2f6eb7)",
+                }}
+              />
+              <div>
+                <h2 className="text-xl font-black text-slate-900 sm:text-2xl md:text-3xl">
+                  Son Eklenen Dökümanlar
+                </h2>
+                <p className="mt-2 text-sm text-slate-600">
+                  Arşive en son eklenen yayınları hızlıca incele.
+                </p>
+              </div>
             </div>
 
             <Link
               href="/documents"
-              className="rounded-2xl border border-blue-200 bg-white px-5 py-3 text-center text-sm font-bold text-blue-900 transition hover:bg-blue-50"
+              className="rounded-2xl border border-blue-200 bg-white px-5 py-3 text-center text-sm font-bold text-blue-900 transition hover:-translate-y-0.5 hover:bg-blue-50 hover:shadow-sm"
             >
               Dökümanları İncele
             </Link>
