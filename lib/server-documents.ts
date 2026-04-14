@@ -6,6 +6,7 @@ import {
   GradeLevel,
   SourceType,
 } from "@/types/document";
+import { getRelatedDocuments } from "@/lib/related-documents";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabasePublishableKey =
@@ -79,6 +80,35 @@ function mapRows(rows: ServerDocumentRow[] | null) {
   return (rows ?? []).map(mapRowToDocument);
 }
 
+type PopularityRow = {
+  document_id: string;
+  popularity_score: number;
+};
+
+async function attachPopularityScores(documents: DocumentItem[]) {
+  if (documents.length === 0) {
+    return documents;
+  }
+
+  const { data, error } = await supabase.rpc("get_public_document_popularity");
+
+  if (error) {
+    return documents;
+  }
+
+  const scores = new Map(
+    ((data ?? []) as PopularityRow[]).map((item) => [
+      item.document_id,
+      Number(item.popularity_score) || 0,
+    ])
+  );
+
+  return documents.map((doc) => ({
+    ...doc,
+    popularityScore: scores.get(doc.id) ?? 0,
+  }));
+}
+
 const CACHE_TAG = "documents-public";
 const CACHE_SECONDS = 300;
 
@@ -101,7 +131,7 @@ const getPublishedDocumentsCached = unstable_cache(
       return [];
     }
 
-    return mapRows(data as ServerDocumentRow[] | null);
+    return attachPopularityScores(mapRows(data as ServerDocumentRow[] | null));
   },
   ["documents-public-list"],
   {
@@ -274,4 +304,13 @@ export async function getPublishedDocumentBySlug(slug: string) {
 
 export async function getPublishedDocumentsForSitemap() {
   return getPublishedDocumentsForSitemapCached();
+}
+
+export async function getRelatedPublishedDocuments(
+  doc: DocumentItem,
+  limit = 6
+) {
+  const documents = await getPublishedDocuments();
+
+  return getRelatedDocuments(doc, documents, limit);
 }

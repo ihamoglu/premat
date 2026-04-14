@@ -9,15 +9,18 @@ import { DocumentItem } from "@/types/document";
 import { absoluteUrl } from "@/lib/site";
 import { topicToSlug } from "@/lib/topic-slugs";
 import WorklistAddButton from "@/components/worklist/WorklistAddButton";
+import { getDocumentLinks } from "@/lib/document-links";
 
 type DocumentDetailPageClientProps = {
   doc: DocumentItem;
+  relatedDocs: DocumentItem[];
   sameTopicDocs: DocumentItem[];
   sameGradeDocs: DocumentItem[];
 };
 
 export default function DocumentDetailPageClient({
   doc,
+  relatedDocs,
   sameTopicDocs,
   sameGradeDocs,
 }: DocumentDetailPageClientProps) {
@@ -29,6 +32,7 @@ export default function DocumentDetailPageClient({
   const qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&margin=10&data=${encodeURIComponent(
     detailUrl
   )}`;
+  const documentLinks = getDocumentLinks(doc);
   const documentSignals = [
     doc.isPrintReady ? "Yazdırmaya hazır" : null,
     doc.hasVideoSolution ? "Video çözüm mevcut" : null,
@@ -279,6 +283,10 @@ export default function DocumentDetailPageClient({
               </div>
 
               <div className="space-y-3">
+                <div className="rounded-2xl border border-blue-100 bg-blue-50 px-4 py-3 text-xs font-semibold text-blue-800">
+                  {documentLinks.length} erişim bağlantısı hazır
+                </div>
+
                 {/* Ana dosya butonu */}
                 <a
                   href={doc.fileUrl}
@@ -402,6 +410,40 @@ export default function DocumentDetailPageClient({
             </aside>
           </div>
         </div>
+      </section>
+
+      <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-10 md:py-12">
+        <div className="mb-6 flex items-start gap-3">
+          <div
+            className="mt-1 h-6 w-1.5 shrink-0 rounded-full"
+            style={{ background: "linear-gradient(180deg, #1d4f91, #ea580c)" }}
+          />
+          <div>
+            <h2 className="text-xl font-black text-slate-900 sm:text-2xl md:text-3xl">
+              Benzer Dökümanlar
+            </h2>
+            <p className="mt-2 text-sm text-slate-600">
+              Konu, sınıf, tür ve zorluk eşleşmesine göre seçilen yakın içerikler
+            </p>
+          </div>
+        </div>
+
+        {relatedDocs.length > 0 ? (
+          <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+            {relatedDocs.map((item) => (
+              <DocumentCard key={item.id} doc={item} />
+            ))}
+          </div>
+        ) : (
+          <div className="rounded-[1.75rem] border border-dashed border-slate-300 bg-white p-10 text-center shadow-sm sm:rounded-[2rem] sm:p-12">
+            <h3 className="text-2xl font-black text-slate-900">
+              Yakın içerik bulunamadı
+            </h3>
+            <p className="mt-3 text-sm leading-7 text-slate-600 md:text-base">
+              Bu kayda benzer yayınlanmış başka döküman şu an görünmüyor.
+            </p>
+          </div>
+        )}
       </section>
 
       {/* ── AYNI KONUDAN DİĞER İÇERİKLER ── */}

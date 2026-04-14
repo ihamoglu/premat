@@ -7,7 +7,7 @@ import InlineNotice from "@/components/ui/InlineNotice";
 import SectionHeader from "@/components/ui/SectionHeader";
 import StatCard from "@/components/ui/StatCard";
 import QualityPill from "@/components/ui/QualityPill";
-import { assessDocumentQuality } from "@/lib/document-quality";
+import { assessDocumentQuality, getPublishReadiness } from "@/lib/document-quality";
 import { DocumentItem, GradeLevel } from "@/types/document";
 import {
   documentTypeCatalog,
@@ -106,6 +106,20 @@ export default function AdminDocumentsList({ onEdit }: AdminDocumentsListProps) 
   async function handleTogglePublished(doc: DocumentItem) {
     setWorkingId(doc.id); setStatusMessage(""); setStatusType("");
     try {
+      if (!doc.published) {
+        const readiness = getPublishReadiness(doc);
+
+        if (!readiness.canPublish) {
+          setStatusType("error");
+          setStatusMessage(
+            `Yayına alınamaz: ${readiness.critical
+              .map((issue) => issue.label)
+              .join(" ")}`
+          );
+          return;
+        }
+      }
+
       await updateDocument({ ...doc, published: !doc.published });
       setStatusType("success");
       setStatusMessage(doc.published ? "Kayıt yayından kaldırıldı." : "Kayıt yayına alındı.");

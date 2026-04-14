@@ -37,6 +37,19 @@ export default function HomePageClient({
     [documents]
   );
 
+  const popularDocs = useMemo(
+    () =>
+      [...documents]
+        .filter((doc) => (doc.popularityScore ?? 0) > 0)
+        .sort((a, b) => {
+          const scoreDiff = (b.popularityScore ?? 0) - (a.popularityScore ?? 0);
+          if (scoreDiff !== 0) return scoreDiff;
+          return b.createdAt.localeCompare(a.createdAt);
+        })
+        .slice(0, 6),
+    [documents]
+  );
+
   const gradeBlocks = useMemo(
     () =>
       (["5", "6", "7", "8"] as const).map((level) => {
@@ -465,6 +478,44 @@ export default function HomePageClient({
           </div>
         </div>
       </section>
+
+      {popularDocs.length > 0 ? (
+        <section className="mx-auto max-w-7xl px-4 pb-8 md:px-6 md:pb-10">
+          <div className="rounded-[1.75rem] border border-slate-200/80 bg-white p-4 shadow-xl shadow-slate-900/5 sm:p-6 md:rounded-[2rem] md:p-8">
+            <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-start gap-3">
+                <div
+                  className="mt-1 h-6 w-1.5 shrink-0 rounded-full"
+                  style={{
+                    background: "linear-gradient(180deg, #1d4f91, #ea580c)",
+                  }}
+                />
+                <div>
+                  <h2 className="text-xl font-black text-slate-900 sm:text-2xl md:text-3xl">
+                    Popüler Dökümanlar
+                  </h2>
+                  <p className="mt-2 text-sm text-slate-600">
+                    Son kullanım sinyallerine göre öne çıkan yayınlar.
+                  </p>
+                </div>
+              </div>
+
+              <Link
+                href="/documents?sort=popular"
+                className="rounded-2xl border border-blue-200 bg-white px-5 py-3 text-center text-sm font-bold text-blue-900 transition hover:-translate-y-0.5 hover:bg-blue-50 hover:shadow-sm"
+              >
+                Popüler Listeyi Aç
+              </Link>
+            </div>
+
+            <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+              {popularDocs.map((doc) => (
+                <DocumentCard key={doc.id} doc={doc} />
+              ))}
+            </div>
+          </div>
+        </section>
+      ) : null}
 
       {/* ── SON EKLENEN DÖKÜMANLAR ── */}
       <section className="mx-auto max-w-7xl px-4 pb-10 md:px-6 md:pb-14">

@@ -6,6 +6,7 @@ import {
   getPublishedDocumentBySlug,
   getPublishedDocumentsByGrade,
   getPublishedDocumentsByTopic,
+  getRelatedPublishedDocuments,
 } from "@/lib/server-documents";
 import { absoluteUrl, siteConfig } from "@/lib/site";
 
@@ -75,6 +76,8 @@ export default async function DocumentDetailPage({ params }: PageProps) {
     limit: 4,
   });
 
+  const relatedDocs = await getRelatedPublishedDocuments(doc, 6);
+
   const structuredData = {
     "@context": "https://schema.org",
     "@type": "CreativeWork",
@@ -99,6 +102,7 @@ export default async function DocumentDetailPage({ params }: PageProps) {
       <StructuredData data={structuredData} />
       <DocumentDetailPageClient
         doc={doc}
+        relatedDocs={relatedDocs}
         sameTopicDocs={sameTopicDocs}
         sameGradeDocs={sameGradeDocs}
       />

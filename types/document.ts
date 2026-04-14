@@ -6,6 +6,21 @@ export type SourceType = "Google Drive" | "OneDrive" | "Dropbox" | "Diğer";
 
 export type DocumentDifficulty = "Başlangıç" | "Orta" | "İleri" | "Karma";
 
+export type DocumentLinkKind =
+  | "file"
+  | "solution"
+  | "answer_key"
+  | "video"
+  | "extra";
+
+export type DocumentLink = {
+  id?: string;
+  kind: DocumentLinkKind;
+  label: string;
+  url: string;
+  position: number;
+};
+
 export type DocumentItem = {
   id: string;
   slug: string;
@@ -30,4 +45,6 @@ export type DocumentItem = {
   featured: boolean;
   published: boolean;
   createdAt: string;
+  popularityScore?: number;
+  links?: DocumentLink[];
 };

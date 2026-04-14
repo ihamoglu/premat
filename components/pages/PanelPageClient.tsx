@@ -6,6 +6,7 @@ import AdminDocumentForm from "@/components/admin/AdminDocumentForm";
 import AdminDocumentsList from "@/components/admin/AdminDocumentsList";
 import AdminBulkImport from "@/components/admin/AdminBulkImport";
 import AdminReviewQueue from "@/components/admin/AdminReviewQueue";
+import AdminQualityReport from "@/components/admin/AdminQualityReport";
 import AdminLinkHealthCheck from "@/components/admin/AdminLinkHealthCheck";
 import AdminOperationsReport from "@/components/admin/AdminOperationsReport";
 import AdminStorageCleanup from "@/components/admin/AdminStorageCleanup";
@@ -185,6 +186,11 @@ function PanelPageInner() {
 
         <div className="grid gap-8">
           <AdminReviewQueue
+            documents={documents}
+            onEdit={(doc) => setEditingDoc(doc)}
+          />
+
+          <AdminQualityReport
             documents={documents}
             onEdit={(doc) => setEditingDoc(doc)}
           />

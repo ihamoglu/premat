@@ -1,7 +1,7 @@
 type StatCardProps = {
   label: string;
   value: string | number;
-  tone?: "default" | "blue" | "emerald" | "amber" | "white";
+  tone?: "default" | "blue" | "emerald" | "amber" | "red" | "white";
 };
 
 const toneClasses: Record<NonNullable<StatCardProps["tone"]>, string> = {
@@ -9,6 +9,7 @@ const toneClasses: Record<NonNullable<StatCardProps["tone"]>, string> = {
   blue: "border border-blue-100 bg-blue-50",
   emerald: "border border-emerald-200 bg-emerald-50",
   amber: "border border-amber-200 bg-amber-50",
+  red: "border border-red-200 bg-red-50",
   white: "border border-white/40 bg-white/95 shadow-lg shadow-slate-900/10",
 };
 
@@ -17,6 +18,7 @@ const valueClasses: Record<NonNullable<StatCardProps["tone"]>, string> = {
   blue: "text-blue-900",
   emerald: "text-emerald-700",
   amber: "text-amber-700",
+  red: "text-red-700",
   white: "text-slate-950",
 };
 

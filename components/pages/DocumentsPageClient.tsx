@@ -42,6 +42,7 @@ export default function DocumentsPageClient({
   const selectedAnswerKey = searchParams.get("answerKey") || "";
   const selectedPrintReady = searchParams.get("printReady") || "";
   const selectedYear = searchParams.get("year") || "";
+  const selectedSort = searchParams.get("sort") || "new";
   const [searchInput, setSearchInput] = useState(selectedQuery);
 
   const selectedGrade: "Tümü" | GradeLevel =
@@ -100,9 +101,23 @@ export default function DocumentsPageClient({
       );
     });
 
-    return selectedQuery
-      ? sortDocumentsForSearch(filtered, selectedQuery)
-      : filtered;
+    if (selectedQuery) {
+      return sortDocumentsForSearch(filtered, selectedQuery);
+    }
+
+    return [...filtered].sort((a, b) => {
+      if (selectedSort === "popular") {
+        const scoreDiff = (b.popularityScore ?? 0) - (a.popularityScore ?? 0);
+        if (scoreDiff !== 0) return scoreDiff;
+      }
+
+      if (selectedSort === "featured") {
+        const featuredDiff = Number(b.featured) - Number(a.featured);
+        if (featuredDiff !== 0) return featuredDiff;
+      }
+
+      return b.createdAt.localeCompare(a.createdAt);
+    });
   }, [
     documents,
     selectedGrade,
@@ -114,6 +129,7 @@ export default function DocumentsPageClient({
     selectedAnswerKey,
     selectedPrintReady,
     selectedYear,
+    selectedSort,
   ]);
 
   const topicOptions = useMemo(() => {
@@ -155,6 +171,11 @@ export default function DocumentsPageClient({
         : null,
     selectedPrintReady === "var" ? "Yazdırmaya hazır" : null,
     selectedYear ? `Yıl: ${selectedYear}` : null,
+    selectedSort === "popular"
+      ? "Sıralama: Popüler"
+      : selectedSort === "featured"
+        ? "Sıralama: Öne çıkan"
+        : null,
   ].filter(Boolean);
 
   function updateFilters(next: {
@@ -167,6 +188,7 @@ export default function DocumentsPageClient({
     answerKey?: string;
     printReady?: string;
     year?: string;
+    sort?: string;
   }) {
     const params = new URLSearchParams(searchParams.toString());
 
@@ -179,6 +201,7 @@ export default function DocumentsPageClient({
     const nextAnswerKey = next.answerKey ?? selectedAnswerKey;
     const nextPrintReady = next.printReady ?? selectedPrintReady;
     const nextYear = next.year ?? selectedYear;
+    const nextSort = next.sort ?? selectedSort;
 
     if (nextGrade === "Tümü") {
       params.delete("grade");
@@ -232,6 +255,12 @@ export default function DocumentsPageClient({
       params.set("year", nextYear);
     } else {
       params.delete("year");
+    }
+
+    if (nextSort && nextSort !== "new") {
+      params.set("sort", nextSort);
+    } else {
+      params.delete("sort");
     }
 
     const query = params.toString();
@@ -482,7 +511,7 @@ export default function DocumentsPageClient({
             </select>
           </div>
 
-          <div className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+          <div className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-6">
             <select
               value={selectedDifficulty}
               onChange={(e) =>
@@ -556,6 +585,20 @@ export default function DocumentsPageClient({
                   {year}
                 </option>
               ))}
+            </select>
+
+            <select
+              value={selectedSort}
+              onChange={(e) =>
+                updateFilters({
+                  sort: e.target.value,
+                })
+              }
+              className="w-full min-w-0 max-w-full appearance-none rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700 outline-none transition focus:border-blue-400 focus:shadow-[0_0_0_3px_rgba(29,79,145,0.10)]"
+            >
+              <option value="new">Yeni eklenen</option>
+              <option value="popular">Popüler</option>
+              <option value="featured">Öne çıkan</option>
             </select>
           </div>
 

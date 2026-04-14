@@ -6,7 +6,7 @@ import { useDocuments } from "@/components/providers/DocumentsProvider";
 import SectionHeader from "@/components/ui/SectionHeader";
 import InlineNotice from "@/components/ui/InlineNotice";
 import QualityPill from "@/components/ui/QualityPill";
-import { assessDraftQuality } from "@/lib/document-quality";
+import { assessDraftQuality, getPublishReadiness } from "@/lib/document-quality";
 import {
   documentDifficultyCatalog,
   documentTypeCatalog,
@@ -141,13 +141,46 @@ export default function AdminDocumentForm({ editingDoc, onCancelEdit, onFinish }
       assessDraftQuality({
         title: form.title,
         description: form.description,
+        grade: form.grade,
         topic: form.topic,
         subtopic: form.subtopic || undefined,
+        type: form.type,
+        fileUrl: form.fileUrl,
         solutionUrl: form.solutionUrl || undefined,
         answerKeyUrl: form.answerKeyUrl || undefined,
         coverImageUrl: livePreviewImage || undefined,
+        difficulty: form.difficulty || undefined,
+        pageCount: parsePositiveInteger(form.pageCount),
+        questionCount: parsePositiveInteger(form.questionCount),
+        sourceYear: parsePositiveInteger(form.sourceYear),
+        curriculumCode: form.curriculumCode.trim() || undefined,
+        isPrintReady: form.isPrintReady,
+        hasVideoSolution: form.hasVideoSolution || Boolean(form.solutionUrl),
         featured: form.featured,
         published: form.published,
+      }),
+    [form, livePreviewImage]
+  );
+  const readiness = useMemo(
+    () =>
+      getPublishReadiness({
+        title: form.title,
+        description: form.description,
+        grade: form.grade,
+        topic: form.topic,
+        subtopic: form.subtopic || undefined,
+        type: form.type,
+        fileUrl: form.fileUrl,
+        solutionUrl: form.solutionUrl || undefined,
+        answerKeyUrl: form.answerKeyUrl || undefined,
+        coverImageUrl: livePreviewImage || undefined,
+        difficulty: form.difficulty || undefined,
+        pageCount: parsePositiveInteger(form.pageCount),
+        questionCount: parsePositiveInteger(form.questionCount),
+        sourceYear: parsePositiveInteger(form.sourceYear),
+        curriculumCode: form.curriculumCode.trim() || undefined,
+        isPrintReady: form.isPrintReady,
+        hasVideoSolution: form.hasVideoSolution || Boolean(form.solutionUrl),
       }),
     [form, livePreviewImage]
   );
@@ -291,6 +324,14 @@ export default function AdminDocumentForm({ editingDoc, onCancelEdit, onFinish }
     setStatusType("");
 
     try {
+      if (form.published && !readiness.canPublish) {
+        setStatusType("error");
+        setStatusMessage(
+          "Yayına almak için kritik eksikleri tamamla veya kaydı taslak olarak kaydet."
+        );
+        return;
+      }
+
       const slug = slugifyTr(form.title);
       const uploadedCoverImageUrl = await uploadCoverImageIfNeeded();
 
@@ -430,6 +471,27 @@ export default function AdminDocumentForm({ editingDoc, onCancelEdit, onFinish }
           ) : (
             <InlineNotice tone="success" title="İçerik kalite kontrolü">
               Bu kayıt şu an temiz görünüyor. Temel kalite sinyallerinde sorun yok.
+            </InlineNotice>
+          )}
+
+          {form.published ? (
+            readiness.canPublish ? (
+              <InlineNotice tone="success" title="Yayına hazırlık">
+                Kritik yayın kontrolü temiz. Uyarılar varsa kaliteyi artırmak için
+                tamamlayabilirsin.
+              </InlineNotice>
+            ) : (
+              <InlineNotice tone="error" title="Yayına alınamaz">
+                <ul className="list-disc space-y-1 pl-5">
+                  {readiness.critical.map((issue) => (
+                    <li key={issue.label}>{issue.label}</li>
+                  ))}
+                </ul>
+              </InlineNotice>
+            )
+          ) : (
+            <InlineNotice tone="warning" title="Taslak kayıt">
+              Kritik eksikler olsa bile taslak olarak kaydedebilirsin.
             </InlineNotice>
           )}
 
