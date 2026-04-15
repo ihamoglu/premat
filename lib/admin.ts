@@ -1,5 +1,3 @@
-import "server-only";
-
 const ADMIN_EMAIL =
   process.env.ADMIN_EMAIL ?? "ihamoglu@gmail.com";
 
