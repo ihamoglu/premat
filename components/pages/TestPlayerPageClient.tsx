@@ -24,6 +24,8 @@ export default function TestPlayerPageClient({ test }: { test: TestSetDetail }) 
       ? Math.round((answeredCount / test.questions.length) * 100)
       : 0;
 
+  const isTimerUrgent = secondsLeft <= 60 && playerState === "running";
+
   useEffect(() => {
     if (playerState !== "running" || test.questions.length === 0) return;
 
@@ -120,41 +122,83 @@ export default function TestPlayerPageClient({ test }: { test: TestSetDetail }) 
 
   if (test.questions.length === 0) {
     return (
-      <main className="min-h-screen bg-slate-50 px-4 py-10">
-        <div className="mx-auto max-w-3xl rounded-[2rem] border border-slate-200 bg-white p-8 text-center">
-          <h1 className="text-2xl font-black text-slate-950">Test hazır değil</h1>
-          <p className="mt-3 text-slate-600">Bu testte yayınlanmış soru yok.</p>
-          <Link
-            href="/testler"
-            className="mt-6 inline-flex rounded-2xl border border-blue-200 px-5 py-3 text-sm font-bold text-blue-800"
+      <main
+        className="min-h-screen px-4 py-10 md:px-6"
+        style={{
+          background:
+            "linear-gradient(180deg, #eef5ff 0%, #f8fbff 20%, #f8fafc 100%)",
+        }}
+      >
+        <div className="mx-auto max-w-3xl overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-[0_24px_80px_rgba(15,23,42,0.08)]">
+          <div
+            className="px-8 py-6 text-white"
+            style={{
+              background:
+                "linear-gradient(135deg, #0f2d5c 0%, #1d4f91 52%, #ea580c 100%)",
+            }}
           >
-            Testlere Dön
-          </Link>
+            <div className="inline-flex rounded-full border border-white/25 bg-white/15 px-4 py-2 text-xs font-black uppercase tracking-wide text-white/90">
+              Test Hazır Değil
+            </div>
+            <h1 className="mt-4 text-2xl font-black text-white">
+              Bu testte yayınlanmış soru yok
+            </h1>
+          </div>
+          <div className="p-8 text-center">
+            <p className="text-slate-600">
+              İçerik hazırlanmaktadır. Lütfen daha sonra tekrar dene.
+            </p>
+            <Link
+              href="/testler"
+              className="mt-6 inline-flex rounded-2xl px-5 py-3 text-sm font-bold text-white transition hover:-translate-y-0.5"
+              style={{
+                background: "linear-gradient(135deg,#1d4f91,#2f6eb7)",
+              }}
+            >
+              ← Testlere Dön
+            </Link>
+          </div>
         </div>
       </main>
     );
   }
 
   return (
-    <main className="min-h-screen bg-[linear-gradient(180deg,#eef5ff_0%,#f8fbff_20%,#f8fafc_100%)] px-4 py-6 md:px-6 md:py-10">
+    <main
+      className="min-h-screen px-4 py-6 md:px-6 md:py-10"
+      style={{
+        background:
+          "linear-gradient(180deg, #eef5ff 0%, #f8fbff 20%, #f8fafc 100%)",
+      }}
+    >
       <div className="mx-auto max-w-6xl">
-        <Link href="/testler" className="text-sm font-bold text-blue-800">
+        <Link
+          href="/testler"
+          className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/90 px-4 py-2 text-sm font-semibold text-blue-800 backdrop-blur-sm transition hover:border-blue-300 hover:shadow-sm"
+        >
           ← Testlere Dön
         </Link>
 
         <section className="mt-5 overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-[0_24px_80px_rgba(15,23,42,0.08)]">
-          <div className="border-b border-slate-200 bg-[linear-gradient(135deg,#0f2d5c_0%,#1d4f91_52%,#ea580c_100%)] p-5 text-white md:p-7">
+          {/* Test Header */}
+          <div
+            className="border-b border-slate-200 p-5 text-white md:p-7"
+            style={{
+              background:
+                "linear-gradient(135deg, #0f2d5c 0%, #1d4f91 52%, #ea580c 100%)",
+            }}
+          >
             <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
               <div>
                 <div className="flex flex-wrap gap-2 text-xs font-black">
-                  <span className="rounded-full bg-white/18 px-3 py-1">
+                  <span className="rounded-full border border-white/20 bg-white/15 px-3 py-1 backdrop-blur-sm">
                     {test.grade}. Sınıf
                   </span>
-                  <span className="rounded-full bg-white/18 px-3 py-1">
+                  <span className="rounded-full border border-white/20 bg-white/15 px-3 py-1 backdrop-blur-sm">
                     {test.topic}
                   </span>
                   {test.difficulty ? (
-                    <span className="rounded-full bg-white/18 px-3 py-1">
+                    <span className="rounded-full border border-white/20 bg-white/15 px-3 py-1 backdrop-blur-sm">
                       {test.difficulty}
                     </span>
                   ) : null}
@@ -187,10 +231,17 @@ export default function TestPlayerPageClient({ test }: { test: TestSetDetail }) 
             />
           ) : (
             <div className="p-4 md:p-6">
+              {/* Timer + progress row */}
               <div className="rounded-[1.6rem] border border-slate-200 bg-slate-50 p-4 md:p-5">
                 <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="rounded-2xl border border-blue-200 bg-white px-4 py-3 text-lg font-black text-blue-900">
+                    <div
+                      className={`rounded-2xl border px-4 py-3 text-lg font-black transition ${
+                        isTimerUrgent
+                          ? "premat-pulse-glow border-red-300 bg-red-50 text-red-700"
+                          : "border-blue-200 bg-white text-blue-900"
+                      }`}
+                    >
                       {minutes}:{String(seconds).padStart(2, "0")}
                     </div>
                     <div>
@@ -204,12 +255,17 @@ export default function TestPlayerPageClient({ test }: { test: TestSetDetail }) 
                   </div>
                   <div className="h-3 overflow-hidden rounded-full bg-white lg:w-[360px]">
                     <div
-                      className="h-full rounded-full bg-[linear-gradient(90deg,#1d4f91,#ea580c)] transition-all"
-                      style={{ width: `${progressPercent}%` }}
+                      className="h-full rounded-full transition-all"
+                      style={{
+                        width: `${progressPercent}%`,
+                        background:
+                          "linear-gradient(90deg,#1d4f91,#2f6eb7,#ea580c)",
+                      }}
                     />
                   </div>
                 </div>
 
+                {/* Question navigator */}
                 <div className="mt-5 grid grid-cols-8 gap-2 sm:grid-cols-10 md:grid-cols-12">
                   {test.questions.map((question, index) => (
                     <button
@@ -221,7 +277,7 @@ export default function TestPlayerPageClient({ test }: { test: TestSetDetail }) 
                           ? "border-blue-800 bg-blue-800 text-white"
                           : answers[question.id]
                             ? "border-emerald-200 bg-emerald-50 text-emerald-800"
-                            : "border-slate-200 bg-white text-slate-700"
+                            : "border-slate-200 bg-white text-slate-700 hover:border-blue-200 hover:text-blue-800"
                       }`}
                     >
                       {index + 1}
@@ -230,6 +286,7 @@ export default function TestPlayerPageClient({ test }: { test: TestSetDetail }) 
                 </div>
               </div>
 
+              {/* Question card */}
               <article className="mt-5 rounded-[1.6rem] border border-slate-200 bg-white p-5 md:p-7">
                 <h2 className="text-xl font-black leading-snug text-slate-950 md:text-2xl">
                   {currentQuestion.questionText}
@@ -262,17 +319,25 @@ export default function TestPlayerPageClient({ test }: { test: TestSetDetail }) 
                         }
                         className={`rounded-2xl border p-4 text-left text-sm font-bold transition ${
                           active
-                            ? "border-blue-800 bg-blue-50 text-blue-950 shadow-sm"
+                            ? "border-blue-800 bg-blue-50 text-blue-950 shadow-sm shadow-blue-900/10"
                             : "border-slate-200 bg-white text-slate-700 hover:border-blue-200 hover:bg-blue-50/40"
                         }`}
                       >
                         <span className="flex gap-3">
                           <span
-                            className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-xl ${
+                            className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-xl font-black transition ${
                               active
-                                ? "bg-blue-800 text-white"
+                                ? "text-white"
                                 : "bg-slate-100 text-slate-700"
                             }`}
+                            style={
+                              active
+                                ? {
+                                    background:
+                                      "linear-gradient(135deg,#1d4f91,#2f6eb7)",
+                                  }
+                                : undefined
+                            }
                           >
                             {option.label}
                           </span>
@@ -298,7 +363,7 @@ export default function TestPlayerPageClient({ test }: { test: TestSetDetail }) 
                     <button
                       type="button"
                       onClick={() => setCurrentIndex((value) => Math.max(0, value - 1))}
-                      className="rounded-2xl border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-700"
+                      className="rounded-2xl border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-blue-200 hover:text-blue-800"
                     >
                       Önceki
                     </button>
@@ -309,7 +374,7 @@ export default function TestPlayerPageClient({ test }: { test: TestSetDetail }) 
                           Math.min(test.questions.length - 1, value + 1)
                         )
                       }
-                      className="rounded-2xl border border-blue-200 bg-blue-50 px-5 py-3 text-sm font-semibold text-blue-800"
+                      className="rounded-2xl border border-blue-200 bg-blue-50 px-5 py-3 text-sm font-semibold text-blue-800 transition hover:bg-blue-100"
                     >
                       Sonraki
                     </button>
@@ -317,7 +382,11 @@ export default function TestPlayerPageClient({ test }: { test: TestSetDetail }) 
                   <button
                     type="button"
                     onClick={() => setPlayerState("finished")}
-                    className="rounded-2xl bg-[linear-gradient(135deg,#1d4f91_0%,#2f6eb7_55%,#ea580c_100%)] px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-900/20"
+                    className="rounded-2xl px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-900/20 transition hover:-translate-y-0.5 hover:shadow-xl"
+                    style={{
+                      background:
+                        "linear-gradient(135deg,#1d4f91 0%,#2f6eb7 55%,#ea580c 100%)",
+                    }}
                   >
                     Sınavı Bitir
                   </button>
@@ -362,7 +431,7 @@ function IntroPanel({
 }) {
   return (
     <div className="grid gap-6 p-5 md:p-8 lg:grid-cols-[1fr_340px]">
-      <div className="rounded-[1.6rem] border border-slate-200 bg-slate-50 p-6">
+      <div className="premat-card-3d rounded-[1.6rem] border border-slate-200 bg-slate-50 p-6">
         <h2 className="text-3xl font-black tracking-[-0.04em] text-slate-950">
           Hazır olduğunda testi başlat
         </h2>
@@ -373,7 +442,11 @@ function IntroPanel({
         <button
           type="button"
           onClick={onStart}
-          className="mt-6 rounded-2xl bg-[linear-gradient(135deg,#1d4f91_0%,#2f6eb7_55%,#ea580c_100%)] px-7 py-4 text-sm font-black text-white shadow-xl shadow-blue-900/20 transition hover:-translate-y-0.5"
+          className="premat-pulse-glow mt-6 rounded-2xl px-7 py-4 text-sm font-black text-white shadow-xl shadow-blue-900/20 transition hover:-translate-y-0.5"
+          style={{
+            background:
+              "linear-gradient(135deg,#1d4f91 0%,#2f6eb7 55%,#ea580c 100%)",
+          }}
         >
           Teste Başla
         </button>
@@ -411,27 +484,67 @@ function ResultPanel({
 }) {
   const score = total > 0 ? Math.round((result.correct / total) * 100) : 0;
 
+  const scoreMessage =
+    score >= 80 ? "Harika! 🎯" : score >= 60 ? "İyi gidiyorsun" : "Devam et";
+
+  const scoreGradient =
+    score >= 80
+      ? "linear-gradient(135deg,#059669,#10b981)"
+      : score >= 60
+        ? "linear-gradient(135deg,#1d4f91,#2f6eb7)"
+        : "linear-gradient(135deg,#ea580c,#f97316)";
+
   return (
     <div className="p-5 md:p-8">
-      <div className="rounded-[1.6rem] border border-slate-200 bg-slate-50 p-6 text-center">
-        <div className="mx-auto flex h-24 w-24 items-center justify-center rounded-[1.5rem] bg-[linear-gradient(135deg,#1d4f91,#ea580c)] text-3xl font-black text-white shadow-xl shadow-blue-900/20">
-          {score}
-        </div>
-        <h2 className="mt-5 text-3xl font-black tracking-[-0.04em] text-slate-950">
-          Test tamamlandı
-        </h2>
-        <div className="mt-6 grid gap-4 sm:grid-cols-3">
-          <ResultMetric label="Doğru" value={result.correct} tone="emerald" />
-          <ResultMetric label="Yanlış" value={result.wrong} tone="red" />
-          <ResultMetric label="Boş" value={result.blank} tone="slate" />
-        </div>
-        <button
-          type="button"
-          onClick={onRestart}
-          className="mt-6 rounded-2xl border border-blue-200 bg-white px-5 py-3 text-sm font-bold text-blue-800 transition hover:bg-blue-50"
+      <div className="overflow-hidden rounded-[1.6rem] border border-slate-200 bg-slate-50">
+        {/* Score header */}
+        <div
+          className="px-6 py-8 text-center"
+          style={{ background: scoreGradient }}
         >
-          Yeniden Başlat
-        </button>
+          <div className="text-7xl font-black text-white">
+            {score}
+            <span className="text-3xl">%</span>
+          </div>
+          <div className="mt-3 text-xl font-black text-white/90">
+            {scoreMessage}
+          </div>
+          <div className="mt-1 text-sm text-white/70">
+            {result.correct}/{total} doğru
+          </div>
+        </div>
+
+        <div className="p-6">
+          <h2 className="text-2xl font-black tracking-[-0.03em] text-slate-950">
+            Test tamamlandı
+          </h2>
+
+          <div className="mt-5 grid gap-4 sm:grid-cols-3">
+            <ResultMetric label="Doğru" value={result.correct} tone="emerald" />
+            <ResultMetric label="Yanlış" value={result.wrong} tone="red" />
+            <ResultMetric label="Boş" value={result.blank} tone="slate" />
+          </div>
+
+          <div className="mt-6 flex flex-wrap gap-3">
+            <button
+              type="button"
+              onClick={onRestart}
+              className="rounded-2xl px-5 py-3 text-sm font-bold text-white transition hover:-translate-y-0.5"
+              style={{
+                background:
+                  "linear-gradient(135deg,#1d4f91 0%,#2f6eb7 55%,#ea580c 100%)",
+              }}
+            >
+              Yeniden Başlat
+            </button>
+            <Link
+              href="/testler"
+              className="rounded-2xl border border-slate-300 bg-white px-5 py-3 text-sm font-bold text-slate-700 transition hover:border-blue-300 hover:text-blue-800"
+            >
+              Tüm Testler
+            </Link>
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -447,7 +560,8 @@ function ResultMetric({
   tone: "emerald" | "red" | "slate";
 }) {
   const classes = {
-    emerald: "border-emerald-200 bg-emerald-50 text-emerald-800",
+    emerald:
+      "border-emerald-200 bg-emerald-50 text-emerald-800",
     red: "border-red-200 bg-red-50 text-red-800",
     slate: "border-slate-200 bg-white text-slate-900",
   };

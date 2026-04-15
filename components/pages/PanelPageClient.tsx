@@ -80,11 +80,29 @@ function PanelPageInner() {
 
   return (
     <main className="min-h-screen bg-[linear-gradient(180deg,#eef5ff_0%,#f8fbff_18%,#f8fafc_100%)]">
-      <section className="border-b border-slate-200 bg-[linear-gradient(135deg,#103b73_0%,#1d4f91_28%,#2f6eb7_62%,#f8fbff_62%,#f8fbff_100%)]">
-        <div className="mx-auto max-w-7xl px-4 py-8 md:px-6 md:py-12">
+      <section
+        className="relative overflow-hidden border-b border-slate-200/60"
+        style={{
+          background:
+            "linear-gradient(135deg, #0f2d5c 0%, #1d4f91 30%, #2f6eb7 65%, #ea580c 100%)",
+        }}
+      >
+        {/* Dekoratif glow'lar */}
+        <div className="pointer-events-none absolute inset-0">
+          <div
+            className="absolute -right-16 -top-16 h-64 w-64 rounded-full opacity-15"
+            style={{ background: "radial-gradient(circle, #f97316, transparent)" }}
+          />
+          <div
+            className="absolute -bottom-10 -left-10 h-48 w-48 rounded-full opacity-10"
+            style={{ background: "radial-gradient(circle, #3b82f6, transparent)" }}
+          />
+        </div>
+
+        <div className="relative mx-auto max-w-7xl px-4 py-8 md:px-6 md:py-12">
           <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
             <div>
-              <div className="inline-flex rounded-full border border-blue-100 bg-white/90 px-4 py-2 text-xs font-semibold tracking-[0.08em] text-blue-800 shadow-sm">
+              <div className="inline-flex rounded-full border border-white/25 bg-white/15 px-4 py-2 text-xs font-black uppercase tracking-[0.08em] text-white/90 backdrop-blur-sm">
                 YÖNETİM ALANI
               </div>
 
@@ -92,13 +110,13 @@ function PanelPageInner() {
                 İçerik yönetimi
               </h1>
 
-              <p className="mt-4 max-w-3xl text-sm leading-7 text-blue-50 md:text-lg md:leading-8">
+              <p className="mt-4 max-w-3xl text-sm leading-7 text-blue-100 md:text-lg md:leading-8">
                 Yeni kayıt ekleme, mevcut içerikleri düzenleme ve arşiv akışını
                 yönetme işlemleri bu panelden yapılır.
               </p>
 
               {userEmail ? (
-                <p className="mt-4 text-sm font-semibold text-blue-100">
+                <p className="mt-4 text-sm font-semibold text-blue-200">
                   Oturum: {userEmail}
                 </p>
               ) : null}
@@ -110,55 +128,51 @@ function PanelPageInner() {
                 await logout();
                 router.push("/panel-giris");
               }}
-              className="rounded-2xl bg-red-600 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-red-700/20 transition hover:-translate-y-0.5 hover:bg-red-700 hover:shadow-xl"
+              className="rounded-2xl bg-[linear-gradient(135deg,#b91c1c_0%,#dc2626_100%)] px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-red-900/30 transition hover:-translate-y-0.5 hover:shadow-xl"
             >
               Çıkış Yap
             </button>
           </div>
 
           <div className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            <div className="rounded-[1.6rem] border border-white/40 bg-white/95 p-5 shadow-lg shadow-slate-900/10">
-              <div className="text-sm font-medium text-slate-500">
-                Yayındaki Kayıt
+            {[
+              { label: "Yayındaki Kayıt", value: publishedCount },
+              { label: "Öne Çıkan", value: featuredCount },
+              { label: "Çözüm Bağlantılı", value: solvedCount },
+              { label: "Yayın Dışı", value: unpublishedCount },
+            ].map((stat) => (
+              <div
+                key={stat.label}
+                className="rounded-[1.6rem] border border-white/30 bg-white/95 p-5 shadow-lg shadow-slate-900/10 backdrop-blur-sm transition hover:-translate-y-0.5"
+              >
+                <div className="text-sm font-medium text-slate-500">
+                  {stat.label}
+                </div>
+                <div
+                  className="mt-2 text-3xl font-black tracking-[-0.03em] bg-clip-text text-transparent"
+                  style={{
+                    backgroundImage:
+                      "linear-gradient(135deg, #1d4f91 0%, #2f6eb7 100%)",
+                  }}
+                >
+                  {stat.value}
+                </div>
               </div>
-              <div className="mt-2 text-3xl font-black tracking-[-0.03em] text-slate-950">
-                {publishedCount}
-              </div>
-            </div>
-
-            <div className="rounded-[1.6rem] border border-white/40 bg-white/95 p-5 shadow-lg shadow-slate-900/10">
-              <div className="text-sm font-medium text-slate-500">
-                Öne Çıkan
-              </div>
-              <div className="mt-2 text-3xl font-black tracking-[-0.03em] text-slate-950">
-                {featuredCount}
-              </div>
-            </div>
-
-            <div className="rounded-[1.6rem] border border-white/40 bg-white/95 p-5 shadow-lg shadow-slate-900/10">
-              <div className="text-sm font-medium text-slate-500">
-                Çözüm Bağlantılı
-              </div>
-              <div className="mt-2 text-3xl font-black tracking-[-0.03em] text-slate-950">
-                {solvedCount}
-              </div>
-            </div>
-
-            <div className="rounded-[1.6rem] border border-white/40 bg-white/95 p-5 shadow-lg shadow-slate-900/10">
-              <div className="text-sm font-medium text-slate-500">
-                Yayın Dışı
-              </div>
-              <div className="mt-2 text-3xl font-black tracking-[-0.03em] text-slate-950">
-                {unpublishedCount}
-              </div>
-            </div>
+            ))}
           </div>
         </div>
       </section>
 
       <section className="mx-auto max-w-7xl px-4 py-8 md:px-6 md:py-10">
-        <div className="mb-8 rounded-[2rem] border border-slate-200 bg-white p-5 shadow-[0_18px_60px_rgba(15,23,42,0.05)] md:p-6">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+        <div className="mb-8 overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-[0_18px_60px_rgba(15,23,42,0.05)]">
+          <div
+            className="h-[3px] w-full"
+            style={{
+              background:
+                "linear-gradient(90deg, #1d4f91 0%, #2f6eb7 40%, #ea580c 80%, #f97316 100%)",
+            }}
+          />
+          <div className="flex flex-col gap-4 p-5 lg:flex-row lg:items-end lg:justify-between md:p-6">
             <div>
               <h2 className="text-2xl font-black tracking-[-0.03em] text-slate-950">
                 Panel akışı
@@ -170,16 +184,28 @@ function PanelPageInner() {
             </div>
 
             <div className="flex flex-wrap gap-2.5">
-              <span className="rounded-full border border-red-200 bg-red-50 px-4 py-2 text-xs font-semibold text-red-800">
+              <span
+                className="rounded-full px-4 py-2 text-xs font-black text-white"
+                style={{ background: "linear-gradient(135deg,#dc2626,#b91c1c)" }}
+              >
                 İnceleme
               </span>
-              <span className="rounded-full border border-blue-200 bg-blue-50 px-4 py-2 text-xs font-semibold text-blue-800">
+              <span
+                className="rounded-full px-4 py-2 text-xs font-black text-white"
+                style={{ background: "linear-gradient(135deg,#1d4f91,#2f6eb7)" }}
+              >
                 Form
               </span>
-              <span className="rounded-full border border-orange-200 bg-orange-50 px-4 py-2 text-xs font-semibold text-orange-800">
+              <span
+                className="rounded-full px-4 py-2 text-xs font-black text-white"
+                style={{ background: "linear-gradient(135deg,#ea580c,#f97316)" }}
+              >
                 Toplu Giriş
               </span>
-              <span className="rounded-full border border-emerald-200 bg-emerald-50 px-4 py-2 text-xs font-semibold text-emerald-800">
+              <span
+                className="rounded-full px-4 py-2 text-xs font-black text-white"
+                style={{ background: "linear-gradient(135deg,#059669,#10b981)" }}
+              >
                 Liste ve Düzenleme
               </span>
             </div>

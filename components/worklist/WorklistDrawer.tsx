@@ -72,6 +72,7 @@ export default function WorklistDrawer() {
     <div className="fixed bottom-4 right-4 z-[60]">
       {isOpen ? (
         <div className="mb-3 w-[min(24rem,calc(100vw-2rem))] overflow-hidden rounded-[1.5rem] border border-slate-200 bg-white shadow-2xl shadow-slate-900/15">
+          {/* Gradient top accent */}
           <div
             className="h-[3px] w-full"
             style={{
@@ -82,10 +83,16 @@ export default function WorklistDrawer() {
           <div className="p-4">
             <div className="flex items-start justify-between gap-4">
               <div>
-                <div className="text-xs font-black uppercase tracking-[0.12em] text-slate-400">
+                <div className="text-[10px] font-black uppercase tracking-[0.12em] text-slate-400">
                   Çalışma Listem
                 </div>
-                <h2 className="mt-1 text-xl font-black text-slate-950">
+                <h2
+                  className="mt-1 text-xl font-black bg-clip-text text-transparent"
+                  style={{
+                    backgroundImage:
+                      "linear-gradient(135deg, #1d4f91 0%, #2f6eb7 100%)",
+                  }}
+                >
                   {items.length} doküman
                 </h2>
               </div>
@@ -108,7 +115,7 @@ export default function WorklistDrawer() {
                   {items.map((item, index) => (
                     <article
                       key={item.id}
-                      className="rounded-2xl border border-slate-200 bg-slate-50 p-3"
+                      className="rounded-2xl border border-slate-200 bg-slate-50 p-3 transition hover:border-blue-200"
                     >
                       <Link
                         href={`/documents/${item.slug}`}
@@ -124,22 +131,22 @@ export default function WorklistDrawer() {
                           type="button"
                           onClick={() => moveItem(item.id, "up")}
                           disabled={index === 0}
-                          className="rounded-xl border border-slate-200 bg-white px-2.5 py-1 text-xs font-bold text-slate-600 disabled:opacity-40"
+                          className="rounded-xl border border-slate-200 bg-white px-2.5 py-1 text-xs font-bold text-slate-600 transition hover:border-blue-200 hover:text-blue-800 disabled:opacity-40"
                         >
-                          Yukarı
+                          ↑
                         </button>
                         <button
                           type="button"
                           onClick={() => moveItem(item.id, "down")}
                           disabled={index === items.length - 1}
-                          className="rounded-xl border border-slate-200 bg-white px-2.5 py-1 text-xs font-bold text-slate-600 disabled:opacity-40"
+                          className="rounded-xl border border-slate-200 bg-white px-2.5 py-1 text-xs font-bold text-slate-600 transition hover:border-blue-200 hover:text-blue-800 disabled:opacity-40"
                         >
-                          Aşağı
+                          ↓
                         </button>
                         <button
                           type="button"
                           onClick={() => removeItem(item.id)}
-                          className="rounded-xl border border-red-200 bg-red-50 px-2.5 py-1 text-xs font-bold text-red-700"
+                          className="rounded-xl border border-red-200 bg-red-50 px-2.5 py-1 text-xs font-bold text-red-700 transition hover:bg-red-100"
                         >
                           Çıkar
                         </button>
@@ -155,7 +162,11 @@ export default function WorklistDrawer() {
                 type="button"
                 onClick={handleCreateCollection}
                 disabled={isSharing || items.length === 0}
-                className="rounded-2xl bg-[linear-gradient(135deg,#1d4f91_0%,#2f6eb7_55%,#ea580c_100%)] px-4 py-3 text-sm font-bold text-white shadow-lg shadow-blue-900/20 transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-60"
+                className="rounded-2xl px-4 py-3 text-sm font-bold text-white shadow-lg shadow-blue-900/20 transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-60"
+                style={{
+                  background:
+                    "linear-gradient(135deg,#1d4f91 0%,#2f6eb7 55%,#ea580c 100%)",
+                }}
               >
                 {isSharing ? "Link oluşturuluyor..." : "Paylaşılabilir Link Oluştur"}
               </button>
@@ -170,29 +181,47 @@ export default function WorklistDrawer() {
             </div>
 
             {statusMessage ? (
-              <div className="mt-3 rounded-2xl border border-blue-100 bg-blue-50 px-3 py-2 text-xs font-semibold text-blue-800">
-                {statusMessage}
+              <div className="mt-3 flex items-start gap-2 rounded-2xl border border-blue-100 bg-blue-50 px-3 py-2 text-xs font-semibold text-blue-800">
+                <span className="mt-0.5 shrink-0 text-blue-600">✓</span>
+                <span>{statusMessage}</span>
               </div>
             ) : null}
 
             {shareUrl ? (
               <Link
                 href={shareUrl}
-                className="mt-3 block rounded-2xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-center text-xs font-bold text-emerald-700"
+                className="mt-3 block rounded-2xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-center text-xs font-bold text-emerald-700 transition hover:bg-emerald-100"
               >
-                Paylaşılan listeyi aç
+                Paylaşılan listeyi aç →
               </Link>
             ) : null}
           </div>
         </div>
       ) : null}
 
+      {/* FAB Button — pulse glow when items exist */}
       <button
         type="button"
         onClick={() => setIsOpen((current) => !current)}
-        className="rounded-2xl bg-[linear-gradient(135deg,#1d4f91_0%,#2f6eb7_55%,#ea580c_100%)] px-4 py-3 text-sm font-black text-white shadow-xl shadow-blue-900/25 transition hover:-translate-y-0.5"
+        className={`relative rounded-2xl px-4 py-3 text-sm font-black text-white shadow-xl shadow-blue-900/25 transition hover:-translate-y-0.5 ${
+          items.length > 0 ? "premat-pulse-glow" : ""
+        }`}
+        style={{
+          background:
+            "linear-gradient(135deg,#1d4f91 0%,#2f6eb7 55%,#ea580c 100%)",
+        }}
       >
-        Çalışma Listem ({items.length})
+        Çalışma Listem
+        {items.length > 0 ? (
+          <span
+            className="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-black text-white shadow-sm"
+            style={{
+              background: "linear-gradient(135deg,#ea580c,#f97316)",
+            }}
+          >
+            {items.length > 9 ? "9+" : items.length}
+          </span>
+        ) : null}
       </button>
     </div>
   );

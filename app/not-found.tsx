@@ -6,7 +6,17 @@ export default function NotFound() {
   return (
     <main className="min-h-screen bg-[linear-gradient(180deg,#eef5ff_0%,#f8fbff_18%,#f8fafc_100%)] px-4 py-12 md:px-6 md:py-16">
       <div className="mx-auto max-w-4xl overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-[0_18px_60px_rgba(15,23,42,0.06)]">
-        <div className="bg-[linear-gradient(135deg,#1d4f91_0%,#2f6eb7_55%,#ea580c_100%)] px-8 py-8 text-white md:px-10">
+        <div
+          className="relative overflow-hidden px-8 py-8 text-white md:px-10"
+          style={{
+            background:
+              "linear-gradient(135deg, #0f2d5c 0%, #1d4f91 45%, #2f6eb7 70%, #ea580c 100%)",
+          }}
+        >
+          {/* Dekoratif dev 404 */}
+          <div className="pointer-events-none absolute right-6 top-1/2 -translate-y-1/2 select-none text-[7rem] font-black leading-none text-white/8">
+            404
+          </div>
           <SectionHeader
             eyebrow="404 SAYFA BULUNAMADI"
             title="Aradığın sayfa burada değil"

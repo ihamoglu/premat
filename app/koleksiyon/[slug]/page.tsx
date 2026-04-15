@@ -114,11 +114,17 @@ export default async function CollectionPage({ params }: PageProps) {
                 </p>
               </div>
 
-              <div className="rounded-[1.45rem] border border-white/30 bg-white/95 p-5 shadow-lg shadow-slate-900/10 backdrop-blur-sm">
+              <div className="rounded-[1.45rem] border border-white/30 bg-white/95 p-5 shadow-lg shadow-slate-900/10 backdrop-blur-sm transition hover:-translate-y-0.5">
                 <div className="text-sm font-medium text-slate-500">
                   Listedeki Doküman
                 </div>
-                <div className="mt-2 text-4xl font-black tracking-[-0.03em] text-slate-950">
+                <div
+                  className="mt-2 text-4xl font-black tracking-[-0.03em] bg-clip-text text-transparent"
+                  style={{
+                    backgroundImage:
+                      "linear-gradient(135deg, #1d4f91 0%, #2f6eb7 100%)",
+                  }}
+                >
                   {collection.documents.length}
                 </div>
               </div>
@@ -128,18 +134,42 @@ export default async function CollectionPage({ params }: PageProps) {
 
         <section className="mx-auto max-w-7xl px-4 py-8 md:px-6 md:py-10">
           {collection.documents.length === 0 ? (
-            <div className="rounded-[2rem] border border-dashed border-slate-300 bg-white p-12 text-center shadow-sm">
-              <h2 className="text-2xl font-black text-slate-950">
-                Bu listede yayınlanmış doküman yok
-              </h2>
-              <p className="mt-3 text-sm leading-7 text-slate-600">
-                Liste içindeki dokümanlar kaldırılmış veya yayından alınmış olabilir.
-              </p>
+            <div className="overflow-hidden rounded-[2rem] border border-dashed border-slate-300 bg-white shadow-sm">
+              <div
+                className="h-[3px] w-full"
+                style={{
+                  background:
+                    "linear-gradient(90deg,#1d4f91,#2f6eb7,#ea580c)",
+                }}
+              />
+              <div className="p-12 text-center">
+                <div
+                  className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl text-3xl"
+                  style={{
+                    background:
+                      "linear-gradient(135deg,#1d4f91,#2f6eb7)",
+                  }}
+                >
+                  <span className="text-white font-black">∅</span>
+                </div>
+                <h2 className="text-2xl font-black text-slate-950">
+                  Bu listede yayınlanmış doküman yok
+                </h2>
+                <p className="mt-3 text-sm leading-7 text-slate-600">
+                  Liste içindeki dokümanlar kaldırılmış veya yayından alınmış olabilir.
+                </p>
+              </div>
             </div>
           ) : (
             <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
-              {collection.documents.map((doc) => (
-                <DocumentCard key={doc.id} doc={doc} />
+              {collection.documents.map((doc, i) => (
+                <div
+                  key={doc.id}
+                  className="premat-fade-in-up"
+                  style={{ animationDelay: `${Math.min(i, 8) * 0.05}s` }}
+                >
+                  <DocumentCard doc={doc} />
+                </div>
               ))}
             </div>
           )}

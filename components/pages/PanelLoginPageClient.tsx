@@ -74,6 +74,17 @@ export default function PanelLoginPageClient() {
                 Arşivdeki içeriklerin düzenlenmesi, yeni kayıt eklenmesi ve
                 seçili dökümanların yönetimi bu alandan yapılır.
               </p>
+
+              <div className="mt-8 flex flex-wrap gap-2">
+                {["Arşiv", "Test", "Kalite", "Analiz"].map((label) => (
+                  <span
+                    key={label}
+                    className="rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-bold text-white/80"
+                  >
+                    {label}
+                  </span>
+                ))}
+              </div>
             </div>
           </div>
 
@@ -133,7 +144,7 @@ export default function PanelLoginPageClient() {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-blue-400"
+                  className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20"
                   placeholder="ornek@mail.com"
                   required
                 />
@@ -147,7 +158,7 @@ export default function PanelLoginPageClient() {
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-blue-400"
+                  className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20"
                   placeholder="Şifre"
                   required
                 />
@@ -159,13 +170,27 @@ export default function PanelLoginPageClient() {
                 </div>
               ) : null}
 
-              <button
-                type="submit"
-                disabled={submitting}
-                className="w-full rounded-2xl bg-[linear-gradient(135deg,#1d4f91_0%,#2f6eb7_55%,#3b82f6_100%)] px-5 py-4 text-sm font-semibold text-white shadow-lg shadow-blue-900/20 transition hover:-translate-y-0.5 hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-70"
-              >
-                {submitting ? "Giriş Yapılıyor..." : "Giriş Yap"}
-              </button>
+              <div className="relative overflow-hidden rounded-2xl">
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="relative w-full rounded-2xl px-5 py-4 text-sm font-semibold text-white shadow-lg shadow-blue-900/20 transition hover:-translate-y-0.5 hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-70"
+                  style={{
+                    background:
+                      "linear-gradient(135deg,#1d4f91 0%,#2f6eb7 55%,#3b82f6 100%)",
+                  }}
+                >
+                  {!submitting ? (
+                    <span
+                      className="premat-shimmer pointer-events-none absolute inset-0 rounded-2xl"
+                      aria-hidden="true"
+                    />
+                  ) : null}
+                  <span className="relative">
+                    {submitting ? "Giriş Yapılıyor..." : "Giriş Yap"}
+                  </span>
+                </button>
+              </div>
             </form>
           </div>
         </div>
