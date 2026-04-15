@@ -49,11 +49,13 @@ export async function POST(request: Request) {
     revalidatePath(`/sinif/${body.grade}`);
   }
 
-  if (body.slug && body.slug.trim()) {
+  const SLUG_RE = /^[a-z0-9-]+$/;
+
+  if (body.slug && SLUG_RE.test(body.slug.trim())) {
     revalidatePath(`/documents/${body.slug.trim()}`);
   }
 
-  if (body.testSlug && body.testSlug.trim()) {
+  if (body.testSlug && SLUG_RE.test(body.testSlug.trim())) {
     revalidatePath(`/testler/${body.testSlug.trim()}`);
   }
 

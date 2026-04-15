@@ -16,6 +16,27 @@ type LinkCheckRow = {
 const DEFAULT_LIMIT = 25;
 const MAX_LIMIT = 100;
 
+const UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+const BLOCKED_HOSTS =
+  /^(localhost|127\.\d+\.\d+\.\d+|0\.0\.0\.0|::1|10\.\d+\.\d+\.\d+|172\.(1[6-9]|2\d|3[01])\.\d+\.\d+|192\.168\.\d+\.\d+|169\.254\.\d+\.\d+)/i;
+
+function isSafePublicUrl(rawUrl: string): boolean {
+  try {
+    const parsed = new URL(rawUrl);
+    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
+      return false;
+    }
+    if (BLOCKED_HOSTS.test(parsed.hostname)) {
+      return false;
+    }
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 async function ensureAdmin() {
   const supabase = await createClient();
   const {
@@ -41,6 +62,10 @@ function parseLimit(value: unknown) {
 }
 
 async function checkUrl(url: string) {
+  if (!isSafePublicUrl(url)) {
+    return { ok: false, status: null, statusText: "Geçersiz veya erişilemeyen URL." };
+  }
+
   try {
     let response = await fetch(url, {
       method: "HEAD",
@@ -113,7 +138,12 @@ export async function POST(request: Request) {
       .limit(parseLimit(body.limit));
 
     if (Array.isArray(body.ids) && body.ids.length > 0) {
-      query = query.in("id", body.ids.slice(0, MAX_LIMIT));
+      const validIds = body.ids
+        .filter((id): id is string => typeof id === "string" && UUID_RE.test(id))
+        .slice(0, MAX_LIMIT);
+      if (validIds.length > 0) {
+        query = query.in("id", validIds);
+      }
     }
 
     const { data, error } = await query;

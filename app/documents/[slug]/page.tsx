@@ -85,7 +85,10 @@ export default async function DocumentDetailPage({ params }: PageProps) {
     headline: doc.title,
     description: doc.description,
     url: absoluteUrl(`/documents/${doc.slug}`),
-    datePublished: doc.createdAt,
+    datePublished:
+      doc.createdAt && !Number.isNaN(Date.parse(doc.createdAt))
+        ? doc.createdAt
+        : undefined,
     educationalLevel: `${doc.grade}. Sınıf`,
     learningResourceType: doc.type,
     about: [doc.topic, doc.subtopic].filter(Boolean),

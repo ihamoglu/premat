@@ -8,6 +8,9 @@ const supabasePublishableKey =
 
 const supabase = createClient(supabaseUrl, supabasePublishableKey);
 
+const UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 function createCollectionSlug() {
   return `liste-${crypto.randomUUID().slice(0, 8)}`;
 }
@@ -27,7 +30,9 @@ export async function POST(request: Request) {
     };
 
     const requestedIds = Array.isArray(body.documentIds)
-      ? body.documentIds.filter((id): id is string => typeof id === "string")
+      ? body.documentIds.filter(
+          (id): id is string => typeof id === "string" && UUID_RE.test(id)
+        )
       : [];
 
     const uniqueRequestedIds = Array.from(new Set(requestedIds)).slice(0, 60);
@@ -92,10 +97,10 @@ export async function POST(request: Request) {
       url: `/koleksiyon/${collection.public_slug}`,
       documentCount: validIds.length,
     });
-  } catch (error) {
-    const message =
-      error instanceof Error ? error.message : "Koleksiyon oluşturulamadı.";
-
-    return NextResponse.json({ ok: false, message }, { status: 500 });
+  } catch {
+    return NextResponse.json(
+      { ok: false, message: "Koleksiyon oluşturulamadı." },
+      { status: 500 }
+    );
   }
 }

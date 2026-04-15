@@ -90,7 +90,9 @@ async function attachPopularityScores(documents: DocumentItem[]) {
     return documents;
   }
 
-  const { data, error } = await supabase.rpc("get_public_document_popularity");
+  const { data, error } = await supabase
+    .rpc("get_public_document_popularity")
+    .abortSignal(AbortSignal.timeout(5000));
 
   if (error) {
     return documents;

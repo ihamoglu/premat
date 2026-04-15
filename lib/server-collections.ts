@@ -123,9 +123,14 @@ export async function getPublicCollectionBySlug(slug: string) {
         document,
       };
     })
-    .filter((item) => item.document?.published)
+    .filter(
+      (
+        item
+      ): item is { position: number; document: CollectionDocumentRow } =>
+        item.document != null && !!item.document.published
+    )
     .sort((a, b) => a.position - b.position)
-    .map((item) => mapDocument(item.document as CollectionDocumentRow));
+    .map((item) => mapDocument(item.document));
 
   return {
     id: row.id,

@@ -65,6 +65,6 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ ok: true });
   } catch {
-    return NextResponse.json({ ok: false }, { status: 202 });
+    return NextResponse.json({ ok: false }, { status: 500 });
   }
 }
