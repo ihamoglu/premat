@@ -6,6 +6,7 @@ import { isAdminEmail } from "@/lib/admin";
 type RevalidatePayload = {
   slug?: string;
   grade?: string;
+  testSlug?: string;
 };
 
 export async function POST(request: Request) {
@@ -32,11 +33,14 @@ export async function POST(request: Request) {
   }
 
   revalidateTag("documents-public", "max");
+  revalidateTag("tests-public", "max");
 
   revalidatePath("/");
   revalidatePath("/documents");
+  revalidatePath("/testler");
   revalidatePath("/sinif/[grade]", "page");
   revalidatePath("/documents/[slug]", "page");
+  revalidatePath("/testler/[slug]", "page");
 
   if (
     body.grade &&
@@ -47,6 +51,10 @@ export async function POST(request: Request) {
 
   if (body.slug && body.slug.trim()) {
     revalidatePath(`/documents/${body.slug.trim()}`);
+  }
+
+  if (body.testSlug && body.testSlug.trim()) {
+    revalidatePath(`/testler/${body.testSlug.trim()}`);
   }
 
   return NextResponse.json({ ok: true });

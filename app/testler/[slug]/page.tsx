@@ -23,17 +23,18 @@ export async function generateMetadata({
     };
   }
 
+  const description =
+    test.description || `${test.grade}. sınıf ${test.topic} online testi.`;
+
   return {
     title: test.title,
-    description:
-      test.description || `${test.grade}. sınıf ${test.topic} online testi.`,
+    description,
     alternates: {
       canonical: `/testler/${test.slug}`,
     },
     openGraph: {
       title: `${test.title} | ${siteConfig.name}`,
-      description:
-        test.description || `${test.grade}. sınıf ${test.topic} online testi.`,
+      description,
       url: absoluteUrl(`/testler/${test.slug}`),
       images: [absoluteUrl(siteConfig.ogImage)],
     },

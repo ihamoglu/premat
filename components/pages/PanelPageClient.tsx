@@ -6,7 +6,7 @@ import AdminDocumentForm from "@/components/admin/AdminDocumentForm";
 import AdminDocumentsList from "@/components/admin/AdminDocumentsList";
 import AdminBulkImport from "@/components/admin/AdminBulkImport";
 import AdminBulkMetadataEditor from "@/components/admin/AdminBulkMetadataEditor";
-import AdminQuestionBank from "@/components/admin/AdminQuestionBank";
+import AdminTestBuilder from "@/components/admin/AdminTestBuilder";
 import AdminReviewQueue from "@/components/admin/AdminReviewQueue";
 import AdminQualityReport from "@/components/admin/AdminQualityReport";
 import AdminLinkHealthCheck from "@/components/admin/AdminLinkHealthCheck";
@@ -207,7 +207,7 @@ function PanelPageInner() {
 
           <AdminBulkMetadataEditor />
 
-          <AdminQuestionBank />
+          <AdminTestBuilder />
 
           <AdminOperationsReport documents={documents} />
 
