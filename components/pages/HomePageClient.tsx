@@ -54,7 +54,11 @@ export default function HomePageClient({
     () =>
       (["5", "6", "7", "8"] as const).map((level) => {
         const docs = documents.filter((doc) => doc.grade === level);
-        const topics = new Set(docs.map((doc) => doc.topic)).size;
+        const topics = new Set(
+          docs.flatMap((doc) =>
+            doc.topic.split(", ").map((t) => t.trim()).filter(Boolean)
+          )
+        ).size;
 
         return {
           level,
@@ -395,81 +399,108 @@ export default function HomePageClient({
       </section>
 
       {/* ── SINIFA GÖRE HIZLI GEÇİŞ ── */}
-
-      <section className="mx-auto max-w-7xl px-4 pb-8 md:px-6 md:pb-10">
-        <div className="rounded-[1.75rem] border border-slate-200/80 bg-white p-4 shadow-xl shadow-slate-900/5 sm:p-6 md:rounded-[2rem] md:p-8">
-          <div className="mb-6 flex items-start gap-3">
+      <section className="mx-auto max-w-7xl px-4 pb-10 md:px-6 md:pb-14">
+        {/* Section header */}
+        <div className="mb-7 flex items-start gap-4">
+          <div
+            className="mt-2 h-8 w-1 shrink-0 rounded-full"
+            style={{ background: "linear-gradient(180deg, #1d4f91, #ea580c)" }}
+          />
+          <div>
             <div
-              className="mt-1 h-6 w-1.5 shrink-0 rounded-full"
-              style={{
-                background: "linear-gradient(180deg, #1d4f91, #ea580c)",
-              }}
-            />
-            <div>
-              <h2 className="text-xl font-black text-slate-900 sm:text-2xl md:text-3xl">
-                Sınıfa Göre Hızlı Geçiş
-              </h2>
-              <p className="mt-2 text-sm text-slate-600">
-                Her sınıf için mevcut içerik yoğunluğunu gör ve doğrudan ilgili
-                arşive geç.
-              </p>
+              className="inline-flex rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-slate-500"
+            >
+              Arşiv Kategorileri
             </div>
+            <h2 className="mt-2 text-2xl font-black tracking-[-0.03em] text-slate-950 sm:text-3xl md:text-4xl">
+              Sınıfa Göre Hızlı Geçiş
+            </h2>
+            <p className="mt-1.5 text-sm text-slate-500">
+              Her sınıf için içerik yoğunluğunu gör ve doğrudan arşive geç.
+            </p>
           </div>
+        </div>
 
-          <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
-            {gradeBlocks.map((item, i) => (
+        {/* Grade cards */}
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          {gradeBlocks.map((item, i) => {
+            const isLgs = item.level === "8";
+            return (
               <Link
                 key={item.level}
                 href={`/sinif/${item.level}`}
-                className="premat-card-3d premat-fade-in-up group rounded-[1.75rem] border border-slate-200/80 bg-slate-50 p-5 hover:border-blue-200 hover:bg-white"
-                style={{ animationDelay: `${i * 0.08}s` }}
+                className="premat-card-3d premat-fade-in-up group relative overflow-hidden rounded-[1.75rem] p-6 shadow-[0_8px_32px_rgba(15,45,92,0.16)] transition-shadow duration-300 hover:shadow-[0_24px_64px_rgba(15,45,92,0.28)]"
+                style={{
+                  background: isLgs
+                    ? "linear-gradient(148deg, #07131f 0%, #0f2d5c 32%, #1d4f91 58%, #b83d0f 84%, #ea580c 100%)"
+                    : "linear-gradient(148deg, #07131f 0%, #0f2d5c 28%, #1d4f91 62%, #2f6eb7 100%)",
+                  animationDelay: `${i * 0.08}s`,
+                }}
               >
-                {/* Sınıf badge — gradient */}
+                {/* Inner top glow */}
                 <div
-                  className="inline-flex rounded-full px-3 py-1 text-xs font-black text-white"
+                  className="pointer-events-none absolute inset-x-0 top-0 h-28"
                   style={{
                     background:
-                      "linear-gradient(135deg, #1d4f91 0%, #2f6eb7 100%)",
+                      "radial-gradient(ellipse at 45% -10%, rgba(255,255,255,0.09) 0%, transparent 70%)",
                   }}
-                >
-                  {item.level}. Sınıf
+                />
+
+                {/* Large decorative grade numeral */}
+                <div className="pointer-events-none absolute -bottom-2 -right-1 select-none text-[8.5rem] font-black leading-none text-white/[0.065]">
+                  {item.level}
                 </div>
 
-                {/* Büyük sayı — gradient text */}
-                <div
-                  className="mt-4 text-4xl font-black tracking-[-0.04em] bg-clip-text text-transparent"
-                  style={{
-                    backgroundImage:
-                      "linear-gradient(135deg, #1d4f91 0%, #2f6eb7 100%)",
-                  }}
-                >
-                  {item.count}
-                </div>
-
-                <div className="mt-1 text-sm font-medium text-slate-500">
-                  Yayındaki döküman
-                </div>
-
-                <div className="mt-4 space-y-2 text-sm text-slate-600">
-                  <div>
-                    <span className="font-bold text-slate-800">Konu:</span>{" "}
-                    {item.topics}
+                {/* LGS badge for 8th grade */}
+                {isLgs && (
+                  <div
+                    className="absolute right-4 top-4 rounded-full px-2.5 py-1 text-[10px] font-black uppercase tracking-wide text-white"
+                    style={{ background: "rgba(234,88,12,0.75)" }}
+                  >
+                    LGS
                   </div>
-                  <div>
-                    <span className="font-bold text-slate-800">Öne çıkan:</span>{" "}
-                    {item.featured}
-                  </div>
-                </div>
+                )}
 
-                <div className="mt-5 flex items-center gap-1 text-sm font-bold text-blue-800 transition group-hover:gap-2">
-                  <span>Arşive Git</span>
-                  <span className="transition-transform duration-200 group-hover:translate-x-1">
+                {/* Grade badge + arrow */}
+                <div className="relative flex items-center justify-between">
+                  <span className="rounded-full border border-white/25 bg-white/15 px-3.5 py-1.5 text-xs font-black text-white backdrop-blur-sm">
+                    {item.level}. Sınıf
+                  </span>
+                  <span className="flex h-8 w-8 items-center justify-center rounded-full border border-white/20 bg-white/10 text-sm text-white/60 transition duration-200 group-hover:border-white/40 group-hover:bg-white/20 group-hover:text-white">
                     →
                   </span>
                 </div>
+
+                {/* Count */}
+                <div className="relative mt-7 text-[3.2rem] font-black leading-none tracking-[-0.05em] text-white">
+                  {item.count}
+                </div>
+                <div className="relative mt-1.5 text-[11px] font-bold uppercase tracking-[0.1em] text-white/50">
+                  döküman yayında
+                </div>
+
+                {/* Stat chips */}
+                <div className="relative mt-5 flex flex-wrap gap-2">
+                  <span className="rounded-full border border-white/18 bg-white/10 px-2.5 py-1 text-[11px] font-bold text-white/75">
+                    {item.topics} konu
+                  </span>
+                  <span className="rounded-full border border-white/18 bg-white/10 px-2.5 py-1 text-[11px] font-bold text-white/75">
+                    {item.featured} öne çıkan
+                  </span>
+                </div>
+
+                {/* CTA row */}
+                <div className="relative mt-6 border-t border-white/12 pt-4">
+                  <span className="inline-flex items-center gap-1.5 text-sm font-black text-white/90 transition duration-200 group-hover:text-white">
+                    Arşive Git
+                    <span className="transition-transform duration-200 group-hover:translate-x-1">
+                      →
+                    </span>
+                  </span>
+                </div>
               </Link>
-            ))}
-          </div>
+            );
+          })}
         </div>
       </section>
 
