@@ -431,33 +431,105 @@ function IntroPanel({
 }) {
   return (
     <div className="grid gap-6 p-5 md:p-8 lg:grid-cols-[1fr_340px]">
-      <div className="premat-card-3d rounded-[1.6rem] border border-slate-200 bg-slate-50 p-6">
-        <h2 className="text-3xl font-black tracking-[-0.04em] text-slate-950">
+      {/* Sol kart */}
+      <div className="premat-card-3d relative overflow-hidden rounded-[1.6rem] border border-slate-200 bg-slate-50 p-6">
+        {/* Gradient top strip */}
+        <div
+          className="absolute inset-x-0 top-0 h-[3px]"
+          style={{
+            background:
+              "linear-gradient(90deg,#1d4f91,#2f6eb7,#ea580c)",
+          }}
+        />
+        {/* Floating dekoratif semboller */}
+        <span className="premat-float-slow pointer-events-none absolute right-6 top-6 select-none text-6xl font-black text-slate-900/4">
+          π
+        </span>
+        <span className="premat-float pointer-events-none absolute bottom-5 right-20 select-none text-4xl font-black text-slate-900/3">
+          ∑
+        </span>
+
+        <h2 className="relative text-3xl font-black tracking-[-0.04em] text-slate-950">
           Hazır olduğunda testi başlat
         </h2>
-        <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-600 md:text-base">
+        <p className="relative mt-4 max-w-2xl text-sm leading-7 text-slate-600 md:text-base">
           Süre başlat düğmesine bastığında çalışır. Sorular arasında geçiş
           yapabilir, boş bırakabilir ve sınavı istediğin anda bitirebilirsin.
         </p>
+
+        {/* Feature bullets */}
+        <ul className="relative mt-5 grid gap-2">
+          {[
+            "Sorular arasında serbestçe geçiş yap",
+            "Süreyi takip et, istediğin an bitir",
+            "Anında doğru · yanlış · boş analizi",
+          ].map((item) => (
+            <li
+              key={item}
+              className="flex items-center gap-2.5 text-sm font-semibold text-slate-700"
+            >
+              <span
+                className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-black text-white"
+                style={{
+                  background: "linear-gradient(135deg,#1d4f91,#2f6eb7)",
+                }}
+              >
+                ✓
+              </span>
+              {item}
+            </li>
+          ))}
+        </ul>
+
         <button
           type="button"
           onClick={onStart}
-          className="premat-pulse-glow mt-6 rounded-2xl px-7 py-4 text-sm font-black text-white shadow-xl shadow-blue-900/20 transition hover:-translate-y-0.5"
+          className="premat-pulse-glow relative mt-6 overflow-hidden rounded-2xl px-7 py-4 text-sm font-black text-white shadow-xl shadow-blue-900/20 transition hover:-translate-y-0.5"
           style={{
             background:
               "linear-gradient(135deg,#1d4f91 0%,#2f6eb7 55%,#ea580c 100%)",
           }}
         >
-          Teste Başla
+          <span
+            className="premat-shimmer pointer-events-none absolute inset-0 rounded-2xl"
+            aria-hidden="true"
+          />
+          <span className="relative">Teste Başla</span>
         </button>
       </div>
-      <div className="rounded-[1.6rem] border border-blue-100 bg-blue-50 p-6">
-        <div className="text-sm font-black text-blue-950">Test Özeti</div>
-        <div className="mt-5 grid gap-3">
-          <SummaryRow label="Soru sayısı" value={`${test.questions.length} soru`} />
-          <SummaryRow label="Süre" value={`${test.durationMinutes || 20} dakika`} />
-          <SummaryRow label="Konu" value={test.topic} />
-          <SummaryRow label="Sınıf" value={`${test.grade}. Sınıf`} />
+
+      {/* Sağ özet kart */}
+      <div className="overflow-hidden rounded-[1.6rem] border border-blue-100 bg-blue-50">
+        <div
+          className="h-[3px] w-full"
+          style={{
+            background: "linear-gradient(90deg,#1d4f91,#2f6eb7,#ea580c)",
+          }}
+        />
+        <div className="p-6">
+          <div
+            className="text-sm font-black"
+            style={{
+              backgroundImage: "linear-gradient(135deg,#1d4f91,#2f6eb7)",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+              backgroundClip: "text",
+            }}
+          >
+            Test Özeti
+          </div>
+          <div className="mt-4 grid gap-2.5">
+            <SummaryRow
+              label="Soru sayısı"
+              value={`${test.questions.length} soru`}
+            />
+            <SummaryRow
+              label="Süre"
+              value={`${test.durationMinutes || 20} dakika`}
+            />
+            <SummaryRow label="Konu" value={test.topic} />
+            <SummaryRow label="Sınıf" value={`${test.grade}. Sınıf`} />
+          </div>
         </div>
       </div>
     </div>
@@ -499,12 +571,12 @@ function ResultPanel({
       <div className="overflow-hidden rounded-[1.6rem] border border-slate-200 bg-slate-50">
         {/* Score header */}
         <div
-          className="px-6 py-8 text-center"
+          className="premat-fade-in-up px-6 py-10 text-center"
           style={{ background: scoreGradient }}
         >
-          <div className="text-7xl font-black text-white">
+          <div className="text-8xl font-black text-white">
             {score}
-            <span className="text-3xl">%</span>
+            <span className="text-4xl">%</span>
           </div>
           <div className="mt-3 text-xl font-black text-white/90">
             {scoreMessage}
@@ -518,6 +590,14 @@ function ResultPanel({
           <h2 className="text-2xl font-black tracking-[-0.03em] text-slate-950">
             Test tamamlandı
           </h2>
+
+          {/* Puan progress bar */}
+          <div className="mt-3 h-2.5 overflow-hidden rounded-full bg-slate-200">
+            <div
+              className="h-full rounded-full transition-all duration-700"
+              style={{ width: `${score}%`, background: scoreGradient }}
+            />
+          </div>
 
           <div className="mt-5 grid gap-4 sm:grid-cols-3">
             <ResultMetric label="Doğru" value={result.correct} tone="emerald" />

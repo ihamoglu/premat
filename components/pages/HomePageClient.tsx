@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import DocumentCard from "@/components/documents/DocumentCard";
 import { DocumentItem } from "@/types/document";
 import {
@@ -389,19 +389,13 @@ export default function HomePageClient({
                 </Link>
               </div>
             </div>
-            <div className="flex min-h-[220px] items-center justify-center bg-[linear-gradient(135deg,#0f2d5c_0%,#1d4f91_45%,#ea580c_100%)] p-8 text-white">
-              <div className="text-center">
-                <div className="text-6xl font-black tracking-[-0.06em]">20:00</div>
-                <div className="mt-3 text-sm font-black uppercase tracking-[0.18em] text-white/75">
-                  Soru · Süre · Sonuç
-                </div>
-              </div>
-            </div>
+            <TestShowcasePanel />
           </div>
         </div>
       </section>
 
       {/* ── SINIFA GÖRE HIZLI GEÇİŞ ── */}
+
       <section className="mx-auto max-w-7xl px-4 pb-8 md:px-6 md:pb-10">
         <div className="rounded-[1.75rem] border border-slate-200/80 bg-white p-4 shadow-xl shadow-slate-900/5 sm:p-6 md:rounded-[2rem] md:p-8">
           <div className="mb-6 flex items-start gap-3">
@@ -599,5 +593,83 @@ export default function HomePageClient({
         </div>
       </section>
     </main>
+  );
+}
+
+const SHOWCASE_SLIDES = [
+  {
+    eyebrow: "SÜRE TAKİBİ",
+    number: "20:00",
+    label: "Sayılan dakikalarda çöz",
+  },
+  {
+    eyebrow: "ÇOKTAN SEÇMELİ",
+    number: "A · B · C · D",
+    label: "Anlık cevap işaretleme",
+  },
+  {
+    eyebrow: "ANINDA SONUÇ",
+    number: "% 85",
+    label: "Doğru · Yanlış · Boş analizi",
+  },
+];
+
+function TestShowcasePanel() {
+  const [slideIndex, setSlideIndex] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setSlideIndex((i) => (i + 1) % SHOWCASE_SLIDES.length);
+    }, 2800);
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <div
+      className="relative flex min-h-[220px] items-center justify-center overflow-hidden p-8 text-white"
+      style={{
+        background:
+          "linear-gradient(135deg,#0f2d5c 0%,#1d4f91 45%,#ea580c 100%)",
+      }}
+    >
+      {/* Floating matematik sembolleri */}
+      <span className="premat-float pointer-events-none absolute left-5 top-5 select-none text-4xl font-black text-white/8">
+        π
+      </span>
+      <span className="premat-float-slow pointer-events-none absolute bottom-8 right-6 select-none text-3xl font-black text-white/8">
+        √
+      </span>
+      <span className="premat-float-fast pointer-events-none absolute bottom-5 left-[40%] select-none text-2xl font-black text-white/6">
+        ∑
+      </span>
+
+      {/* Aktif slide — key değişince premat-fade-in-up yeniden tetiklenir */}
+      <div key={slideIndex} className="premat-fade-in-up relative text-center">
+        <div className="mb-3 inline-flex rounded-full border border-white/25 bg-white/15 px-4 py-1.5 text-[10px] font-black uppercase tracking-[0.14em] text-white/80 backdrop-blur-sm">
+          {SHOWCASE_SLIDES[slideIndex].eyebrow}
+        </div>
+        <div className="text-5xl font-black tracking-[-0.05em] md:text-6xl">
+          {SHOWCASE_SLIDES[slideIndex].number}
+        </div>
+        <div className="mt-2 text-xs font-semibold text-white/65">
+          {SHOWCASE_SLIDES[slideIndex].label}
+        </div>
+      </div>
+
+      {/* Nokta indikatörleri */}
+      <div className="absolute bottom-4 left-1/2 flex -translate-x-1/2 gap-1.5">
+        {SHOWCASE_SLIDES.map((_, i) => (
+          <button
+            key={i}
+            type="button"
+            onClick={() => setSlideIndex(i)}
+            className={`h-1.5 rounded-full transition-all duration-300 ${
+              i === slideIndex ? "w-5 bg-white" : "w-1.5 bg-white/35"
+            }`}
+            aria-label={`Slide ${i + 1}`}
+          />
+        ))}
+      </div>
+    </div>
   );
 }

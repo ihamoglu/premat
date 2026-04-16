@@ -82,11 +82,17 @@ export default function TestsPageClient({ tests }: { tests: TestSetSummary[] }) 
         </div>
         {/* Dekoratif arka plan sembolleri */}
         <div className="pointer-events-none absolute inset-0 select-none overflow-hidden">
-          <span className="absolute right-[6%] top-[10%] text-[7rem] font-black text-white/5">
+          <span className="premat-float absolute right-[6%] top-[10%] text-[7rem] font-black text-white/5">
             ?
           </span>
-          <span className="absolute bottom-[8%] left-[3%] text-6xl font-black text-white/5">
+          <span className="premat-float-slow absolute bottom-[8%] left-[3%] text-6xl font-black text-white/5">
             ✓
+          </span>
+          <span className="premat-float-fast absolute left-[55%] top-[15%] text-4xl font-black text-white/4">
+            π
+          </span>
+          <span className="premat-float absolute right-[20%] bottom-[18%] text-3xl font-black text-white/4">
+            ∞
           </span>
         </div>
 
@@ -101,7 +107,17 @@ export default function TestsPageClient({ tests }: { tests: TestSetSummary[] }) 
             <div className="inline-flex rounded-full border border-white/25 bg-white/15 px-4 py-2 text-xs font-black uppercase tracking-wide text-white/90 backdrop-blur-sm">
               Online Testler
             </div>
-            <h1 className="mt-5 text-4xl font-black tracking-[-0.04em] text-white md:text-6xl">
+            <h1
+              className="premat-gradient-text-animated mt-5 text-4xl font-black tracking-[-0.04em] md:text-6xl"
+              style={{
+                backgroundImage:
+                  "linear-gradient(135deg,#ffffff 0%,#bfdbfe 45%,#fde68a 80%,#ffffff 100%)",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+                backgroundClip: "text",
+                backgroundSize: "200% 200%",
+              }}
+            >
               Süreli matematik testleri
             </h1>
             <p className="mt-4 text-base leading-8 text-blue-100 md:text-lg">
@@ -203,16 +219,25 @@ export default function TestsPageClient({ tests }: { tests: TestSetSummary[] }) 
 
         <div className="mt-8 grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
           {filtered.length === 0 ? (
-            <div className="col-span-full rounded-[2rem] border border-dashed border-slate-300 bg-white p-10 text-center">
-              <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl border border-slate-200 bg-slate-50 text-slate-400">
-                <ClockIcon className="h-7 w-7" />
+            <div className="col-span-full overflow-hidden rounded-[2rem] border border-dashed border-slate-300 bg-white">
+              <div
+                className="h-[3px] w-full"
+                style={{
+                  background:
+                    "linear-gradient(90deg,#1d4f91,#2f6eb7,#ea580c)",
+                }}
+              />
+              <div className="p-10 text-center">
+                <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl border border-slate-200 bg-slate-50 text-slate-400">
+                  <ClockIcon className="h-7 w-7" />
+                </div>
+                <h2 className="text-xl font-black text-slate-950">
+                  Yayında test bulunamadı
+                </h2>
+                <p className="mt-2 text-sm text-slate-500">
+                  Farklı bir filtre kombinasyonu dene.
+                </p>
               </div>
-              <h2 className="text-xl font-black text-slate-950">
-                Yayında test bulunamadı
-              </h2>
-              <p className="mt-2 text-sm text-slate-500">
-                Farklı bir filtre kombinasyonu dene.
-              </p>
             </div>
           ) : (
             filtered.map((test, i) => (
@@ -222,6 +247,15 @@ export default function TestsPageClient({ tests }: { tests: TestSetSummary[] }) 
                 className="premat-card-3d premat-fade-in-up group relative overflow-hidden rounded-[1.75rem] border border-slate-200 bg-white p-6 shadow-sm transition hover:border-blue-200 hover:shadow-md"
                 style={{ animationDelay: `${Math.min(i, 8) * 0.06}s` }}
               >
+                {/* Zorluk renkli üst şerit */}
+                <div
+                  className="absolute inset-x-0 top-0 h-[3px] rounded-t-[1.75rem]"
+                  style={{
+                    background:
+                      difficultyBadgeStyle[test.difficulty ?? ""] ??
+                      "linear-gradient(90deg,#1d4f91,#2f6eb7)",
+                  }}
+                />
                 {/* Dekoratif saat ikonu arka planda */}
                 <div className="pointer-events-none absolute right-4 top-4 text-slate-900/5">
                   <ClockIcon className="h-16 w-16" />
