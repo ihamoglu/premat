@@ -51,7 +51,7 @@ type TestItemRow = {
 };
 
 type NoticeTone = "success" | "warning" | "error" | "";
-type CropMode = "none" | "wide" | "standard" | "square";
+type CropMode = "none" | "wide" | "standard" | "square" | "free";
 
 type TestForm = {
   title: string;
@@ -63,6 +63,8 @@ type TestForm = {
   published: boolean;
 };
 
+type FreeCropRect = { x: number; y: number; w: number; h: number };
+
 type QuestionForm = {
   text: string;
   imageUrl: string;
@@ -73,6 +75,7 @@ type QuestionForm = {
   cropX: number;
   cropY: number;
   cropZoom: number;
+  freeCropRect: FreeCropRect;
 };
 
 const initialTestForm: TestForm = {
@@ -95,13 +98,14 @@ const initialQuestionForm: QuestionForm = {
   cropX: 50,
   cropY: 50,
   cropZoom: 100,
+  freeCropRect: { x: 10, y: 10, w: 80, h: 80 },
 };
 
 const cropSizes = {
   wide: { width: 1200, height: 675, label: "16:9 geniş kırp" },
   standard: { width: 1200, height: 900, label: "4:3 standart kırp" },
   square: { width: 1000, height: 1000, label: "1:1 kare kırp" },
-} satisfies Record<Exclude<CropMode, "none">, { width: number; height: number; label: string }>;
+} satisfies Record<Exclude<CropMode, "none" | "free">, { width: number; height: number; label: string }>;
 
 function slugifyTr(text: string) {
   return text
@@ -379,26 +383,45 @@ export default function AdminTestBuilder() {
   async function applyImageCrop() {
     if (!imageFile || questionForm.cropMode === "none") return;
 
-    const size = cropSizes[questionForm.cropMode];
-    const bitmap = await createImageBitmap(imageFile);
-    const aspect = size.width / size.height;
-    let cropWidth = bitmap.width;
-    let cropHeight = cropWidth / aspect;
+    let sourceX: number, sourceY: number, cropWidth: number, cropHeight: number;
+    let canvasWidth: number, canvasHeight: number;
 
-    if (cropHeight > bitmap.height) {
-      cropHeight = bitmap.height;
-      cropWidth = cropHeight * aspect;
+    const bitmap = await createImageBitmap(imageFile);
+
+    if (questionForm.cropMode === "free") {
+      const { x, y, w, h } = questionForm.freeCropRect;
+      sourceX = (x / 100) * bitmap.width;
+      sourceY = (y / 100) * bitmap.height;
+      cropWidth = Math.round((w / 100) * bitmap.width);
+      cropHeight = Math.round((h / 100) * bitmap.height);
+      canvasWidth = cropWidth;
+      canvasHeight = cropHeight;
+    } else {
+      const size = cropSizes[questionForm.cropMode];
+      const aspect = size.width / size.height;
+      let cw = bitmap.width;
+      let ch = cw / aspect;
+
+      if (ch > bitmap.height) {
+        ch = bitmap.height;
+        cw = ch * aspect;
+      }
+
+      const zoom = Math.min(2.4, Math.max(1, questionForm.cropZoom / 100));
+      cw /= zoom;
+      ch /= zoom;
+
+      sourceX = Math.max(0, bitmap.width - cw) * (questionForm.cropX / 100);
+      sourceY = Math.max(0, bitmap.height - ch) * (questionForm.cropY / 100);
+      cropWidth = cw;
+      cropHeight = ch;
+      canvasWidth = size.width;
+      canvasHeight = size.height;
     }
 
-    const zoom = Math.min(2.4, Math.max(1, questionForm.cropZoom / 100));
-    cropWidth /= zoom;
-    cropHeight /= zoom;
-
-    const sourceX = Math.max(0, bitmap.width - cropWidth) * (questionForm.cropX / 100);
-    const sourceY = Math.max(0, bitmap.height - cropHeight) * (questionForm.cropY / 100);
     const canvas = document.createElement("canvas");
-    canvas.width = size.width;
-    canvas.height = size.height;
+    canvas.width = canvasWidth;
+    canvas.height = canvasHeight;
     const context = canvas.getContext("2d");
 
     if (!context) {
@@ -406,7 +429,7 @@ export default function AdminTestBuilder() {
       return;
     }
 
-    context.drawImage(bitmap, sourceX, sourceY, cropWidth, cropHeight, 0, 0, size.width, size.height);
+    context.drawImage(bitmap, sourceX, sourceY, cropWidth, cropHeight, 0, 0, canvasWidth, canvasHeight);
 
     const blob = await new Promise<Blob | null>((resolve) =>
       canvas.toBlob(resolve, "image/webp", 0.92)
@@ -432,6 +455,7 @@ export default function AdminTestBuilder() {
       cropX: 50,
       cropY: 50,
       cropZoom: 100,
+      freeCropRect: { x: 10, y: 10, w: 80, h: 80 },
     }));
     setStatus("success", "Kırpma uygulandı. Kaydettiğinde kırpılmış görsel yüklenecek.");
   }
@@ -598,6 +622,7 @@ export default function AdminTestBuilder() {
       cropX: 50,
       cropY: 50,
       cropZoom: 100,
+      freeCropRect: { x: 10, y: 10, w: 80, h: 80 },
     });
     setImageFile(null);
     if (localPreviewUrlRef.current) URL.revokeObjectURL(localPreviewUrlRef.current);
@@ -1275,7 +1300,8 @@ function QuestionEditor({
   onCrop: () => void;
   onOptionChange: (index: number, value: string) => void;
   onSave: () => void;
-}) {
+})
+ {
   return (
     <div className="rounded-[1.6rem] border border-slate-200 bg-[linear-gradient(180deg,#f8fbff_0%,#ffffff_100%)] p-5">
       <div className="flex items-start justify-between gap-3">
@@ -1329,29 +1355,39 @@ function QuestionEditor({
 
           {imagePreviewUrl ? (
             <div className="mt-4">
-              <div
-                className={`overflow-hidden rounded-2xl border border-slate-200 bg-slate-50 ${
-                  form.cropMode === "none"
-                    ? "p-3"
-                    : form.cropMode === "square"
-                      ? "aspect-square"
-                      : form.cropMode === "wide"
-                        ? "aspect-video"
-                        : "aspect-[4/3]"
-                }`}
-              >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={imagePreviewUrl}
-                  alt="Soru görseli önizleme"
-                  style={form.cropMode === "none" ? undefined : cropPreviewStyle}
-                  className={
-                    form.cropMode === "none"
-                      ? "mx-auto max-h-[320px] max-w-full object-contain"
-                      : "h-full w-full object-cover transition"
+              {form.cropMode === "free" ? (
+                <InteractiveCropOverlay
+                  imageUrl={imagePreviewUrl}
+                  rect={form.freeCropRect}
+                  onChange={(rect) =>
+                    onChange((current) => ({ ...current, freeCropRect: rect }))
                   }
                 />
-              </div>
+              ) : (
+                <div
+                  className={`overflow-hidden rounded-2xl border border-slate-200 bg-slate-50 ${
+                    form.cropMode === "none"
+                      ? "p-3"
+                      : form.cropMode === "square"
+                        ? "aspect-square"
+                        : form.cropMode === "wide"
+                          ? "aspect-video"
+                          : "aspect-[4/3]"
+                  }`}
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={imagePreviewUrl}
+                    alt="Soru görseli önizleme"
+                    style={form.cropMode === "none" ? undefined : cropPreviewStyle}
+                    className={
+                      form.cropMode === "none"
+                        ? "mx-auto max-h-[320px] max-w-full object-contain"
+                        : "h-full w-full object-cover transition"
+                    }
+                  />
+                </div>
+              )}
 
               <div className="mt-3 grid gap-3 rounded-2xl border border-blue-100 bg-blue-50 p-3">
                 <select
@@ -1365,12 +1401,27 @@ function QuestionEditor({
                   className="rounded-xl border border-blue-100 bg-white px-3 py-2 text-sm outline-none transition focus:border-blue-400"
                 >
                   <option value="none">Orijinal göster</option>
+                  <option value="free">Serbest kırp (sürükle)</option>
                   <option value="wide">{cropSizes.wide.label}</option>
                   <option value="standard">{cropSizes.standard.label}</option>
                   <option value="square">{cropSizes.square.label}</option>
                 </select>
 
-                {form.cropMode !== "none" ? (
+                {form.cropMode === "free" ? (
+                  <div className="grid gap-2">
+                    <p className="text-xs font-semibold text-blue-800">
+                      Köşeleri ve kenarları sürükleyerek kırpma alanını ayarla.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={onCrop}
+                      disabled={!imageFile}
+                      className="rounded-xl bg-blue-800 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-900 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      Kırpmayı Uygula
+                    </button>
+                  </div>
+                ) : form.cropMode !== "none" ? (
                   <>
                     <label className="text-xs font-bold text-blue-900">
                       Yakınlaştır
@@ -1569,6 +1620,160 @@ function ExistingQuestionPicker({
           ))
         )}
       </div>
+    </div>
+  );
+}
+
+type DragType = "move" | "n" | "s" | "e" | "w" | "ne" | "nw" | "se" | "sw";
+
+function InteractiveCropOverlay({
+  imageUrl,
+  rect,
+  onChange,
+}: {
+  imageUrl: string;
+  rect: FreeCropRect;
+  onChange: (rect: FreeCropRect) => void;
+}) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const dragRef = useRef<{
+    type: DragType;
+    startX: number;
+    startY: number;
+    startRect: FreeCropRect;
+  } | null>(null);
+
+  function startDrag(e: React.PointerEvent, type: DragType) {
+    e.preventDefault();
+    e.stopPropagation();
+    (e.target as HTMLElement).setPointerCapture(e.pointerId);
+    dragRef.current = { type, startX: e.clientX, startY: e.clientY, startRect: { ...rect } };
+  }
+
+  function onPointerMove(e: React.PointerEvent) {
+    if (!dragRef.current || !containerRef.current) return;
+    const bounds = containerRef.current.getBoundingClientRect();
+    const dx = ((e.clientX - dragRef.current.startX) / bounds.width) * 100;
+    const dy = ((e.clientY - dragRef.current.startY) / bounds.height) * 100;
+    const sr = dragRef.current.startRect;
+    const MIN = 5;
+    let { x, y, w, h } = sr;
+
+    switch (dragRef.current.type) {
+      case "move":
+        x = Math.max(0, Math.min(100 - sr.w, sr.x + dx));
+        y = Math.max(0, Math.min(100 - sr.h, sr.y + dy));
+        break;
+      case "e":
+        w = Math.max(MIN, Math.min(100 - sr.x, sr.w + dx));
+        break;
+      case "w":
+        x = Math.max(0, Math.min(sr.x + sr.w - MIN, sr.x + dx));
+        w = sr.x + sr.w - x;
+        break;
+      case "s":
+        h = Math.max(MIN, Math.min(100 - sr.y, sr.h + dy));
+        break;
+      case "n":
+        y = Math.max(0, Math.min(sr.y + sr.h - MIN, sr.y + dy));
+        h = sr.y + sr.h - y;
+        break;
+      case "ne":
+        y = Math.max(0, Math.min(sr.y + sr.h - MIN, sr.y + dy));
+        h = sr.y + sr.h - y;
+        w = Math.max(MIN, Math.min(100 - sr.x, sr.w + dx));
+        break;
+      case "nw":
+        y = Math.max(0, Math.min(sr.y + sr.h - MIN, sr.y + dy));
+        h = sr.y + sr.h - y;
+        x = Math.max(0, Math.min(sr.x + sr.w - MIN, sr.x + dx));
+        w = sr.x + sr.w - x;
+        break;
+      case "se":
+        h = Math.max(MIN, Math.min(100 - sr.y, sr.h + dy));
+        w = Math.max(MIN, Math.min(100 - sr.x, sr.w + dx));
+        break;
+      case "sw":
+        h = Math.max(MIN, Math.min(100 - sr.y, sr.h + dy));
+        x = Math.max(0, Math.min(sr.x + sr.w - MIN, sr.x + dx));
+        w = sr.x + sr.w - x;
+        break;
+    }
+
+    onChange({
+      x: Math.round(x * 10) / 10,
+      y: Math.round(y * 10) / 10,
+      w: Math.round(w * 10) / 10,
+      h: Math.round(h * 10) / 10,
+    });
+  }
+
+  function onPointerUp() {
+    dragRef.current = null;
+  }
+
+  const H = 10;
+  const handles: Array<{ type: DragType; top: string; left: string; cursor: string }> = [
+    { type: "nw", top: `calc(${rect.y}% - ${H / 2}px)`, left: `calc(${rect.x}% - ${H / 2}px)`, cursor: "nwse-resize" },
+    { type: "ne", top: `calc(${rect.y}% - ${H / 2}px)`, left: `calc(${rect.x + rect.w}% - ${H / 2}px)`, cursor: "nesw-resize" },
+    { type: "sw", top: `calc(${rect.y + rect.h}% - ${H / 2}px)`, left: `calc(${rect.x}% - ${H / 2}px)`, cursor: "nesw-resize" },
+    { type: "se", top: `calc(${rect.y + rect.h}% - ${H / 2}px)`, left: `calc(${rect.x + rect.w}% - ${H / 2}px)`, cursor: "nwse-resize" },
+    { type: "n", top: `calc(${rect.y}% - ${H / 2}px)`, left: `calc(${rect.x + rect.w / 2}% - ${H / 2}px)`, cursor: "ns-resize" },
+    { type: "s", top: `calc(${rect.y + rect.h}% - ${H / 2}px)`, left: `calc(${rect.x + rect.w / 2}% - ${H / 2}px)`, cursor: "ns-resize" },
+    { type: "e", top: `calc(${rect.y + rect.h / 2}% - ${H / 2}px)`, left: `calc(${rect.x + rect.w}% - ${H / 2}px)`, cursor: "ew-resize" },
+    { type: "w", top: `calc(${rect.y + rect.h / 2}% - ${H / 2}px)`, left: `calc(${rect.x}% - ${H / 2}px)`, cursor: "ew-resize" },
+  ];
+
+  return (
+    <div
+      ref={containerRef}
+      className="relative select-none overflow-hidden rounded-2xl border border-slate-200"
+      style={{ touchAction: "none" }}
+      onPointerMove={onPointerMove}
+      onPointerUp={onPointerUp}
+    >
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={imageUrl} alt="Kırpma önizleme" className="block h-auto w-full" draggable={false} />
+
+      {/* Dark overlay — top */}
+      <div className="pointer-events-none absolute inset-x-0 top-0 bg-black/55" style={{ height: `${rect.y}%` }} />
+      {/* Dark overlay — bottom */}
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-black/55" style={{ height: `${100 - rect.y - rect.h}%` }} />
+      {/* Dark overlay — left */}
+      <div className="pointer-events-none absolute left-0 bg-black/55" style={{ top: `${rect.y}%`, height: `${rect.h}%`, width: `${rect.x}%` }} />
+      {/* Dark overlay — right */}
+      <div className="pointer-events-none absolute right-0 bg-black/55" style={{ top: `${rect.y}%`, height: `${rect.h}%`, width: `${100 - rect.x - rect.w}%` }} />
+
+      {/* Crop region border + move handle */}
+      <div
+        className="absolute border-2 border-white"
+        style={{
+          left: `${rect.x}%`,
+          top: `${rect.y}%`,
+          width: `${rect.w}%`,
+          height: `${rect.h}%`,
+          cursor: "move",
+        }}
+        onPointerDown={(e) => startDrag(e, "move")}
+      >
+        {/* Rule-of-thirds grid */}
+        <div className="pointer-events-none absolute inset-0">
+          <div className="absolute bottom-0 top-0 border-r border-white/30" style={{ left: "33.33%" }} />
+          <div className="absolute bottom-0 top-0 border-r border-white/30" style={{ left: "66.66%" }} />
+          <div className="absolute left-0 right-0 border-b border-white/30" style={{ top: "33.33%" }} />
+          <div className="absolute left-0 right-0 border-b border-white/30" style={{ top: "66.66%" }} />
+        </div>
+      </div>
+
+      {/* Resize handles */}
+      {handles.map(({ type, top, left, cursor }) => (
+        <div
+          key={type}
+          className="absolute z-10 rounded-sm border-2 border-blue-500 bg-white"
+          style={{ top, left, width: H, height: H, cursor }}
+          onPointerDown={(e) => startDrag(e, type)}
+        />
+      ))}
     </div>
   );
 }
