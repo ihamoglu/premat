@@ -23,14 +23,36 @@ export default function GradePageClient({
   );
 
   const topicCount = useMemo(
-    () => new Set(documents.map((doc) => doc.topic)).size,
+    () =>
+      new Set(
+        documents.flatMap((doc) =>
+          doc.topic
+            .split(", ")
+            .map((t) => t.trim())
+            .filter(Boolean)
+        )
+      ).size,
     [documents]
   );
 
   const topicBlocks = useMemo(() => {
-    return Array.from(new Set(documents.map((doc) => doc.topic)))
+    return Array.from(
+      new Set(
+        documents.flatMap((doc) =>
+          doc.topic
+            .split(", ")
+            .map((t) => t.trim())
+            .filter(Boolean)
+        )
+      )
+    )
       .map((topic) => {
-        const topicDocs = documents.filter((doc) => doc.topic === topic);
+        const topicDocs = documents.filter((doc) =>
+          doc.topic
+            .split(", ")
+            .map((t) => t.trim())
+            .includes(topic)
+        );
 
         return {
           topic,

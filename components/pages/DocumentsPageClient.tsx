@@ -62,8 +62,12 @@ export default function DocumentsPageClient({
       const matchesGrade =
         selectedGrade === "Tümü" ? true : doc.grade === selectedGrade;
 
-      const matchesTopic = selectedTopic ? doc.topic === selectedTopic : true;
-      const matchesType = selectedType ? doc.type === selectedType : true;
+      const matchesTopic = selectedTopic
+        ? doc.topic.split(", ").map((t) => t.trim()).includes(selectedTopic)
+        : true;
+      const matchesType = selectedType
+        ? doc.type.split(", ").map((t) => t.trim()).includes(selectedType)
+        : true;
       const matchesQuery = selectedQuery
         ? documentMatchesSearch(doc, selectedQuery)
         : true;

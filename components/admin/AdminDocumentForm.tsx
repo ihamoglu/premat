@@ -28,9 +28,9 @@ type FormState = {
   title: string;
   description: string;
   grade: GradeLevel;
-  topic: string;
+  topics: string[];
   subtopic: string;
-  type: string;
+  types: string[];
   sourceType: SourceType;
   fileUrl: string;
   solutionUrl: string;
@@ -62,9 +62,9 @@ const initialState: FormState = {
   title: "",
   description: "",
   grade: "5",
-  topic: "",
+  topics: [],
   subtopic: "",
-  type: documentTypeCatalog[0],
+  types: [documentTypeCatalog[0]],
   sourceType: sourceTypeCatalog[0],
   fileUrl: "",
   solutionUrl: "",
@@ -160,9 +160,9 @@ export default function AdminDocumentForm({ editingDoc, onCancelEdit, onFinish }
         title: form.title,
         description: form.description,
         grade: form.grade,
-        topic: form.topic,
+        topic: form.topics[0] || "",
         subtopic: form.subtopic || undefined,
-        type: form.type,
+        type: form.types[0] || "",
         fileUrl: form.fileUrl,
         solutionUrl: form.solutionUrl || undefined,
         answerKeyUrl: form.answerKeyUrl || undefined,
@@ -185,9 +185,9 @@ export default function AdminDocumentForm({ editingDoc, onCancelEdit, onFinish }
         title: form.title,
         description: form.description,
         grade: form.grade,
-        topic: form.topic,
+        topic: form.topics[0] || "",
         subtopic: form.subtopic || undefined,
-        type: form.type,
+        type: form.types[0] || "",
         fileUrl: form.fileUrl,
         solutionUrl: form.solutionUrl || undefined,
         answerKeyUrl: form.answerKeyUrl || undefined,
@@ -235,9 +235,9 @@ export default function AdminDocumentForm({ editingDoc, onCancelEdit, onFinish }
       title: editingDoc.title,
       description: editingDoc.description,
       grade: editingDoc.grade,
-      topic: editingDoc.topic,
+      topics: editingDoc.topic.split(", ").filter(Boolean),
       subtopic: editingDoc.subtopic || "",
-      type: editingDoc.type,
+      types: editingDoc.type.split(", ").filter(Boolean),
       sourceType: editingDoc.sourceType,
       fileUrl: editingDoc.fileUrl,
       solutionUrl: editingDoc.solutionUrl || "",
@@ -394,9 +394,9 @@ export default function AdminDocumentForm({ editingDoc, onCancelEdit, onFinish }
           title: form.title,
           description: form.description,
           grade: form.grade,
-          topic: form.topic,
+          topic: form.topics.join(", "),
           subtopic: form.subtopic || undefined,
-          type: form.type,
+          type: form.types.join(", "),
           sourceType: form.sourceType,
           fileUrl: form.fileUrl,
           solutionUrl: form.solutionUrl || undefined,
@@ -436,9 +436,9 @@ export default function AdminDocumentForm({ editingDoc, onCancelEdit, onFinish }
         title: form.title,
         description: form.description,
         grade: form.grade,
-        topic: form.topic,
+        topic: form.topics.join(", "),
         subtopic: form.subtopic || undefined,
-        type: form.type,
+        type: form.types.join(", "),
         sourceType: form.sourceType,
         fileUrl: form.fileUrl,
         solutionUrl: form.solutionUrl || undefined,
@@ -569,22 +569,63 @@ export default function AdminDocumentForm({ editingDoc, onCancelEdit, onFinish }
             <div className="grid gap-5 md:grid-cols-2">
               <div>
                 <FieldLabel>Sınıf</FieldLabel>
-                <select value={form.grade} onChange={(e) => { const value = e.target.value as GradeLevel; updateField("grade", value); updateField("topic", ""); }} className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-blue-400">
+                <select value={form.grade} onChange={(e) => { const value = e.target.value as GradeLevel; updateField("grade", value); updateField("topics", []); }} className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-blue-400">
                   {gradeOptions.map((grade) => <option key={grade} value={grade}>{grade}. Sınıf</option>)}
                 </select>
               </div>
               <div>
-                <FieldLabel>Tür</FieldLabel>
-                <select value={form.type} onChange={(e) => updateField("type", e.target.value)} className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-blue-400">
-                  {documentTypeCatalog.map((item) => <option key={item} value={item}>{item}</option>)}
-                </select>
+                <FieldLabel>
+                  Tür{" "}
+                  <span className="font-normal text-slate-400 text-xs">(birden fazla seçilebilir)</span>
+                </FieldLabel>
+                <div className="space-y-1 rounded-2xl border border-slate-200 bg-white p-3">
+                  {documentTypeCatalog.map((item) => (
+                    <label
+                      key={item}
+                      className="flex cursor-pointer items-center gap-2.5 rounded-xl px-2 py-1.5 hover:bg-slate-50"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={form.types.includes(item)}
+                        onChange={(e) => {
+                          const next = e.target.checked
+                            ? [...form.types, item]
+                            : form.types.filter((t) => t !== item);
+                          updateField("types", next);
+                        }}
+                        className="h-4 w-4 shrink-0 rounded accent-blue-700"
+                      />
+                      <span className="text-sm text-slate-700">{item}</span>
+                    </label>
+                  ))}
+                </div>
               </div>
               <div>
-                <FieldLabel>Konu</FieldLabel>
-                <select value={form.topic} onChange={(e) => updateField("topic", e.target.value)} className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-blue-400" required>
-                  <option value="">Konu seç</option>
-                  {topicOptions.map((item) => <option key={item} value={item}>{item}</option>)}
-                </select>
+                <FieldLabel>
+                  Konu{" "}
+                  <span className="font-normal text-slate-400 text-xs">(birden fazla seçilebilir)</span>
+                </FieldLabel>
+                <div className="max-h-52 space-y-1 overflow-y-auto rounded-2xl border border-slate-200 bg-white p-3">
+                  {topicOptions.map((item) => (
+                    <label
+                      key={item}
+                      className="flex cursor-pointer items-start gap-2.5 rounded-xl px-2 py-1.5 hover:bg-slate-50"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={form.topics.includes(item)}
+                        onChange={(e) => {
+                          const next = e.target.checked
+                            ? [...form.topics, item]
+                            : form.topics.filter((t) => t !== item);
+                          updateField("topics", next);
+                        }}
+                        className="mt-0.5 h-4 w-4 shrink-0 rounded accent-blue-700"
+                      />
+                      <span className="text-xs leading-5 text-slate-700">{item}</span>
+                    </label>
+                  ))}
+                </div>
               </div>
               <div>
                 <FieldLabel>Alt Konu</FieldLabel>
@@ -746,14 +787,18 @@ export default function AdminDocumentForm({ editingDoc, onCancelEdit, onFinish }
             <div className="rounded-[1.6rem] bg-[linear-gradient(135deg,#1d4f91_0%,#2f6eb7_55%,#ea580c_100%)] p-5 text-white">
               <div className="mb-3 flex flex-wrap gap-2">
                 <span className="rounded-full bg-white/92 px-3 py-1 text-xs font-semibold text-blue-900">{form.grade}. Sınıf</span>
-                <span className="rounded-full bg-white/20 px-3 py-1 text-xs font-semibold text-white">{form.type}</span>
+                {form.types.length > 0
+                  ? form.types.map((t) => (
+                      <span key={t} className="rounded-full bg-white/20 px-3 py-1 text-xs font-semibold text-white">{t}</span>
+                    ))
+                  : <span className="rounded-full bg-white/20 px-3 py-1 text-xs font-semibold text-white/60">Tür seçilmedi</span>}
                 {form.difficulty ? <span className="rounded-full bg-white/20 px-3 py-1 text-xs font-semibold text-white">{form.difficulty}</span> : null}
                 {form.hasVideoSolution || form.solutionUrl ? <span className="rounded-full bg-white/20 px-3 py-1 text-xs font-semibold text-white">Video Çözüm</span> : null}
                 {form.featured ? <span className="rounded-full bg-orange-400 px-3 py-1 text-xs font-semibold text-white">Öne Çıkan</span> : null}
               </div>
               <h3 className="text-xl font-black leading-tight tracking-[-0.02em]">{form.title || "Başlık burada görünecek"}</h3>
               <p className="mt-3 text-sm leading-7 text-blue-50">{form.description || "Açıklama burada görünecek."}</p>
-              <div className="mt-4 text-sm font-semibold text-white/90">{form.topic || "Konu seçilmedi"}{form.subtopic ? ` • ${form.subtopic}` : ""}</div>
+              <div className="mt-4 text-sm font-semibold text-white/90">{form.topics.join(", ") || "Konu seçilmedi"}{form.subtopic ? ` • ${form.subtopic}` : ""}</div>
             </div>
           </div>
         </div>

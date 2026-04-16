@@ -241,9 +241,13 @@ export default function AdminTestBuilder() {
               .toLocaleLowerCase("tr")
               .includes(search)
           : true;
+        const testTopicSet = selectedTest.topic
+          .split(", ")
+          .map((t) => t.trim())
+          .filter(Boolean);
         return (
           question.grade === selectedTest.grade &&
-          question.topic === selectedTest.topic &&
+          testTopicSet.includes(question.topic) &&
           searchMatch
         );
       })
@@ -646,11 +650,8 @@ export default function AdminTestBuilder() {
       return;
     }
 
-    if (
-      questionForm.text.trim().length < 8 ||
-      questionForm.options.some((option) => !option.trim())
-    ) {
-      setStatus("error", "Soru metni ve dört seçenek dolu olmalıdır.");
+    if (questionForm.options.some((option) => !option.trim())) {
+      setStatus("error", "Dört seçenek de dolu olmalıdır.");
       return;
     }
 
@@ -1024,20 +1025,43 @@ export default function AdminTestBuilder() {
                 placeholder="Süre"
                 className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-blue-400"
               />
-              <select
-                value={testForm.topic}
-                onChange={(e) =>
-                  setTestForm((current) => ({ ...current, topic: e.target.value }))
-                }
-                className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-blue-400 md:col-span-2"
-              >
-                <option value="">Konu seç</option>
-                {testTopics.map((topic) => (
-                  <option key={topic} value={topic}>
-                    {topic}
-                  </option>
-                ))}
-              </select>
+              <div className="rounded-2xl border border-slate-200 bg-white p-3 md:col-span-2">
+                <div className="mb-2 text-xs font-bold text-slate-500">
+                  Konu{" "}
+                  <span className="font-normal text-slate-400">(birden fazla seçilebilir)</span>
+                  {testForm.topic ? (
+                    <span className="ml-1 text-blue-700">· {testForm.topic.split(", ").filter(Boolean).length} seçildi</span>
+                  ) : null}
+                </div>
+                <div className="grid max-h-48 gap-1 overflow-y-auto sm:grid-cols-2">
+                  {testTopics.map((topic) => {
+                    const selected = testForm.topic.split(", ").map((t) => t.trim()).filter(Boolean);
+                    const checked = selected.includes(topic);
+                    return (
+                      <label
+                        key={topic}
+                        className="flex cursor-pointer items-start gap-2 rounded-xl px-2 py-1.5 hover:bg-slate-50"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={checked}
+                          onChange={(e) => {
+                            const next = e.target.checked
+                              ? [...selected, topic]
+                              : selected.filter((t) => t !== topic);
+                            setTestForm((current) => ({
+                              ...current,
+                              topic: next.join(", "),
+                            }));
+                          }}
+                          className="mt-0.5 h-4 w-4 shrink-0 rounded accent-blue-700"
+                        />
+                        <span className="text-xs leading-5 text-slate-700">{topic}</span>
+                      </label>
+                    );
+                  })}
+                </div>
+              </div>
               <select
                 value={testForm.difficulty}
                 onChange={(e) =>

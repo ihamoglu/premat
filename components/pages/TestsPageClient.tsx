@@ -35,7 +35,17 @@ export default function TestsPageClient({ tests }: { tests: TestSetSummary[] }) 
   const [difficulty, setDifficulty] = useState("");
 
   const topics = useMemo(
-    () => Array.from(new Set(tests.map((test) => test.topic))).sort(),
+    () =>
+      Array.from(
+        new Set(
+          tests.flatMap((test) =>
+            test.topic
+              .split(", ")
+              .map((t) => t.trim())
+              .filter(Boolean)
+          )
+        )
+      ).sort(),
     [tests]
   );
 
@@ -43,7 +53,12 @@ export default function TestsPageClient({ tests }: { tests: TestSetSummary[] }) 
     () =>
       tests.filter((test) => {
         const gradeMatch = grade ? test.grade === grade : true;
-        const topicMatch = topic ? test.topic === topic : true;
+        const topicMatch = topic
+          ? test.topic
+              .split(", ")
+              .map((t) => t.trim())
+              .includes(topic)
+          : true;
         const difficultyMatch = difficulty
           ? test.difficulty === difficulty
           : true;
