@@ -3,94 +3,63 @@
 import Image from "next/image";
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 
-interface Particle {
-  id: number;
+const SYMBOLS: Array<{
+  symbol: string;
   x: number;
   y: number;
   size: number;
-  duration: number;
+  opacity: number;
   delay: number;
-  symbol: string;
-}
-
-const SYMBOLS = [
-  "π",
-  "√",
-  "∑",
-  "∞",
-  "Δ",
-  "∫",
-  "θ",
-  "λ",
-  "μ",
-  "≠",
-  "≈",
-  "±",
-  "÷",
-  "×",
-  "∠",
-  "⊥",
-  "∥",
-  "ℕ",
-  "ℤ",
-  "ƒ",
-  "%",
-  "∴",
+  duration: number;
+}> = [
+  { symbol: "π",  x: 6,  y: 10, size: 200, opacity: 0.055, delay: 0,   duration: 7   },
+  { symbol: "∑",  x: 80, y: 6,  size: 150, opacity: 0.045, delay: 0.9, duration: 8   },
+  { symbol: "√",  x: 88, y: 52, size: 180, opacity: 0.05,  delay: 0.4, duration: 6   },
+  { symbol: "∞",  x: 4,  y: 65, size: 130, opacity: 0.045, delay: 1.4, duration: 9   },
+  { symbol: "∫",  x: 44, y: 4,  size: 110, opacity: 0.04,  delay: 1.8, duration: 7.5 },
+  { symbol: "Δ",  x: 62, y: 86, size: 120, opacity: 0.04,  delay: 0.6, duration: 8.5 },
+  { symbol: "θ",  x: 22, y: 80, size: 90,  opacity: 0.035, delay: 2.2, duration: 6.5 },
+  { symbol: "≈",  x: 75, y: 78, size: 100, opacity: 0.04,  delay: 1.1, duration: 10  },
+  { symbol: "∠",  x: 14, y: 36, size: 80,  opacity: 0.035, delay: 0.2, duration: 8   },
+  { symbol: "±",  x: 55, y: 15, size: 70,  opacity: 0.03,  delay: 3,   duration: 7   },
 ];
 
 export default function SplashScreen({ onFinish }: { onFinish?: () => void }) {
   const [phase, setPhase] = useState<"enter" | "hold" | "exit">("enter");
   const [progress, setProgress] = useState(0);
-  const [particles] = useState<Particle[]>(() =>
-    Array.from({ length: 24 }, (_, index) => ({
-      id: index,
-      x: Math.random() * 100,
-      y: Math.random() * 100,
-      size: 30 + Math.random() * 26,
-      duration: 3.2 + Math.random() * 2.6,
-      delay: Math.random() * 2.2,
-      symbol: SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)],
-    }))
-  );
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
     timerRef.current = setInterval(() => {
       setProgress((current) => {
         if (current >= 100) {
-          if (timerRef.current) {
-            clearInterval(timerRef.current);
-          }
+          if (timerRef.current) clearInterval(timerRef.current);
           return 100;
         }
-
         return current + 0.95;
       });
     }, 34);
-
     return () => {
-      if (timerRef.current) {
-        clearInterval(timerRef.current);
-      }
+      if (timerRef.current) clearInterval(timerRef.current);
     };
   }, []);
 
   useEffect(() => {
-    const enterTimer = setTimeout(() => setPhase("hold"), 300);
-    const exitTimer = setTimeout(() => setPhase("exit"), 3200);
-    const finishTimer = setTimeout(() => onFinish?.(), 4000);
-
+    const t1 = setTimeout(() => setPhase("hold"), 300);
+    const t2 = setTimeout(() => setPhase("exit"), 3200);
+    const t3 = setTimeout(() => onFinish?.(), 4000);
     return () => {
-      clearTimeout(enterTimer);
-      clearTimeout(exitTimer);
-      clearTimeout(finishTimer);
+      clearTimeout(t1);
+      clearTimeout(t2);
+      clearTimeout(t3);
     };
   }, [onFinish]);
 
   return (
     <>
       <style>{`
-        .premat-splash {
+        /* ── CONTAINER ── */
+        .ps {
           position: fixed;
           inset: 0;
           z-index: 9999;
@@ -99,158 +68,155 @@ export default function SplashScreen({ onFinish }: { onFinish?: () => void }) {
           justify-content: center;
           overflow: hidden;
           background:
-            radial-gradient(circle at 14% 18%, rgba(255,255,255,0.18), transparent 24%),
-            radial-gradient(circle at 82% 82%, rgba(249,115,22,0.22), transparent 28%),
-            linear-gradient(
-              135deg,
-              #0f4c97 0%,
-              #1d66b7 18%,
-              #2f7fca 34%,
-              #3b82f6 46%,
-              #f59e0b 68%,
-              #f97316 84%,
+            radial-gradient(ellipse at 18% 28%, rgba(47, 110, 183, 0.38) 0%, transparent 48%),
+            radial-gradient(ellipse at 82% 22%, rgba(234, 88, 12, 0.30) 0%, transparent 42%),
+            radial-gradient(ellipse at 55% 85%, rgba(249, 115, 22, 0.18) 0%, transparent 36%),
+            linear-gradient(148deg,
+              #050e1c   0%,
+              #091728  12%,
+              #0f2d5c  38%,
+              #1d4f91  58%,
+              #2f6eb7  72%,
+              #c44e14  88%,
               #ea580c 100%
             );
-          background-size: 220% 220%;
-          animation: prematSplashBg 3.6s ease-in-out infinite alternate;
         }
 
-        .premat-splash--exit {
-          animation: prematSplashFade 0.75s ease forwards !important;
+        .ps--exit {
+          animation: psExit 0.82s cubic-bezier(0.4, 0, 1, 1) forwards !important;
         }
 
-        .premat-splash__glow {
+        /* ── AMBIENT GLOW BEHIND CARD ── */
+        .ps__ambient {
           position: absolute;
-          width: 42rem;
-          height: 42rem;
-          border-radius: 999px;
-          background: rgba(255,255,255,0.12);
-          filter: blur(90px);
-          transform: scale(0.9);
-          animation: prematSplashPulse 2.8s ease-in-out infinite;
-        }
-
-        .premat-splash__particle {
-          position: absolute;
-          font-size: var(--particle-size);
-          font-weight: 800;
-          color: rgba(255,255,255,0.78);
-          opacity: 0;
-          text-shadow: 0 10px 24px rgba(15, 23, 42, 0.2);
-          animation: prematSplashFloat var(--particle-duration) ease-in-out var(--particle-delay) infinite;
-          user-select: none;
+          left: 50%;
+          top: 48%;
+          transform: translate(-50%, -50%);
+          width: 52rem;
+          height: 52rem;
+          border-radius: 50%;
+          background: radial-gradient(ellipse, rgba(29, 79, 145, 0.40) 0%, transparent 65%);
           pointer-events: none;
         }
 
-        .premat-splash__card {
+        /* ── MATH SYMBOLS ── */
+        .ps__sym {
+          position: absolute;
+          font-weight: 900;
+          line-height: 1;
+          pointer-events: none;
+          user-select: none;
+          font-size: var(--s);
+          color: rgba(255, 255, 255, var(--o));
+          animation: psFloat var(--d) ease-in-out var(--dl) infinite;
+        }
+
+        /* ── GLASS CARD ── */
+        .ps__card {
           position: relative;
           z-index: 2;
-          width: min(92vw, 35rem);
-          padding: 2rem 1.4rem;
-          border: 1px solid rgba(255,255,255,0.28);
+          width: min(90vw, 28rem);
+          padding: 2.8rem 2.2rem 2.2rem;
           border-radius: 2rem;
-          background: rgba(255,255,255,0.14);
-          box-shadow: 0 25px 80px rgba(15, 23, 42, 0.22);
-          backdrop-filter: blur(14px);
+          border: 1px solid rgba(255, 255, 255, 0.14);
+          background: rgba(8, 22, 48, 0.58);
+          box-shadow:
+            0 48px 128px rgba(0, 0, 0, 0.50),
+            inset 0 1px 0 rgba(255, 255, 255, 0.10),
+            inset 0 -1px 0 rgba(0, 0, 0, 0.20);
+          backdrop-filter: blur(22px);
+          -webkit-backdrop-filter: blur(22px);
           text-align: center;
-          color: white;
-          transform: translateY(0) scale(1);
-          animation: prematSplashCardIn 0.55s cubic-bezier(.2,.8,.2,1);
+          animation: psCardIn 0.62s cubic-bezier(0.18, 0.88, 0.32, 1.02) both;
+          overflow: hidden;
         }
 
-        .premat-splash__logo {
+        /* Brand-gradient top accent strip */
+        .ps__card::before {
+          content: "";
+          position: absolute;
+          inset-x: 0;
+          top: 0;
+          height: 3px;
+          background: linear-gradient(90deg, #1d4f91 0%, #60a5fa 40%, #f97316 72%, #ea580c 100%);
+          opacity: 0.9;
+        }
+
+        /* Subtle bottom radial glow inside card */
+        .ps__card::after {
+          content: "";
+          position: absolute;
+          inset-x: 0;
+          bottom: 0;
+          height: 60%;
+          background: radial-gradient(ellipse at 50% 120%, rgba(234, 88, 12, 0.10) 0%, transparent 70%);
+          pointer-events: none;
+        }
+
+        /* ── LOGO ── */
+        .ps__logo {
           display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          margin-bottom: 1rem;
-          animation: prematSplashLogoFloat 2.6s ease-in-out infinite;
+          margin-bottom: 1.6rem;
+          filter: drop-shadow(0 6px 18px rgba(0, 0, 0, 0.35));
+          animation: psLogoFloat 3.2s ease-in-out infinite;
         }
 
-        .premat-splash__logo-image {
-          filter: drop-shadow(0 12px 28px rgba(15, 23, 42, 0.2));
-          animation: prematSplashLogoIn 0.6s ease;
-        }
-
-        .premat-splash__title {
+        /* ── TEXT ── */
+        .ps__title {
           margin: 0;
-          font-size: clamp(1.55rem, 3vw, 2.2rem);
+          font-size: clamp(1.45rem, 3.2vw, 1.9rem);
           font-weight: 900;
-          letter-spacing: -0.03em;
+          letter-spacing: -0.04em;
           color: #ffffff;
         }
 
-        .premat-splash__text {
-          margin: 0.65rem auto 0;
-          max-width: 26rem;
-          font-size: clamp(0.95rem, 2vw, 1.05rem);
+        .ps__sub {
+          margin: 0.55rem auto 0;
+          max-width: 20rem;
+          font-size: 0.875rem;
           line-height: 1.65;
-          color: rgba(255,255,255,0.88);
+          color: rgba(255, 255, 255, 0.56);
+          letter-spacing: 0.005em;
         }
 
-        .premat-splash__bar {
-          margin-top: 1.5rem;
+        /* ── PROGRESS ── */
+        .ps__progress {
+          margin-top: 2.2rem;
+        }
+
+        .ps__bar {
           width: 100%;
-          height: 0.72rem;
-          overflow: hidden;
+          height: 3px;
           border-radius: 999px;
-          background: rgba(255,255,255,0.2);
-          box-shadow: inset 0 1px 2px rgba(15,23,42,0.18);
+          background: rgba(255, 255, 255, 0.10);
+          overflow: hidden;
         }
 
-        .premat-splash__bar-fill {
+        .ps__bar-fill {
           height: 100%;
           border-radius: inherit;
-          background: linear-gradient(90deg, #ffffff 0%, #dbeafe 20%, #fde68a 60%, #fed7aa 100%);
-          box-shadow: 0 0 18px rgba(255,255,255,0.4);
+          background: linear-gradient(90deg, #2f6eb7 0%, #60a5fa 35%, #f97316 75%, #ea580c 100%);
+          box-shadow: 0 0 14px rgba(249, 115, 22, 0.55);
           transition: width 0.12s linear;
         }
 
-        .premat-splash__footer {
-          margin-top: 1rem;
+        .ps__bar-row {
           display: flex;
           align-items: center;
           justify-content: space-between;
-          gap: 1rem;
-          color: rgba(255,255,255,0.88);
-          font-size: 0.9rem;
+          margin-top: 0.7rem;
+          font-size: 0.72rem;
           font-weight: 700;
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
+          color: rgba(255, 255, 255, 0.38);
         }
 
-        .premat-splash__dots {
-          display: inline-flex;
-          align-items: center;
-          gap: 0.4rem;
-        }
-
-        .premat-splash__dot {
-          width: 0.5rem;
-          height: 0.5rem;
-          border-radius: 999px;
-          background: rgba(255,255,255,0.72);
-          animation: prematSplashDot 1.2s ease-in-out infinite;
-        }
-
-        .premat-splash__dot:nth-child(2) {
-          animation-delay: 0.18s;
-        }
-
-        .premat-splash__dot:nth-child(3) {
-          animation-delay: 0.36s;
-        }
-
-        @keyframes prematSplashBg {
-          0% {
-            background-position: 0% 50%;
-          }
-          100% {
-            background-position: 100% 50%;
-          }
-        }
-
-        @keyframes prematSplashCardIn {
+        /* ── KEYFRAMES ── */
+        @keyframes psCardIn {
           from {
             opacity: 0;
-            transform: translateY(18px) scale(0.96);
+            transform: translateY(22px) scale(0.97);
           }
           to {
             opacity: 1;
@@ -258,155 +224,107 @@ export default function SplashScreen({ onFinish }: { onFinish?: () => void }) {
           }
         }
 
-        @keyframes prematSplashFade {
-          to {
-            opacity: 0;
-            visibility: hidden;
-            transform: translateY(-4%) scale(1.02);
-          }
+        @keyframes psExit {
+          0%   { opacity: 1; transform: scale(1);     }
+          100% { opacity: 0; transform: scale(1.022); visibility: hidden; }
         }
 
-        @keyframes prematSplashPulse {
-          0%, 100% {
-            transform: scale(0.9);
-            opacity: 0.72;
-          }
-          50% {
-            transform: scale(1.08);
-            opacity: 1;
-          }
-        }
-
-        @keyframes prematSplashFloat {
+        @keyframes psFloat {
           0% {
             opacity: 0;
-            transform: translate3d(0, 22px, 0) scale(0.86) rotate(0deg);
+            transform: translateY(18px) rotate(-3deg);
           }
           18% {
-            opacity: 0.78;
+            opacity: var(--o);
           }
-          52% {
-            opacity: 1;
-            transform: translate3d(12px, -20px, 0) scale(1.08) rotate(8deg);
+          54% {
+            opacity: var(--o);
+            transform: translateY(-12px) rotate(4deg);
+          }
+          82% {
+            opacity: var(--o);
           }
           100% {
             opacity: 0;
-            transform: translate3d(-8px, -52px, 0) scale(0.96) rotate(-8deg);
+            transform: translateY(-34px) rotate(-2deg);
           }
         }
 
-        @keyframes prematSplashLogoIn {
-          from {
-            opacity: 0;
-            transform: translateY(10px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
+        @keyframes psLogoFloat {
+          0%, 100% { transform: translateY(0); }
+          50%       { transform: translateY(-6px); }
+        }
+
+        /* ── RESPONSIVE ── */
+        @media (max-width: 480px) {
+          .ps__card {
+            padding: 2.2rem 1.6rem 1.8rem;
+            border-radius: 1.75rem;
           }
         }
 
-        @keyframes prematSplashLogoFloat {
-          0%, 100% {
-            transform: translateY(0);
-          }
-          50% {
-            transform: translateY(-10px);
-          }
-        }
-
-        @keyframes prematSplashDot {
-          0%, 100% {
-            transform: scale(0.9);
-            opacity: 0.45;
-          }
-          50% {
-            transform: scale(1.3);
-            opacity: 1;
-          }
-        }
-
-        @media (max-width: 640px) {
-          .premat-splash__card {
-            padding: 1.6rem 1rem;
-            border-radius: 1.6rem;
-          }
-
-          .premat-splash__footer {
-            flex-direction: column;
-            justify-content: center;
-          }
-        }
-
+        /* ── REDUCED MOTION ── */
         @media (prefers-reduced-motion: reduce) {
-          .premat-splash,
-          .premat-splash__glow,
-          .premat-splash__particle,
-          .premat-splash__card,
-          .premat-splash__logo,
-          .premat-splash__logo-image,
-          .premat-splash__dot {
+          .ps__sym,
+          .ps__logo,
+          .ps__card {
             animation: none !important;
           }
-
-          .premat-splash__bar-fill {
+          .ps__bar-fill {
             transition: none;
           }
         }
       `}</style>
 
-      <div className={`premat-splash ${phase === "exit" ? "premat-splash--exit" : ""}`}>
-        <div className="premat-splash__glow" />
+      <div className={`ps${phase === "exit" ? " ps--exit" : ""}`}>
+        <div className="ps__ambient" aria-hidden="true" />
 
-        {particles.map((particle) => (
+        {SYMBOLS.map(({ symbol, x, y, size, opacity, delay, duration }, i) => (
           <span
-            key={particle.id}
-            className="premat-splash__particle"
+            key={i}
+            className="ps__sym"
+            aria-hidden="true"
             style={
               {
-                left: `${particle.x}%`,
-                top: `${particle.y}%`,
-                "--particle-size": `${particle.size}px`,
-                "--particle-duration": `${particle.duration}s`,
-                "--particle-delay": `${particle.delay}s`,
+                left: `${x}%`,
+                top: `${y}%`,
+                "--s": `${size}px`,
+                "--o": opacity,
+                "--d": `${duration}s`,
+                "--dl": `${delay}s`,
               } as CSSProperties
             }
           >
-            {particle.symbol}
+            {symbol}
           </span>
         ))}
 
-        <div className="premat-splash__card">
-          <div className="premat-splash__logo">
+        <div className="ps__card">
+          <div className="ps__logo">
             <Image
               src="/brand/logo-horizontal.png"
-              alt="premat logo"
-              width={260}
-              height={86}
+              alt="premat"
+              width={210}
+              height={70}
               priority
-              className="premat-splash__logo-image"
             />
           </div>
 
-          <h1 className="premat-splash__title">Hoş geldin</h1>
-          <p className="premat-splash__text">
-            Düzenli ve güvenilir matematik dökümanlarına hazırlanıyor.
+          <h1 className="ps__title">Hoş geldin</h1>
+          <p className="ps__sub">
+            Matematik için düzenli ve güvenilir dökümanlar
           </p>
 
-          <div className="premat-splash__bar" aria-hidden="true">
-            <div
-              className="premat-splash__bar-fill"
-              style={{ width: `${Math.min(progress, 100)}%` }}
-            />
-          </div>
-
-          <div className="premat-splash__footer">
-            <span>%{Math.round(Math.min(progress, 100))}</span>
-
-            <div className="premat-splash__dots" aria-hidden="true">
-              <span className="premat-splash__dot" />
-              <span className="premat-splash__dot" />
-              <span className="premat-splash__dot" />
+          <div className="ps__progress" aria-hidden="true">
+            <div className="ps__bar">
+              <div
+                className="ps__bar-fill"
+                style={{ width: `${Math.min(progress, 100)}%` }}
+              />
+            </div>
+            <div className="ps__bar-row">
+              <span>Yükleniyor</span>
+              <span>%{Math.round(Math.min(progress, 100))}</span>
             </div>
           </div>
         </div>
