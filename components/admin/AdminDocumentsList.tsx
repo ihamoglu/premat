@@ -14,6 +14,12 @@ import {
   getAllTopics,
   getTopicsByGrade,
 } from "@/data/catalog";
+import {
+  getDenseTopicDisplay,
+  hasMebBadge,
+  matchesDelimitedSelection,
+  MEB_LABEL,
+} from "@/lib/document-taxonomy";
 
 type AdminDocumentsListProps = {
   onEdit: (doc: DocumentItem) => void;
@@ -21,7 +27,7 @@ type AdminDocumentsListProps = {
 
 function slugifyTr(text: string) {
   return text
-    .toLowerCase()
+    .toLocaleLowerCase("tr")
     .trim()
     .replace(/ğ/g, "g")
     .replace(/ü/g, "u")
@@ -50,16 +56,35 @@ function buildUniqueSlug(baseSlug: string, existingSlugs: string[]) {
   return `${baseSlug}-kopya-${counter}`;
 }
 
-function ActionButton({ children, tone = "neutral", ...props }: React.ButtonHTMLAttributes<HTMLButtonElement> & { tone?: "neutral" | "primary" | "success" | "warning" | "danger"; }) {
+function ActionButton({
+  children,
+  tone = "neutral",
+  ...props
+}: React.ButtonHTMLAttributes<HTMLButtonElement> & {
+  tone?: "neutral" | "primary" | "success" | "warning" | "danger";
+}) {
   const classes = {
-    neutral: "border border-slate-300 bg-white text-slate-700 hover:border-blue-300 hover:text-blue-800",
-    primary: "bg-[linear-gradient(135deg,#1d4f91_0%,#2f6eb7_55%,#3b82f6_100%)] text-white shadow-lg shadow-blue-900/20 hover:-translate-y-0.5 hover:shadow-xl",
-    success: "border border-emerald-300 bg-emerald-50 text-emerald-700 hover:bg-emerald-100",
-    warning: "border border-amber-300 bg-amber-50 text-amber-700 hover:bg-amber-100",
+    neutral:
+      "border border-slate-300 bg-white text-slate-700 hover:border-blue-300 hover:text-blue-800",
+    primary:
+      "bg-[linear-gradient(135deg,#1d4f91_0%,#2f6eb7_55%,#3b82f6_100%)] text-white shadow-lg shadow-blue-900/20 hover:-translate-y-0.5 hover:shadow-xl",
+    success:
+      "border border-emerald-300 bg-emerald-50 text-emerald-700 hover:bg-emerald-100",
+    warning:
+      "border border-amber-300 bg-amber-50 text-amber-700 hover:bg-amber-100",
     danger: "border border-red-300 bg-red-50 text-red-700 hover:bg-red-100",
   } as const;
 
-  return <button {...props} className={`rounded-2xl px-4 py-3 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-70 ${classes[tone]} ${props.className ?? ""}`}>{children}</button>;
+  return (
+    <button
+      {...props}
+      className={`rounded-2xl px-4 py-3 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-70 ${classes[tone]} ${
+        props.className ?? ""
+      }`}
+    >
+      {children}
+    </button>
+  );
 }
 
 export default function AdminDocumentsList({ onEdit }: AdminDocumentsListProps) {
@@ -73,38 +98,83 @@ export default function AdminDocumentsList({ onEdit }: AdminDocumentsListProps) 
   const [statusMessage, setStatusMessage] = useState("");
   const [statusType, setStatusType] = useState<"success" | "error" | "">("");
 
-  const topicOptions = useMemo(() => selectedGrade === "Tümü" ? getAllTopics() : getTopicsByGrade(selectedGrade), [selectedGrade]);
+  const topicOptions = useMemo(
+    () => (selectedGrade === "Tümü" ? getAllTopics() : getTopicsByGrade(selectedGrade)),
+    [selectedGrade]
+  );
 
   const filteredDocuments = useMemo(() => {
-    const normalizedSearch = search.trim().toLowerCase();
+    const normalizedSearch = search.trim().toLocaleLowerCase("tr");
+
     return [...documents]
       .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
       .filter((doc) => {
         const matchesSearch = normalizedSearch
-          ? [doc.title, doc.description, doc.topic, doc.subtopic || "", doc.type, doc.grade, doc.slug].join(" ").toLowerCase().includes(normalizedSearch)
+          ? [
+              doc.title,
+              doc.description,
+              doc.topic,
+              doc.subtopic || "",
+              doc.type,
+              doc.grade,
+              doc.slug,
+            ]
+              .join(" ")
+              .toLocaleLowerCase("tr")
+              .includes(normalizedSearch)
           : true;
-        const matchesGrade = selectedGrade === "Tümü" ? true : doc.grade === selectedGrade;
-        const matchesType = selectedType ? doc.type === selectedType : true;
-        const matchesTopic = selectedTopic ? doc.topic === selectedTopic : true;
+        const matchesGrade =
+          selectedGrade === "Tümü" ? true : doc.grade === selectedGrade;
+        const matchesType = matchesDelimitedSelection(doc.type, selectedType);
+        const matchesTopic = matchesDelimitedSelection(doc.topic, selectedTopic);
+
         return matchesSearch && matchesGrade && matchesType && matchesTopic;
       });
   }, [documents, search, selectedGrade, selectedType, selectedTopic]);
 
-  const publishedCount = useMemo(() => documents.filter((doc) => doc.published).length, [documents]);
-  const featuredCount = useMemo(() => documents.filter((doc) => doc.featured).length, [documents]);
-  const draftCount = useMemo(() => documents.filter((doc) => !doc.published).length, [documents]);
-  const issueCount = useMemo(() => documents.filter((doc) => assessDocumentQuality(doc).issues.length > 0).length, [documents]);
+  const publishedCount = useMemo(
+    () => documents.filter((doc) => doc.published).length,
+    [documents]
+  );
+  const featuredCount = useMemo(
+    () => documents.filter((doc) => doc.featured).length,
+    [documents]
+  );
+  const draftCount = useMemo(
+    () => documents.filter((doc) => !doc.published).length,
+    [documents]
+  );
+  const issueCount = useMemo(
+    () => documents.filter((doc) => assessDocumentQuality(doc).issues.length > 0).length,
+    [documents]
+  );
 
   async function handleDelete(doc: DocumentItem) {
-    if (!window.confirm(`"${doc.title}" kaydını silmek istediğine emin misin?`)) return;
-    setWorkingId(doc.id); setStatusMessage(""); setStatusType("");
-    try { await deleteDocument(doc.id); setStatusType("success"); setStatusMessage("Kayıt silindi."); }
-    catch { setStatusType("error"); setStatusMessage("Kayıt silinirken hata oluştu."); }
-    finally { setWorkingId(null); }
+    if (!window.confirm(`"${doc.title}" kaydını silmek istediğine emin misin?`)) {
+      return;
+    }
+
+    setWorkingId(doc.id);
+    setStatusMessage("");
+    setStatusType("");
+
+    try {
+      await deleteDocument(doc.id);
+      setStatusType("success");
+      setStatusMessage("Kayıt silindi.");
+    } catch {
+      setStatusType("error");
+      setStatusMessage("Kayıt silinirken hata oluştu.");
+    } finally {
+      setWorkingId(null);
+    }
   }
 
   async function handleTogglePublished(doc: DocumentItem) {
-    setWorkingId(doc.id); setStatusMessage(""); setStatusType("");
+    setWorkingId(doc.id);
+    setStatusMessage("");
+    setStatusType("");
+
     try {
       if (!doc.published) {
         const readiness = getPublishReadiness(doc);
@@ -112,9 +182,7 @@ export default function AdminDocumentsList({ onEdit }: AdminDocumentsListProps) 
         if (!readiness.canPublish) {
           setStatusType("error");
           setStatusMessage(
-            `Yayına alınamaz: ${readiness.critical
-              .map((issue) => issue.label)
-              .join(" ")}`
+            `Yayına alınamaz: ${readiness.critical.map((issue) => issue.label).join(" ")}`
           );
           return;
         }
@@ -122,126 +190,327 @@ export default function AdminDocumentsList({ onEdit }: AdminDocumentsListProps) 
 
       await updateDocument({ ...doc, published: !doc.published });
       setStatusType("success");
-      setStatusMessage(doc.published ? "Kayıt yayından kaldırıldı." : "Kayıt yayına alındı.");
+      setStatusMessage(
+        doc.published ? "Kayıt yayından kaldırıldı." : "Kayıt yayına alındı."
+      );
     } catch {
-      setStatusType("error"); setStatusMessage("Yayın durumu güncellenemedi.");
-    } finally { setWorkingId(null); }
+      setStatusType("error");
+      setStatusMessage("Yayın durumu güncellenemedi.");
+    } finally {
+      setWorkingId(null);
+    }
   }
 
   async function handleToggleFeatured(doc: DocumentItem) {
-    setWorkingId(doc.id); setStatusMessage(""); setStatusType("");
+    setWorkingId(doc.id);
+    setStatusMessage("");
+    setStatusType("");
+
     try {
       await updateDocument({ ...doc, featured: !doc.featured });
       setStatusType("success");
-      setStatusMessage(doc.featured ? "Öne çıkarma kaldırıldı." : "Kayıt öne çıkanlara alındı.");
+      setStatusMessage(
+        doc.featured
+          ? "Öne çıkarma kaldırıldı."
+          : "Kayıt öne çıkanlara alındı."
+      );
     } catch {
-      setStatusType("error"); setStatusMessage("Öne çıkan durumu güncellenemedi.");
-    } finally { setWorkingId(null); }
+      setStatusType("error");
+      setStatusMessage("Öne çıkan durumu güncellenemedi.");
+    } finally {
+      setWorkingId(null);
+    }
   }
 
   async function handleDuplicate(doc: DocumentItem) {
-    setWorkingId(doc.id); setStatusMessage(""); setStatusType("");
+    setWorkingId(doc.id);
+    setStatusMessage("");
+    setStatusType("");
+
     try {
       const existingTitles = documents.map((item) => item.title);
       const existingSlugs = documents.map((item) => item.slug);
       const newTitle = buildUniqueCopyTitle(doc.title, existingTitles);
       const newSlug = buildUniqueSlug(slugifyTr(newTitle), existingSlugs);
-      await addDocument({ ...doc, id: crypto.randomUUID(), title: newTitle, slug: newSlug, featured: false, published: false, createdAt: new Date().toISOString().slice(0, 10) });
-      setStatusType("success"); setStatusMessage("Kayıt kopyalandı. Yeni kayıt taslak olarak oluşturuldu.");
+
+      await addDocument({
+        ...doc,
+        id: crypto.randomUUID(),
+        title: newTitle,
+        slug: newSlug,
+        featured: false,
+        published: false,
+        createdAt: new Date().toISOString().slice(0, 10),
+      });
+
+      setStatusType("success");
+      setStatusMessage("Kayıt kopyalandı. Yeni kayıt taslak olarak oluşturuldu.");
     } catch {
-      setStatusType("error"); setStatusMessage("Kayıt kopyalanırken hata oluştu.");
-    } finally { setWorkingId(null); }
+      setStatusType("error");
+      setStatusMessage("Kayıt kopyalanırken hata oluştu.");
+    } finally {
+      setWorkingId(null);
+    }
   }
 
   async function handleCopyLink(doc: DocumentItem) {
     try {
-      await navigator.clipboard.writeText(`${window.location.origin}/documents/${doc.slug}`);
-      setStatusType("success"); setStatusMessage("Detay bağlantısı panoya kopyalandı.");
+      await navigator.clipboard.writeText(
+        `${window.location.origin}/documents/${doc.slug}`
+      );
+      setStatusType("success");
+      setStatusMessage("Detay bağlantısı panoya kopyalandı.");
     } catch {
-      setStatusType("error"); setStatusMessage("Bağlantı kopyalanamadı.");
+      setStatusType("error");
+      setStatusMessage("Bağlantı kopyalanamadı.");
     }
   }
 
   function resetFilters() {
-    setSearch(""); setSelectedGrade("Tümü"); setSelectedType(""); setSelectedTopic("");
+    setSearch("");
+    setSelectedGrade("Tümü");
+    setSelectedType("");
+    setSelectedTopic("");
   }
 
   return (
     <section className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-[0_18px_60px_rgba(15,23,42,0.05)] md:p-8">
-      <SectionHeader eyebrow="KAYIT YÖNETİMİ" title="Mevcut içerikler" description="Kayıtları ara, filtrele, düzenle, kopyala veya yayın durumlarını buradan yönet." />
+      <SectionHeader
+        eyebrow="KAYIT YÖNETİMİ"
+        title="Mevcut içerikler"
+        description="Kayıtları ara, filtrele, düzenle, kopyala veya yayın durumlarını buradan yönet."
+      />
 
       <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
         <StatCard label="Toplam Kayıt" value={documents.length} />
         <StatCard label="Yayında" value={publishedCount} tone="emerald" />
         <StatCard label="Taslak" value={draftCount} tone="amber" />
         <StatCard label="Öne Çıkan" value={featuredCount} tone="blue" />
-        <StatCard label="Kontrol Gereken" value={issueCount} tone={issueCount > 0 ? "amber" : "default"} />
+        <StatCard
+          label="Kontrol Gereken"
+          value={issueCount}
+          tone={issueCount > 0 ? "amber" : "default"}
+        />
       </div>
 
       <div className="mt-6 rounded-[1.75rem] border border-slate-200 bg-[linear-gradient(180deg,#f8fbff_0%,#f8fafc_100%)] p-4 md:p-5">
         <div className="grid gap-3 xl:grid-cols-[1.2fr_0.8fr_0.9fr_0.9fr_auto]">
-          <input type="text" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Başlık, konu, açıklama veya slug ile ara" className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700 outline-none transition focus:border-blue-400" />
-          <select value={selectedGrade} onChange={(e) => { const value = e.target.value; setSelectedGrade(value === "Tümü" ? "Tümü" : (value as GradeLevel)); setSelectedTopic(""); }} className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700 outline-none transition focus:border-blue-400">
-            <option value="Tümü">Tüm sınıflar</option><option value="5">5. Sınıf</option><option value="6">6. Sınıf</option><option value="7">7. Sınıf</option><option value="8">8. Sınıf</option>
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Başlık, konu, açıklama veya slug ile ara"
+            className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700 outline-none transition focus:border-blue-400"
+          />
+          <select
+            value={selectedGrade}
+            onChange={(e) => {
+              const value = e.target.value;
+              setSelectedGrade(value === "Tümü" ? "Tümü" : (value as GradeLevel));
+              setSelectedTopic("");
+            }}
+            className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700 outline-none transition focus:border-blue-400"
+          >
+            <option value="Tümü">Tüm sınıflar</option>
+            <option value="5">5. Sınıf</option>
+            <option value="6">6. Sınıf</option>
+            <option value="7">7. Sınıf</option>
+            <option value="8">8. Sınıf</option>
           </select>
-          <select value={selectedTopic} onChange={(e) => setSelectedTopic(e.target.value)} className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700 outline-none transition focus:border-blue-400">
-            <option value="">Tüm konular</option>{topicOptions.map((topic) => <option key={topic} value={topic}>{topic}</option>)}
+          <select
+            value={selectedTopic}
+            onChange={(e) => setSelectedTopic(e.target.value)}
+            className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700 outline-none transition focus:border-blue-400"
+          >
+            <option value="">Tüm konular</option>
+            {topicOptions.map((topic) => (
+              <option key={topic} value={topic}>
+                {topic}
+              </option>
+            ))}
           </select>
-          <select value={selectedType} onChange={(e) => setSelectedType(e.target.value)} className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700 outline-none transition focus:border-blue-400">
-            <option value="">Tüm türler</option>{documentTypeCatalog.map((item) => <option key={item} value={item}>{item}</option>)}
+          <select
+            value={selectedType}
+            onChange={(e) => setSelectedType(e.target.value)}
+            className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700 outline-none transition focus:border-blue-400"
+          >
+            <option value="">Tüm türler</option>
+            {documentTypeCatalog.map((item) => (
+              <option key={item} value={item}>
+                {item}
+              </option>
+            ))}
           </select>
-          <button type="button" onClick={resetFilters} className="rounded-2xl border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-blue-300 hover:text-blue-800">Temizle</button>
+          <button
+            type="button"
+            onClick={resetFilters}
+            className="rounded-2xl border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-blue-300 hover:text-blue-800"
+          >
+            Temizle
+          </button>
         </div>
       </div>
 
-      {statusMessage ? <div className="mt-5"><InlineNotice tone={statusType === "success" ? "success" : "error"}>{statusMessage}</InlineNotice></div> : null}
+      {statusMessage ? (
+        <div className="mt-5">
+          <InlineNotice tone={statusType === "success" ? "success" : "error"}>
+            {statusMessage}
+          </InlineNotice>
+        </div>
+      ) : null}
 
       <div className="mt-6 grid gap-4">
         {filteredDocuments.length === 0 ? (
-          <EmptyState title="Filtreye uygun kayıt bulunamadı" description="Daha geniş bir aralıkla arama yap veya filtreleri temizle." action={<button type="button" onClick={resetFilters} className="rounded-2xl border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-blue-300 hover:text-blue-800">Filtreleri Temizle</button>} />
-        ) : filteredDocuments.map((doc) => {
-          const isWorking = workingId === doc.id;
-          const quality = assessDocumentQuality(doc);
-          return (
-            <article key={doc.id} className="overflow-hidden rounded-[1.9rem] border border-slate-200 bg-white shadow-sm transition hover:border-blue-200 hover:shadow-[0_18px_50px_rgba(37,99,235,0.08)]">
-              <div className="border-b border-slate-200 bg-[linear-gradient(180deg,#ffffff_0%,#f8fbff_100%)] px-5 py-4">
-                <div className="flex flex-wrap gap-2">
-                  <span className="rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-800">{doc.grade}. Sınıf</span>
-                  <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">{doc.type}</span>
-                  <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">{doc.topic}</span>
-                  <span className={`rounded-full px-3 py-1 text-xs font-semibold ${doc.published ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"}`}>{doc.published ? "Yayında" : "Taslak"}</span>
-                  {doc.featured ? <span className="rounded-full bg-orange-100 px-3 py-1 text-xs font-semibold text-orange-700">Öne Çıkan</span> : null}
-                  <QualityPill quality={quality} />
-                </div>
-              </div>
-              <div className="grid gap-5 p-5 xl:grid-cols-[1.15fr_0.85fr]">
-                <div className="min-w-0">
-                  <h3 className="text-2xl font-black tracking-[-0.03em] text-slate-950">{doc.title}</h3>
-                  <p className="mt-3 text-sm leading-7 text-slate-600">{doc.description}</p>
-                  {quality.issues.length > 0 ? (
-                    <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-                      <div className="font-semibold">Kontrol gereken alanlar</div>
-                      <p className="mt-1 leading-7">{quality.issues.slice(0, 2).join(" ")}</p>
-                    </div>
-                  ) : null}
-                  <div className="mt-5 grid gap-3 md:grid-cols-2 2xl:grid-cols-3">
-                    <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4"><div className="text-xs font-medium text-slate-500">Slug</div><div className="mt-2 break-all text-sm font-semibold text-slate-800">{doc.slug}</div></div>
-                    <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4"><div className="text-xs font-medium text-slate-500">Alt Konu</div><div className="mt-2 text-sm font-semibold text-slate-800">{doc.subtopic || "Yok"}</div></div>
-                    <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4"><div className="text-xs font-medium text-slate-500">Kaynak</div><div className="mt-2 text-sm font-semibold text-slate-800">{doc.sourceType}</div></div>
+          <EmptyState
+            title="Filtreye uygun kayıt bulunamadı"
+            description="Daha geniş bir aralıkla arama yap veya filtreleri temizle."
+            action={
+              <button
+                type="button"
+                onClick={resetFilters}
+                className="rounded-2xl border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-blue-300 hover:text-blue-800"
+              >
+                Filtreleri Temizle
+              </button>
+            }
+          />
+        ) : (
+          filteredDocuments.map((doc) => {
+            const isWorking = workingId === doc.id;
+            const quality = assessDocumentQuality(doc);
+
+            return (
+              <article
+                key={doc.id}
+                className="overflow-hidden rounded-[1.9rem] border border-slate-200 bg-white shadow-sm transition hover:border-blue-200 hover:shadow-[0_18px_50px_rgba(37,99,235,0.08)]"
+              >
+                <div className="border-b border-slate-200 bg-[linear-gradient(180deg,#ffffff_0%,#f8fbff_100%)] px-5 py-4">
+                  <div className="flex flex-wrap gap-2">
+                    <span className="rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-800">
+                      {doc.grade}. Sınıf
+                    </span>
+                    <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">
+                      {doc.type}
+                    </span>
+                    <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">
+                      {getDenseTopicDisplay(doc)}
+                    </span>
+                    {hasMebBadge(doc) ? (
+                      <span className="rounded-full bg-orange-100 px-3 py-1 text-xs font-semibold text-orange-700">
+                        {MEB_LABEL}
+                      </span>
+                    ) : null}
+                    <span
+                      className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                        doc.published
+                          ? "bg-emerald-100 text-emerald-700"
+                          : "bg-amber-100 text-amber-700"
+                      }`}
+                    >
+                      {doc.published ? "Yayında" : "Taslak"}
+                    </span>
+                    {doc.featured ? (
+                      <span className="rounded-full bg-orange-100 px-3 py-1 text-xs font-semibold text-orange-700">
+                        Öne Çıkan
+                      </span>
+                    ) : null}
+                    <QualityPill quality={quality} />
                   </div>
                 </div>
-                <div className="w-full"><div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-1">
-                  <ActionButton type="button" onClick={() => onEdit(doc)} disabled={isWorking} tone="primary">Düzenle</ActionButton>
-                  <ActionButton type="button" onClick={() => handleDuplicate(doc)} disabled={isWorking}>Kopyala</ActionButton>
-                  <ActionButton type="button" onClick={() => handleCopyLink(doc)} disabled={isWorking}>Linki Kopyala</ActionButton>
-                  <ActionButton type="button" onClick={() => handleTogglePublished(doc)} disabled={isWorking} tone={doc.published ? "warning" : "success"}>{doc.published ? "Taslağa Al" : "Yayına Al"}</ActionButton>
-                  <ActionButton type="button" onClick={() => handleToggleFeatured(doc)} disabled={isWorking} tone={doc.featured ? "neutral" : "warning"}>{doc.featured ? "Öne Çıkanı Kaldır" : "Öne Çıkan Yap"}</ActionButton>
-                  <ActionButton type="button" onClick={() => handleDelete(doc)} disabled={isWorking} tone="danger" className="sm:col-span-2 xl:col-span-1">Sil</ActionButton>
-                </div></div>
-              </div>
-            </article>
-          );
-        })}
+                <div className="grid gap-5 p-5 xl:grid-cols-[1.15fr_0.85fr]">
+                  <div className="min-w-0">
+                    <h3 className="text-2xl font-black tracking-[-0.03em] text-slate-950">
+                      {doc.title}
+                    </h3>
+                    <p className="mt-3 text-sm leading-7 text-slate-600">
+                      {doc.description}
+                    </p>
+                    {quality.issues.length > 0 ? (
+                      <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+                        <div className="font-semibold">Kontrol gereken alanlar</div>
+                        <p className="mt-1 leading-7">
+                          {quality.issues.slice(0, 2).join(" ")}
+                        </p>
+                      </div>
+                    ) : null}
+                    <div className="mt-5 grid gap-3 md:grid-cols-2 2xl:grid-cols-3">
+                      <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                        <div className="text-xs font-medium text-slate-500">Slug</div>
+                        <div className="mt-2 break-all text-sm font-semibold text-slate-800">
+                          {doc.slug}
+                        </div>
+                      </div>
+                      <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                        <div className="text-xs font-medium text-slate-500">Alt Konu</div>
+                        <div className="mt-2 text-sm font-semibold text-slate-800">
+                          {doc.subtopic || "Yok"}
+                        </div>
+                      </div>
+                      <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                        <div className="text-xs font-medium text-slate-500">Kaynak</div>
+                        <div className="mt-2 text-sm font-semibold text-slate-800">
+                          {doc.sourceType}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="w-full">
+                    <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-1">
+                      <ActionButton
+                        type="button"
+                        onClick={() => onEdit(doc)}
+                        disabled={isWorking}
+                        tone="primary"
+                      >
+                        Düzenle
+                      </ActionButton>
+                      <ActionButton
+                        type="button"
+                        onClick={() => handleDuplicate(doc)}
+                        disabled={isWorking}
+                      >
+                        Kopyala
+                      </ActionButton>
+                      <ActionButton
+                        type="button"
+                        onClick={() => handleCopyLink(doc)}
+                        disabled={isWorking}
+                      >
+                        Linki Kopyala
+                      </ActionButton>
+                      <ActionButton
+                        type="button"
+                        onClick={() => handleTogglePublished(doc)}
+                        disabled={isWorking}
+                        tone={doc.published ? "warning" : "success"}
+                      >
+                        {doc.published ? "Taslağa Al" : "Yayına Al"}
+                      </ActionButton>
+                      <ActionButton
+                        type="button"
+                        onClick={() => handleToggleFeatured(doc)}
+                        disabled={isWorking}
+                        tone={doc.featured ? "neutral" : "warning"}
+                      >
+                        {doc.featured ? "Öne Çıkanı Kaldır" : "Öne Çıkan Yap"}
+                      </ActionButton>
+                      <ActionButton
+                        type="button"
+                        onClick={() => handleDelete(doc)}
+                        disabled={isWorking}
+                        tone="danger"
+                        className="sm:col-span-2 xl:col-span-1"
+                      >
+                        Sil
+                      </ActionButton>
+                    </div>
+                  </div>
+                </div>
+              </article>
+            );
+          })
+        )}
       </div>
     </section>
   );

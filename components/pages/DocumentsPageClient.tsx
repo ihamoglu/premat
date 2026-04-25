@@ -15,6 +15,7 @@ import {
   documentMatchesSearch,
   sortDocumentsForSearch,
 } from "@/lib/document-search";
+import { matchesDelimitedSelection } from "@/lib/document-taxonomy";
 
 const gradePills: Array<{ value: "Tümü" | GradeLevel; label: string }> = [
   { value: "Tümü", label: "Tümü" },
@@ -61,13 +62,8 @@ export default function DocumentsPageClient({
     const filtered = documents.filter((doc) => {
       const matchesGrade =
         selectedGrade === "Tümü" ? true : doc.grade === selectedGrade;
-
-      const matchesTopic = selectedTopic
-        ? doc.topic.split(", ").map((t) => t.trim()).includes(selectedTopic)
-        : true;
-      const matchesType = selectedType
-        ? doc.type.split(", ").map((t) => t.trim()).includes(selectedType)
-        : true;
+      const matchesTopic = matchesDelimitedSelection(doc.topic, selectedTopic);
+      const matchesType = matchesDelimitedSelection(doc.type, selectedType);
       const matchesQuery = selectedQuery
         ? documentMatchesSearch(doc, selectedQuery)
         : true;
@@ -213,59 +209,32 @@ export default function DocumentsPageClient({
       params.set("grade", nextGrade);
     }
 
-    if (nextTopic) {
-      params.set("topic", nextTopic);
-    } else {
-      params.delete("topic");
-    }
+    if (nextTopic) params.set("topic", nextTopic);
+    else params.delete("topic");
 
-    if (nextType) {
-      params.set("type", nextType);
-    } else {
-      params.delete("type");
-    }
+    if (nextType) params.set("type", nextType);
+    else params.delete("type");
 
-    if (nextQuery.trim()) {
-      params.set("q", nextQuery.trim());
-    } else {
-      params.delete("q");
-    }
+    if (nextQuery.trim()) params.set("q", nextQuery.trim());
+    else params.delete("q");
 
-    if (nextDifficulty) {
-      params.set("difficulty", nextDifficulty);
-    } else {
-      params.delete("difficulty");
-    }
+    if (nextDifficulty) params.set("difficulty", nextDifficulty);
+    else params.delete("difficulty");
 
-    if (nextVideo) {
-      params.set("video", nextVideo);
-    } else {
-      params.delete("video");
-    }
+    if (nextVideo) params.set("video", nextVideo);
+    else params.delete("video");
 
-    if (nextAnswerKey) {
-      params.set("answerKey", nextAnswerKey);
-    } else {
-      params.delete("answerKey");
-    }
+    if (nextAnswerKey) params.set("answerKey", nextAnswerKey);
+    else params.delete("answerKey");
 
-    if (nextPrintReady) {
-      params.set("printReady", nextPrintReady);
-    } else {
-      params.delete("printReady");
-    }
+    if (nextPrintReady) params.set("printReady", nextPrintReady);
+    else params.delete("printReady");
 
-    if (nextYear) {
-      params.set("year", nextYear);
-    } else {
-      params.delete("year");
-    }
+    if (nextYear) params.set("year", nextYear);
+    else params.delete("year");
 
-    if (nextSort && nextSort !== "new") {
-      params.set("sort", nextSort);
-    } else {
-      params.delete("sort");
-    }
+    if (nextSort && nextSort !== "new") params.set("sort", nextSort);
+    else params.delete("sort");
 
     const query = params.toString();
     router.replace(query ? `${pathname}?${query}` : pathname, {
@@ -286,7 +255,6 @@ export default function DocumentsPageClient({
           "linear-gradient(180deg, #eef5ff 0%, #f8fbff 18%, #f8fafc 100%)",
       }}
     >
-      {/* ── HEADER ── */}
       <section
         className="relative overflow-hidden border-b border-slate-200/60"
         style={{
@@ -294,7 +262,6 @@ export default function DocumentsPageClient({
             "linear-gradient(135deg, #0f2d5c 0%, #1d4f91 35%, #2f6eb7 65%, #ea580c 100%)",
         }}
       >
-        {/* Dekoratif glow overlay'ler */}
         <div className="pointer-events-none absolute inset-0">
           <div
             className="absolute -right-16 -top-16 h-64 w-64 rounded-full opacity-20"
@@ -310,7 +277,6 @@ export default function DocumentsPageClient({
           />
         </div>
 
-        {/* Hafif matematik sembolleri arka planda */}
         <div className="pointer-events-none absolute inset-0 select-none overflow-hidden">
           <span className="absolute right-[10%] top-[15%] text-7xl font-black text-white/5">
             π
@@ -342,9 +308,9 @@ export default function DocumentsPageClient({
               </h1>
 
               <p className="mt-4 max-w-3xl text-sm leading-7 text-blue-100 md:text-lg md:leading-8">
-                Yayındaki tüm içerikler burada listelenir. Filtreleri
-                kullanarak ihtiyacın olan kayıtlara daha hızlı, daha temiz ve
-                daha kontrollü şekilde ulaşabilirsin.
+                Yayındaki tüm içerikler burada listelenir. Filtreleri kullanarak
+                ihtiyacın olan kayıtlara daha hızlı, daha temiz ve daha kontrollü
+                şekilde ulaşabilirsin.
               </p>
             </div>
 
@@ -353,17 +319,17 @@ export default function DocumentsPageClient({
                 { label: "Toplam Kayıt", value: documents.length },
                 { label: "Gösterilen", value: filteredDocs.length },
                 { label: "Öne Çıkan", value: featuredCount },
-              ].map((stat, i) => (
+              ].map((stat, index) => (
                 <div
                   key={stat.label}
                   className="premat-fade-in-up rounded-[1.45rem] border border-white/30 bg-white/95 p-5 shadow-lg shadow-slate-900/10 backdrop-blur-sm transition hover:-translate-y-0.5 hover:shadow-xl"
-                  style={{ animationDelay: `${i * 0.1}s` }}
+                  style={{ animationDelay: `${index * 0.1}s` }}
                 >
                   <div className="text-sm font-medium text-slate-500">
                     {stat.label}
                   </div>
                   <div
-                    className="mt-2 text-3xl font-black tracking-[-0.03em] bg-clip-text text-transparent"
+                    className="mt-2 bg-clip-text text-3xl font-black tracking-[-0.03em] text-transparent"
                     style={{
                       backgroundImage:
                         "linear-gradient(135deg, #1d4f91 0%, #2f6eb7 100%)",
@@ -378,7 +344,6 @@ export default function DocumentsPageClient({
         </div>
       </section>
 
-      {/* ── FİLTRE BLOĞU ── */}
       <section className="mx-auto max-w-7xl px-4 py-8 md:px-6 md:py-10">
         <div className="overflow-hidden rounded-[2rem] border border-slate-200/80 bg-white/90 p-5 shadow-[0_18px_60px_rgba(15,23,42,0.05)] backdrop-blur-sm md:p-6">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
@@ -394,8 +359,8 @@ export default function DocumentsPageClient({
                   Filtrele ve daralt
                 </h2>
                 <p className="mt-2 text-sm leading-7 text-slate-600">
-                  Sınıf, konu ve içerik türü seçerek arşivi doğrudan ihtiyacın
-                  olan alana indir.
+                  Sınıf, konu ve içerik türü seçerek arşivi doğrudan ihtiyacın olan
+                  alana indir.
                 </p>
               </div>
             </div>
@@ -409,7 +374,6 @@ export default function DocumentsPageClient({
             </button>
           </div>
 
-          {/* Grade pills */}
           <div className="-mx-1 mt-5 overflow-x-auto pb-1">
             <div className="flex min-w-max gap-2.5 px-1">
               {gradePills.map((item) => {
@@ -452,9 +416,7 @@ export default function DocumentsPageClient({
               value={searchInput}
               onChange={(e) => {
                 setSearchInput(e.target.value);
-                updateFilters({
-                  q: e.target.value,
-                });
+                updateFilters({ q: e.target.value });
               }}
               placeholder="Başlık, konu veya açıklama ara"
               className="w-full min-w-0 max-w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700 outline-none transition focus:border-blue-400 focus:shadow-[0_0_0_3px_rgba(29,79,145,0.10)]"
@@ -482,11 +444,7 @@ export default function DocumentsPageClient({
 
             <select
               value={selectedTopic}
-              onChange={(e) =>
-                updateFilters({
-                  topic: e.target.value,
-                })
-              }
+              onChange={(e) => updateFilters({ topic: e.target.value })}
               className="w-full min-w-0 max-w-full appearance-none rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700 outline-none transition focus:border-blue-400 focus:shadow-[0_0_0_3px_rgba(29,79,145,0.10)]"
             >
               <option value="">Tüm konular</option>
@@ -499,11 +457,7 @@ export default function DocumentsPageClient({
 
             <select
               value={selectedType}
-              onChange={(e) =>
-                updateFilters({
-                  type: e.target.value,
-                })
-              }
+              onChange={(e) => updateFilters({ type: e.target.value })}
               className="w-full min-w-0 max-w-full appearance-none rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700 outline-none transition focus:border-blue-400 focus:shadow-[0_0_0_3px_rgba(29,79,145,0.10)]"
             >
               <option value="">Tüm türler</option>
@@ -518,11 +472,7 @@ export default function DocumentsPageClient({
           <div className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-6">
             <select
               value={selectedDifficulty}
-              onChange={(e) =>
-                updateFilters({
-                  difficulty: e.target.value,
-                })
-              }
+              onChange={(e) => updateFilters({ difficulty: e.target.value })}
               className="w-full min-w-0 max-w-full appearance-none rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700 outline-none transition focus:border-blue-400 focus:shadow-[0_0_0_3px_rgba(29,79,145,0.10)]"
             >
               <option value="">Tüm zorluklar</option>
@@ -535,11 +485,7 @@ export default function DocumentsPageClient({
 
             <select
               value={selectedVideo}
-              onChange={(e) =>
-                updateFilters({
-                  video: e.target.value,
-                })
-              }
+              onChange={(e) => updateFilters({ video: e.target.value })}
               className="w-full min-w-0 max-w-full appearance-none rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700 outline-none transition focus:border-blue-400 focus:shadow-[0_0_0_3px_rgba(29,79,145,0.10)]"
             >
               <option value="">Video çözüm</option>
@@ -549,11 +495,7 @@ export default function DocumentsPageClient({
 
             <select
               value={selectedAnswerKey}
-              onChange={(e) =>
-                updateFilters({
-                  answerKey: e.target.value,
-                })
-              }
+              onChange={(e) => updateFilters({ answerKey: e.target.value })}
               className="w-full min-w-0 max-w-full appearance-none rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700 outline-none transition focus:border-blue-400 focus:shadow-[0_0_0_3px_rgba(29,79,145,0.10)]"
             >
               <option value="">Cevap anahtarı</option>
@@ -563,11 +505,7 @@ export default function DocumentsPageClient({
 
             <select
               value={selectedPrintReady}
-              onChange={(e) =>
-                updateFilters({
-                  printReady: e.target.value,
-                })
-              }
+              onChange={(e) => updateFilters({ printReady: e.target.value })}
               className="w-full min-w-0 max-w-full appearance-none rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700 outline-none transition focus:border-blue-400 focus:shadow-[0_0_0_3px_rgba(29,79,145,0.10)]"
             >
               <option value="">Yazdırma durumu</option>
@@ -576,11 +514,7 @@ export default function DocumentsPageClient({
 
             <select
               value={selectedYear}
-              onChange={(e) =>
-                updateFilters({
-                  year: e.target.value,
-                })
-              }
+              onChange={(e) => updateFilters({ year: e.target.value })}
               className="w-full min-w-0 max-w-full appearance-none rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700 outline-none transition focus:border-blue-400 focus:shadow-[0_0_0_3px_rgba(29,79,145,0.10)]"
             >
               <option value="">Tüm yıllar</option>
@@ -593,11 +527,7 @@ export default function DocumentsPageClient({
 
             <select
               value={selectedSort}
-              onChange={(e) =>
-                updateFilters({
-                  sort: e.target.value,
-                })
-              }
+              onChange={(e) => updateFilters({ sort: e.target.value })}
               className="w-full min-w-0 max-w-full appearance-none rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700 outline-none transition focus:border-blue-400 focus:shadow-[0_0_0_3px_rgba(29,79,145,0.10)]"
             >
               <option value="new">Yeni eklenen</option>
@@ -606,7 +536,6 @@ export default function DocumentsPageClient({
             </select>
           </div>
 
-          {/* Aktif filtre chip'leri */}
           <div className="mt-5 flex flex-wrap gap-2.5">
             {activeFilters.length > 0 ? (
               activeFilters.map((filter) => (
@@ -625,7 +554,6 @@ export default function DocumentsPageClient({
           </div>
         </div>
 
-        {/* Sonuç başlığı */}
         <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div className="flex items-start gap-3">
             <div

@@ -9,6 +9,7 @@ import {
   documentTypeCatalog,
   getAllTopics,
 } from "@/data/catalog";
+import { getDenseTopicDisplay } from "@/lib/document-taxonomy";
 import type { DocumentDifficulty, DocumentItem } from "@/types/document";
 
 type BulkState = {
@@ -111,10 +112,7 @@ export default function AdminBulkMetadataEditor() {
       return;
     }
 
-    if (
-      bulkState.sourceYear &&
-      !parseOptionalYear(bulkState.sourceYear)
-    ) {
+    if (bulkState.sourceYear && !parseOptionalYear(bulkState.sourceYear)) {
       setStatusType("error");
       setStatusMessage("Yıl değeri 2000-2100 aralığında olmalı.");
       return;
@@ -124,9 +122,7 @@ export default function AdminBulkMetadataEditor() {
       `${selectedDocuments.length} kayıt toplu güncellenecek. Devam edilsin mi?`
     );
 
-    if (!confirmed) {
-      return;
-    }
+    if (!confirmed) return;
 
     setIsWorking(true);
     setStatusMessage("");
@@ -158,13 +154,25 @@ export default function AdminBulkMetadataEditor() {
       />
 
       <div className="mt-6 flex flex-wrap gap-3">
-        <button type="button" onClick={() => setSelectedIds(documents.map((doc) => doc.id))} className="rounded-2xl border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-blue-300 hover:text-blue-800">
+        <button
+          type="button"
+          onClick={() => setSelectedIds(documents.map((doc) => doc.id))}
+          className="rounded-2xl border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-blue-300 hover:text-blue-800"
+        >
           Tümünü Seç
         </button>
-        <button type="button" onClick={selectMissingMetadata} className="rounded-2xl border border-amber-300 bg-amber-50 px-4 py-2 text-sm font-semibold text-amber-800 transition hover:bg-amber-100">
+        <button
+          type="button"
+          onClick={selectMissingMetadata}
+          className="rounded-2xl border border-amber-300 bg-amber-50 px-4 py-2 text-sm font-semibold text-amber-800 transition hover:bg-amber-100"
+        >
           Metadata Eksikleri Seç
         </button>
-        <button type="button" onClick={() => setSelectedIds([])} className="rounded-2xl border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-blue-300 hover:text-blue-800">
+        <button
+          type="button"
+          onClick={() => setSelectedIds([])}
+          className="rounded-2xl border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-blue-300 hover:text-blue-800"
+        >
           Seçimi Temizle
         </button>
         <span className="rounded-2xl border border-blue-200 bg-blue-50 px-4 py-2 text-sm font-bold text-blue-800">
@@ -173,35 +181,117 @@ export default function AdminBulkMetadataEditor() {
       </div>
 
       <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <select value={bulkState.difficulty} onChange={(e) => setBulkState((prev) => ({ ...prev, difficulty: e.target.value as BulkState["difficulty"] }))} className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-blue-400">
+        <select
+          value={bulkState.difficulty}
+          onChange={(e) =>
+            setBulkState((prev) => ({
+              ...prev,
+              difficulty: e.target.value as BulkState["difficulty"],
+            }))
+          }
+          className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-blue-400"
+        >
           <option value="">Zorluk değiştirme</option>
-          {documentDifficultyCatalog.map((item) => <option key={item} value={item}>{item}</option>)}
+          {documentDifficultyCatalog.map((item) => (
+            <option key={item} value={item}>
+              {item}
+            </option>
+          ))}
         </select>
-        <input type="number" min={2000} max={2100} value={bulkState.sourceYear} onChange={(e) => setBulkState((prev) => ({ ...prev, sourceYear: e.target.value }))} placeholder="Yıl değiştirme" className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-blue-400" />
-        <select value={bulkState.topic} onChange={(e) => setBulkState((prev) => ({ ...prev, topic: e.target.value }))} className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-blue-400">
+
+        <input
+          type="number"
+          min={2000}
+          max={2100}
+          value={bulkState.sourceYear}
+          onChange={(e) =>
+            setBulkState((prev) => ({ ...prev, sourceYear: e.target.value }))
+          }
+          placeholder="Yıl değiştirme"
+          className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-blue-400"
+        />
+
+        <select
+          value={bulkState.topic}
+          onChange={(e) =>
+            setBulkState((prev) => ({ ...prev, topic: e.target.value }))
+          }
+          className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-blue-400"
+        >
           <option value="">Konu değiştirme</option>
-          {getAllTopics().map((topic) => <option key={topic} value={topic}>{topic}</option>)}
+          {getAllTopics().map((topic) => (
+            <option key={topic} value={topic}>
+              {topic}
+            </option>
+          ))}
         </select>
-        <select value={bulkState.type} onChange={(e) => setBulkState((prev) => ({ ...prev, type: e.target.value }))} className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-blue-400">
+
+        <select
+          value={bulkState.type}
+          onChange={(e) =>
+            setBulkState((prev) => ({ ...prev, type: e.target.value }))
+          }
+          className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-blue-400"
+        >
           <option value="">Tür değiştirme</option>
-          {documentTypeCatalog.map((type) => <option key={type} value={type}>{type}</option>)}
+          {documentTypeCatalog.map((type) => (
+            <option key={type} value={type}>
+              {type}
+            </option>
+          ))}
         </select>
-        <select value={bulkState.isPrintReady} onChange={(e) => setBulkState((prev) => ({ ...prev, isPrintReady: e.target.value as BulkState["isPrintReady"] }))} className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-blue-400">
+
+        <select
+          value={bulkState.isPrintReady}
+          onChange={(e) =>
+            setBulkState((prev) => ({
+              ...prev,
+              isPrintReady: e.target.value as BulkState["isPrintReady"],
+            }))
+          }
+          className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-blue-400"
+        >
           <option value="">Yazdırma değiştirme</option>
           <option value="true">Yazdırmaya hazır</option>
           <option value="false">Hazır değil</option>
         </select>
-        <select value={bulkState.hasVideoSolution} onChange={(e) => setBulkState((prev) => ({ ...prev, hasVideoSolution: e.target.value as BulkState["hasVideoSolution"] }))} className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-blue-400">
+
+        <select
+          value={bulkState.hasVideoSolution}
+          onChange={(e) =>
+            setBulkState((prev) => ({
+              ...prev,
+              hasVideoSolution: e.target.value as BulkState["hasVideoSolution"],
+            }))
+          }
+          className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-blue-400"
+        >
           <option value="">Video değiştirme</option>
           <option value="true">Video var</option>
           <option value="false">Video yok</option>
         </select>
-        <select value={bulkState.published} onChange={(e) => setBulkState((prev) => ({ ...prev, published: e.target.value as BulkState["published"] }))} className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-blue-400">
+
+        <select
+          value={bulkState.published}
+          onChange={(e) =>
+            setBulkState((prev) => ({
+              ...prev,
+              published: e.target.value as BulkState["published"],
+            }))
+          }
+          className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-blue-400"
+        >
           <option value="">Yayın değiştirme</option>
           <option value="true">Yayına al</option>
           <option value="false">Taslağa al</option>
         </select>
-        <button type="button" onClick={applyChanges} disabled={isWorking} className="rounded-2xl bg-[linear-gradient(135deg,#1d4f91_0%,#2f6eb7_55%,#3b82f6_100%)] px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-900/20 transition hover:-translate-y-0.5 hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-60">
+
+        <button
+          type="button"
+          onClick={applyChanges}
+          disabled={isWorking}
+          className="rounded-2xl bg-[linear-gradient(135deg,#1d4f91_0%,#2f6eb7_55%,#3b82f6_100%)] px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-900/20 transition hover:-translate-y-0.5 hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-60"
+        >
           {isWorking ? "Güncelleniyor..." : "Toplu Güncelle"}
         </button>
       </div>
@@ -216,12 +306,22 @@ export default function AdminBulkMetadataEditor() {
 
       <div className="mt-6 grid max-h-[460px] gap-3 overflow-auto pr-1">
         {documents.slice(0, 80).map((doc) => (
-          <label key={doc.id} className="flex cursor-pointer items-start gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 transition hover:border-blue-200 hover:bg-white">
-            <input type="checkbox" checked={selectedIds.includes(doc.id)} onChange={() => toggleDoc(doc)} className="mt-1 h-4 w-4" />
+          <label
+            key={doc.id}
+            className="flex cursor-pointer items-start gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 transition hover:border-blue-200 hover:bg-white"
+          >
+            <input
+              type="checkbox"
+              checked={selectedIds.includes(doc.id)}
+              onChange={() => toggleDoc(doc)}
+              className="mt-1 h-4 w-4"
+            />
             <span className="min-w-0">
-              <span className="block text-sm font-black text-slate-950">{doc.title}</span>
+              <span className="block text-sm font-black text-slate-950">
+                {doc.title}
+              </span>
               <span className="mt-1 block text-xs font-semibold text-slate-500">
-                {doc.grade}. Sınıf · {doc.topic} · {doc.type}
+                {doc.grade}. Sınıf · {getDenseTopicDisplay(doc)} · {doc.type}
               </span>
             </span>
           </label>

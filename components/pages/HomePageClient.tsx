@@ -11,6 +11,7 @@ import {
   getAllTopics,
   getTopicsByGrade,
 } from "@/data/catalog";
+import { parseDocumentTopics } from "@/lib/document-taxonomy";
 
 export default function HomePageClient({
   documents,
@@ -55,9 +56,7 @@ export default function HomePageClient({
       (["5", "6", "7", "8"] as const).map((level) => {
         const docs = documents.filter((doc) => doc.grade === level);
         const topics = new Set(
-          docs.flatMap((doc) =>
-            doc.topic.split(", ").map((t) => t.trim()).filter(Boolean)
-          )
+          docs.flatMap((doc) => parseDocumentTopics(doc.topic))
         ).size;
 
         return {
@@ -93,10 +92,8 @@ export default function HomePageClient({
           "linear-gradient(180deg, #0f2d5c 0%, #1d4f91 12%, #2f6eb7 22%, #eef5ff 22%, #f8fbff 100%)",
       }}
     >
-      {/* ── HERO BÖLÜMİ ── */}
       <section className="mx-auto max-w-7xl px-4 pb-10 pt-6 sm:pb-12 sm:pt-8 md:px-6 md:pb-16 md:pt-12">
         <div className="relative overflow-hidden rounded-[1.9rem] border border-white/40 bg-white/97 shadow-2xl shadow-blue-950/15 sm:rounded-[2.2rem]">
-          {/* Dekoratif glow blobs */}
           <div className="pointer-events-none absolute inset-0 overflow-hidden">
             <div
               className="absolute -left-10 top-6 h-40 w-40 rounded-full opacity-40 blur-3xl"
@@ -113,7 +110,6 @@ export default function HomePageClient({
           </div>
 
           <div className="relative px-4 py-6 sm:px-6 sm:py-8 md:px-10 md:py-14">
-            {/* Floating matematik sembolleri */}
             <div className="pointer-events-none absolute inset-0 select-none overflow-hidden">
               <span
                 className="premat-float absolute right-[8%] top-[12%] text-6xl font-black text-blue-100"
@@ -186,11 +182,11 @@ export default function HomePageClient({
                     "Seçili içerik yapısı",
                     "Sınıf ve konu filtresi",
                     "Maarif Modeli'ne uygun",
-                  ].map((item, i) => (
+                  ].map((item, index) => (
                     <div
                       key={item}
                       className="premat-fade-in-up rounded-full border border-blue-200 bg-blue-50 px-3 py-2 text-xs font-semibold text-blue-800 sm:px-4 sm:text-sm"
-                      style={{ animationDelay: `${i * 0.12}s` }}
+                      style={{ animationDelay: `${index * 0.12}s` }}
                     >
                       ✓ {item}
                     </div>
@@ -280,7 +276,6 @@ export default function HomePageClient({
             </div>
           </div>
 
-          {/* Hızlı Arama */}
           <div
             className="border-t border-slate-200/70 px-4 py-5 sm:px-6 md:px-10 md:py-6"
             style={{
@@ -293,15 +288,14 @@ export default function HomePageClient({
                 <div
                   className="h-5 w-1 rounded-full"
                   style={{
-                    background:
-                      "linear-gradient(180deg, #1d4f91, #ea580c)",
+                    background: "linear-gradient(180deg, #1d4f91, #ea580c)",
                   }}
                 />
                 <h2 className="text-base font-black text-slate-900 sm:text-lg">
                   Hızlı Arama
                 </h2>
               </div>
-              <p className="mt-1 text-xs text-slate-500 sm:text-sm">
+              <p className="mt-1 text-xs text-slate-600 sm:text-sm">
                 Sınıf, konu ve tür seçerek doğrudan arşive geç.
               </p>
             </div>
@@ -398,32 +392,27 @@ export default function HomePageClient({
         </div>
       </section>
 
-      {/* ── SINIFA GÖRE HIZLI GEÇİŞ ── */}
       <section className="mx-auto max-w-7xl px-4 pb-10 md:px-6 md:pb-14">
-        {/* Section header */}
         <div className="mb-7 flex items-start gap-4">
           <div
-            className="mt-2 h-8 w-1 shrink-0 rounded-full"
+            className="mt-1 h-10 w-1 shrink-0 rounded-full"
             style={{ background: "linear-gradient(180deg, #1d4f91, #ea580c)" }}
           />
-          <div>
-            <div
-              className="inline-flex rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-slate-500"
-            >
+          <div className="min-w-0 max-w-2xl rounded-[1.5rem] border border-white/14 bg-[linear-gradient(135deg,rgba(8,22,48,0.26)_0%,rgba(15,45,92,0.14)_100%)] px-5 py-4 shadow-[0_18px_40px_rgba(8,15,30,0.14)] backdrop-blur-[6px] sm:px-6 sm:py-5">
+            <div className="inline-flex rounded-full border border-white/55 bg-white px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-slate-600 shadow-sm">
               Arşiv Kategorileri
             </div>
-            <h2 className="mt-2 text-2xl font-black tracking-[-0.03em] text-slate-950 sm:text-3xl md:text-4xl">
+            <h2 className="mt-3 text-2xl font-black leading-tight tracking-[-0.03em] text-white sm:text-3xl md:text-4xl">
               Sınıfa Göre Hızlı Geçiş
             </h2>
-            <p className="mt-1.5 text-sm text-slate-500">
+            <p className="mt-2 max-w-xl text-sm leading-7 text-blue-50/92 sm:text-base">
               Her sınıf için içerik yoğunluğunu gör ve doğrudan arşive geç.
             </p>
           </div>
         </div>
 
-        {/* Grade cards */}
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          {gradeBlocks.map((item, i) => {
+          {gradeBlocks.map((item, index) => {
             const isLgs = item.level === "8";
             return (
               <Link
@@ -434,10 +423,9 @@ export default function HomePageClient({
                   background: isLgs
                     ? "linear-gradient(148deg, #07131f 0%, #0f2d5c 32%, #1d4f91 58%, #b83d0f 84%, #ea580c 100%)"
                     : "linear-gradient(148deg, #07131f 0%, #0f2d5c 28%, #1d4f91 62%, #2f6eb7 100%)",
-                  animationDelay: `${i * 0.08}s`,
+                  animationDelay: `${index * 0.08}s`,
                 }}
               >
-                {/* Inner top glow */}
                 <div
                   className="pointer-events-none absolute inset-x-0 top-0 h-28"
                   style={{
@@ -446,22 +434,19 @@ export default function HomePageClient({
                   }}
                 />
 
-                {/* Large decorative grade numeral */}
                 <div className="pointer-events-none absolute -bottom-2 -right-1 select-none text-[8.5rem] font-black leading-none text-white/[0.065]">
                   {item.level}
                 </div>
 
-                {/* LGS badge for 8th grade */}
-                {isLgs && (
+                {isLgs ? (
                   <div
                     className="absolute right-4 top-4 rounded-full px-2.5 py-1 text-[10px] font-black uppercase tracking-wide text-white"
                     style={{ background: "rgba(234,88,12,0.75)" }}
                   >
                     LGS
                   </div>
-                )}
+                ) : null}
 
-                {/* Grade badge + arrow */}
                 <div className="relative flex items-center justify-between">
                   <span className="rounded-full border border-white/25 bg-white/15 px-3.5 py-1.5 text-xs font-black text-white backdrop-blur-sm">
                     {item.level}. Sınıf
@@ -471,25 +456,22 @@ export default function HomePageClient({
                   </span>
                 </div>
 
-                {/* Count */}
                 <div className="relative mt-7 text-[3.2rem] font-black leading-none tracking-[-0.05em] text-white">
                   {item.count}
                 </div>
-                <div className="relative mt-1.5 text-[11px] font-bold uppercase tracking-[0.1em] text-white/50">
+                <div className="relative mt-1.5 text-[11px] font-bold uppercase tracking-[0.1em] text-white/60">
                   döküman yayında
                 </div>
 
-                {/* Stat chips */}
                 <div className="relative mt-5 flex flex-wrap gap-2">
-                  <span className="rounded-full border border-white/18 bg-white/10 px-2.5 py-1 text-[11px] font-bold text-white/75">
+                  <span className="rounded-full border border-white/18 bg-white/10 px-2.5 py-1 text-[11px] font-bold text-white/80">
                     {item.topics} konu
                   </span>
-                  <span className="rounded-full border border-white/18 bg-white/10 px-2.5 py-1 text-[11px] font-bold text-white/75">
+                  <span className="rounded-full border border-white/18 bg-white/10 px-2.5 py-1 text-[11px] font-bold text-white/80">
                     {item.featured} öne çıkan
                   </span>
                 </div>
 
-                {/* CTA row */}
                 <div className="relative mt-6 border-t border-white/12 pt-4">
                   <span className="inline-flex items-center gap-1.5 text-sm font-black text-white/90 transition duration-200 group-hover:text-white">
                     Arşive Git
@@ -504,7 +486,6 @@ export default function HomePageClient({
         </div>
       </section>
 
-      {/* ── ÖNE ÇIKAN DÖKÜMANLAR ── */}
       <section className="mx-auto max-w-7xl px-4 pb-8 md:px-6 md:pb-10">
         <div className="rounded-[1.75rem] border border-slate-200/80 bg-white p-4 shadow-xl shadow-slate-900/5 sm:p-6 md:rounded-[2rem] md:p-8">
           <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -583,7 +564,6 @@ export default function HomePageClient({
         </section>
       ) : null}
 
-      {/* ── SON EKLENEN DÖKÜMANLAR ── */}
       <section className="mx-auto max-w-7xl px-4 pb-10 md:px-6 md:pb-14">
         <div className="rounded-[1.75rem] border border-slate-200/80 bg-white p-4 shadow-xl shadow-slate-900/5 sm:p-6 md:rounded-[2rem] md:p-8">
           <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -650,8 +630,9 @@ function TestShowcasePanel() {
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setSlideIndex((i) => (i + 1) % SHOWCASE_SLIDES.length);
+      setSlideIndex((index) => (index + 1) % SHOWCASE_SLIDES.length);
     }, 2800);
+
     return () => clearInterval(interval);
   }, []);
 
@@ -663,7 +644,6 @@ function TestShowcasePanel() {
           "linear-gradient(135deg,#0f2d5c 0%,#1d4f91 45%,#ea580c 100%)",
       }}
     >
-      {/* Floating matematik sembolleri */}
       <span className="premat-float pointer-events-none absolute left-5 top-5 select-none text-4xl font-black text-white/8">
         π
       </span>
@@ -674,7 +654,6 @@ function TestShowcasePanel() {
         ∑
       </span>
 
-      {/* Aktif slide — key değişince premat-fade-in-up yeniden tetiklenir */}
       <div key={slideIndex} className="premat-fade-in-up relative text-center">
         <div className="mb-3 inline-flex rounded-full border border-white/25 bg-white/15 px-4 py-1.5 text-[10px] font-black uppercase tracking-[0.14em] text-white/80 backdrop-blur-sm">
           {SHOWCASE_SLIDES[slideIndex].eyebrow}
@@ -687,17 +666,16 @@ function TestShowcasePanel() {
         </div>
       </div>
 
-      {/* Nokta indikatörleri */}
       <div className="absolute bottom-4 left-1/2 flex -translate-x-1/2 gap-1.5">
-        {SHOWCASE_SLIDES.map((_, i) => (
+        {SHOWCASE_SLIDES.map((_, index) => (
           <button
-            key={i}
+            key={index}
             type="button"
-            onClick={() => setSlideIndex(i)}
+            onClick={() => setSlideIndex(index)}
             className={`h-1.5 rounded-full transition-all duration-300 ${
-              i === slideIndex ? "w-5 bg-white" : "w-1.5 bg-white/35"
+              index === slideIndex ? "w-5 bg-white" : "w-1.5 bg-white/35"
             }`}
-            aria-label={`Slide ${i + 1}`}
+            aria-label={`Slide ${index + 1}`}
           />
         ))}
       </div>

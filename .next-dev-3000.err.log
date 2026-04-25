@@ -1,0 +1,5 @@
+⨯ upstream image response failed for https://cpudvcdiszjltgwkorrj.supabase.co/storage/v1/object/public/document-covers/documents/2026/1775247912899-44ae8f94-bdeb-4aa3-a079-5852b07a9eb7.jpg 400
+Error: "url" parameter is valid but upstream response is invalid
+    at ignore-listed frames {
+  statusCode: 400
+}

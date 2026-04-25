@@ -80,11 +80,7 @@ export default function Navbar() {
   }, []);
 
   useEffect(() => {
-    if (mobileMenuOpen) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
-    }
+    document.body.style.overflow = mobileMenuOpen ? "hidden" : "";
 
     return () => {
       document.body.style.overflow = "";
@@ -92,7 +88,6 @@ export default function Navbar() {
   }, [mobileMenuOpen]);
 
   const isHomePage = pathname === "/";
-
   const headerBg = isScrolled
     ? "bg-white/97 backdrop-blur-xl shadow-sm shadow-slate-900/5"
     : isHomePage
@@ -172,12 +167,7 @@ export default function Navbar() {
                     : undefined;
 
                   return item.external ? (
-                    <a
-                      key={item.label}
-                      href={item.href}
-                      className={className}
-                      style={activeStyle}
-                    >
+                    <a key={item.label} href={item.href} className={className} style={activeStyle}>
                       {item.label}
                     </a>
                   ) : (
@@ -270,9 +260,7 @@ export default function Navbar() {
                       className={className}
                     >
                       <span>{item.label}</span>
-                      <span className="text-lg leading-none opacity-60">
-                        &gt;
-                      </span>
+                      <span className="text-lg leading-none opacity-60">&gt;</span>
                     </a>
                   ) : (
                     <Link
@@ -285,9 +273,7 @@ export default function Navbar() {
                       className={className}
                     >
                       <span>{item.label}</span>
-                      <span className="text-lg leading-none opacity-60">
-                        &gt;
-                      </span>
+                      <span className="text-lg leading-none opacity-60">&gt;</span>
                     </Link>
                   );
                 })}

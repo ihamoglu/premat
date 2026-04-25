@@ -3,9 +3,11 @@ import type {
   GradeLevel,
   SourceType,
 } from "@/types/document";
+import { ALL_TOPICS_LABEL, PAST_EXAMS_TYPE } from "@/lib/document-taxonomy";
 
 export const gradeCatalog: Record<GradeLevel, string[]> = {
   "5": [
+    ALL_TOPICS_LABEL,
     "1. Tema (Geometrik Şekiller)",
     "2. Tema (Sayılar ve İşlemler: Doğal Sayılarla İşlemler)",
     "3. Tema (Geometrik Nicelikler)",
@@ -15,6 +17,7 @@ export const gradeCatalog: Record<GradeLevel, string[]> = {
     "7. Tema (Veriden Olasılığa)",
   ],
   "6": [
+    ALL_TOPICS_LABEL,
     "1. Tema (Sayılar ve Nicelikler - 1)",
     "2. Tema (İstatistiksel Araştırma Süreci)",
     "3. Tema (Sayılar ve Nicelikler - 2)",
@@ -24,6 +27,7 @@ export const gradeCatalog: Record<GradeLevel, string[]> = {
     "7. Tema (Geometrik Nicelikler)",
   ],
   "7": [
+    ALL_TOPICS_LABEL,
     "Tam Sayılar",
     "Rasyonel Sayılar",
     "Cebirsel İfadeler",
@@ -35,6 +39,7 @@ export const gradeCatalog: Record<GradeLevel, string[]> = {
     "Veri Analizi",
   ],
   "8": [
+    ALL_TOPICS_LABEL,
     "Çarpanlar ve Katlar",
     "Üslü İfadeler",
     "Kareköklü İfadeler",
@@ -53,6 +58,7 @@ export const gradeCatalog: Record<GradeLevel, string[]> = {
 export const documentTypeCatalog: string[] = [
   "MEB Ders Kitabı ve Cevapları",
   "MEB İçerikleri",
+  PAST_EXAMS_TYPE,
   "Çalışma Kağıtları",
   "Kazanım Testleri",
   "Deneme Sınavları",
@@ -83,7 +89,13 @@ export function getTopicsByGrade(grade: string): string[] {
 }
 
 export function getAllTopics(): string[] {
-  return Array.from(new Set(Object.values(gradeCatalog).flat())).sort((a, b) =>
-    a.localeCompare(b, "tr")
-  );
+  const topics = Array.from(
+    new Set(
+      Object.values(gradeCatalog)
+        .flat()
+        .filter((topic) => topic !== ALL_TOPICS_LABEL)
+    )
+  ).sort((a, b) => a.localeCompare(b, "tr"));
+
+  return [ALL_TOPICS_LABEL, ...topics];
 }

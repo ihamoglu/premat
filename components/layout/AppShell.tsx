@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import { usePathname } from "next/navigation";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
@@ -24,9 +24,9 @@ export default function AppShell({
     pathname.startsWith("/panel/");
 
   const isHomeRoute = pathname === "/";
-
-  const [hasCheckedSplash, setHasCheckedSplash] = useState(false);
-  const [showSplash, setShowSplash] = useState(false);
+  const [splashState, setSplashState] = useState<"checking" | "showing" | "done">(
+    isHomeRoute ? "checking" : "done"
+  );
 
   useEffect(() => {
     if (typeof window === "undefined") {
@@ -34,25 +34,28 @@ export default function AppShell({
     }
 
     const timeoutId = window.setTimeout(() => {
+      if (!isHomeRoute) {
+        setSplashState("done");
+        return;
+      }
+
       const tabAlreadyOpened =
         window.sessionStorage.getItem("premat-tab-opened") === "1";
 
-      if (!tabAlreadyOpened) {
-        window.sessionStorage.setItem("premat-tab-opened", "1");
-
-        if (isHomeRoute) {
-          setShowSplash(true);
-        }
+      if (tabAlreadyOpened) {
+        setSplashState("done");
+        return;
       }
 
-      setHasCheckedSplash(true);
+      window.sessionStorage.setItem("premat-tab-opened", "1");
+      setSplashState("showing");
     }, 0);
 
     return () => window.clearTimeout(timeoutId);
   }, [isHomeRoute]);
 
   useEffect(() => {
-    if (!showSplash) {
+    if (splashState !== "showing") {
       return;
     }
 
@@ -62,21 +65,34 @@ export default function AppShell({
     return () => {
       document.body.style.overflow = previousOverflow;
     };
-  }, [showSplash]);
+  }, [splashState]);
 
   function handleSplashFinish() {
-    setShowSplash(false);
+    setSplashState("done");
   }
 
-  const hideShellUntilChecked = isHomeRoute && !hasCheckedSplash;
+  const shouldRenderFallback = isHomeRoute && splashState === "checking";
+  const shouldShowSplash = splashState === "showing";
+  const shellIsReady = !isHomeRoute || splashState === "done";
+  const brandedFallbackStyle = useMemo(
+    () => ({
+      background:
+        "linear-gradient(148deg, #07131f 0%, #0f2d5c 24%, #1d4f91 56%, #2f6eb7 76%, #ea580c 100%)",
+    }),
+    []
+  );
 
   return (
     <>
-      {showSplash ? <SplashScreen onFinish={handleSplashFinish} /> : null}
+      {shouldShowSplash ? <SplashScreen onFinish={handleSplashFinish} /> : null}
+
+      {shouldRenderFallback ? (
+        <div className="min-h-screen" style={brandedFallbackStyle} aria-hidden="true" />
+      ) : null}
 
       <div
-        className={`flex min-h-screen flex-col ${
-          hideShellUntilChecked ? "opacity-0" : "opacity-100"
+        className={`flex min-h-screen flex-col transition-opacity duration-200 ${
+          shellIsReady ? "opacity-100" : "pointer-events-none opacity-0"
         }`}
       >
         {!isPanelRoute ? (

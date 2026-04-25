@@ -14,6 +14,17 @@ import {
   sourceTypeCatalog,
 } from "@/data/catalog";
 import {
+  ALL_TOPICS_LABEL,
+  getDenseTopicDisplay,
+  hasMebBadge,
+  MEB_LABEL,
+  normalizeTopicSelection,
+  normalizeTypeSelection,
+  parseDocumentTopics,
+  parseDocumentTypes,
+  PAST_EXAMS_TYPE,
+} from "@/lib/document-taxonomy";
+import {
   DocumentDifficulty,
   DocumentItem,
   DocumentLinkKind,
@@ -84,7 +95,7 @@ const initialState: FormState = {
 
 function slugifyTr(text: string) {
   return text
-    .toLowerCase()
+    .toLocaleLowerCase("tr")
     .trim()
     .replace(/ğ/g, "g")
     .replace(/ü/g, "u")
@@ -100,7 +111,6 @@ function slugifyTr(text: string) {
 function getFileExtension(file: File) {
   const fromName = file.name.split(".").pop()?.toLowerCase();
   if (fromName) return fromName;
-
   if (file.type === "image/png") return "png";
   if (file.type === "image/webp") return "webp";
   return "jpg";
@@ -108,7 +118,6 @@ function getFileExtension(file: File) {
 
 function parsePositiveInteger(value: string) {
   const parsed = Number(value);
-
   return Number.isInteger(parsed) && parsed > 0 ? parsed : undefined;
 }
 
@@ -124,19 +133,35 @@ function buildDocumentLinks(form: FormState) {
 }
 
 function FieldLabel({ children }: { children: React.ReactNode }) {
-  return <label className="mb-2 block text-sm font-semibold text-slate-700">{children}</label>;
+  return (
+    <label className="mb-2 block text-sm font-semibold text-slate-700">
+      {children}
+    </label>
+  );
 }
 
-function FieldCard({ title, children }: { title: string; children: React.ReactNode }) {
+function FieldCard({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) {
   return (
     <div className="rounded-[1.6rem] border border-slate-200 bg-[linear-gradient(180deg,#f8fbff_0%,#ffffff_100%)] p-5">
-      <h3 className="text-lg font-black tracking-[-0.02em] text-slate-950">{title}</h3>
+      <h3 className="text-lg font-black tracking-[-0.02em] text-slate-950">
+        {title}
+      </h3>
       <div className="mt-5">{children}</div>
     </div>
   );
 }
 
-export default function AdminDocumentForm({ editingDoc, onCancelEdit, onFinish }: AdminDocumentFormProps) {
+export default function AdminDocumentForm({
+  editingDoc,
+  onCancelEdit,
+  onFinish,
+}: AdminDocumentFormProps) {
   const { addDocument, updateDocument, refreshDocuments } = useDocuments();
 
   const [form, setForm] = useState<FormState>(initialState);
@@ -153,7 +178,9 @@ export default function AdminDocumentForm({ editingDoc, onCancelEdit, onFinish }
   const topicOptions = useMemo(() => getTopicsByGrade(form.grade), [form.grade]);
   const isEditing = Boolean(editingDoc);
   const generatedSlug = form.title ? slugifyTr(form.title) : "slug-olusturulmadi";
-  const livePreviewImage = localCoverPreviewUrl || form.coverImageUrl || createdDoc?.coverImageUrl;
+  const livePreviewImage =
+    localCoverPreviewUrl || form.coverImageUrl || createdDoc?.coverImageUrl;
+
   const quality = useMemo(
     () =>
       assessDraftQuality({
@@ -179,6 +206,7 @@ export default function AdminDocumentForm({ editingDoc, onCancelEdit, onFinish }
       }),
     [form, livePreviewImage]
   );
+
   const readiness = useMemo(
     () =>
       getPublishReadiness({
@@ -235,9 +263,9 @@ export default function AdminDocumentForm({ editingDoc, onCancelEdit, onFinish }
       title: editingDoc.title,
       description: editingDoc.description,
       grade: editingDoc.grade,
-      topics: editingDoc.topic.split(", ").filter(Boolean),
+      topics: normalizeTopicSelection(parseDocumentTopics(editingDoc.topic)),
       subtopic: editingDoc.subtopic || "",
-      types: editingDoc.type.split(", ").filter(Boolean),
+      types: normalizeTypeSelection(parseDocumentTypes(editingDoc.type)),
       sourceType: editingDoc.sourceType,
       fileUrl: editingDoc.fileUrl,
       solutionUrl: editingDoc.solutionUrl || "",
@@ -266,11 +294,28 @@ export default function AdminDocumentForm({ editingDoc, onCancelEdit, onFinish }
     setForm((prev) => ({ ...prev, [key]: value }));
   }
 
+  function toggleTopic(item: string, checked: boolean) {
+    const next = checked
+      ? normalizeTopicSelection([...form.topics, item])
+      : form.topics.filter((topic) => topic !== item);
+
+    updateField("topics", next);
+
+    if (item === ALL_TOPICS_LABEL && checked) {
+      updateField("subtopic", "");
+    }
+  }
+
+  function toggleType(item: string, checked: boolean) {
+    const next = checked
+      ? normalizeTypeSelection([...form.types, item])
+      : form.types.filter((type) => type !== item);
+
+    updateField("types", next);
+  }
+
   function addExtraLink() {
-    updateField("links", [
-      ...form.links,
-      { kind: "extra", label: "", url: "" },
-    ]);
+    updateField("links", [...form.links, { kind: "extra", label: "", url: "" }]);
   }
 
   function updateExtraLink(
@@ -299,6 +344,7 @@ export default function AdminDocumentForm({ editingDoc, onCancelEdit, onFinish }
     if (localCoverPreviewUrlRef.current) {
       URL.revokeObjectURL(localCoverPreviewUrlRef.current);
     }
+
     setForm(initialState);
     setCoverImageFile(null);
     updateLocalCoverPreviewUrl("");
@@ -341,6 +387,7 @@ export default function AdminDocumentForm({ editingDoc, onCancelEdit, onFinish }
     if (localCoverPreviewUrlRef.current) {
       URL.revokeObjectURL(localCoverPreviewUrlRef.current);
     }
+
     setCoverImageFile(null);
     updateLocalCoverPreviewUrl("");
     updateField("coverImageUrl", "");
@@ -384,6 +431,8 @@ export default function AdminDocumentForm({ editingDoc, onCancelEdit, onFinish }
         return;
       }
 
+      const topics = normalizeTopicSelection(form.topics);
+      const types = normalizeTypeSelection(form.types);
       const slug = slugifyTr(form.title);
       const uploadedCoverImageUrl = await uploadCoverImageIfNeeded();
 
@@ -394,9 +443,11 @@ export default function AdminDocumentForm({ editingDoc, onCancelEdit, onFinish }
           title: form.title,
           description: form.description,
           grade: form.grade,
-          topic: form.topics.join(", "),
-          subtopic: form.subtopic || undefined,
-          type: form.types.join(", "),
+          topic: topics.join(", "),
+          subtopic: topics.includes(ALL_TOPICS_LABEL)
+            ? undefined
+            : form.subtopic || undefined,
+          type: types.join(", "),
           sourceType: form.sourceType,
           fileUrl: form.fileUrl,
           solutionUrl: form.solutionUrl || undefined,
@@ -436,9 +487,11 @@ export default function AdminDocumentForm({ editingDoc, onCancelEdit, onFinish }
         title: form.title,
         description: form.description,
         grade: form.grade,
-        topic: form.topics.join(", "),
-        subtopic: form.subtopic || undefined,
-        type: form.types.join(", "),
+        topic: topics.join(", "),
+        subtopic: topics.includes(ALL_TOPICS_LABEL)
+          ? undefined
+          : form.subtopic || undefined,
+        type: types.join(", "),
         sourceType: form.sourceType,
         fileUrl: form.fileUrl,
         solutionUrl: form.solutionUrl || undefined,
@@ -480,6 +533,7 @@ export default function AdminDocumentForm({ editingDoc, onCancelEdit, onFinish }
 
   async function handleCopySlug() {
     if (!generatedSlug || generatedSlug === "slug-olusturulmadi") return;
+
     try {
       await navigator.clipboard.writeText(generatedSlug);
       setSlugCopied(true);
@@ -489,9 +543,15 @@ export default function AdminDocumentForm({ editingDoc, onCancelEdit, onFinish }
     }
   }
 
+  const allTopicsSelected = form.topics.includes(ALL_TOPICS_LABEL);
+  const pastExamsSelected = form.types.includes(PAST_EXAMS_TYPE);
+
   return (
     <div className="grid gap-8 lg:grid-cols-[1.08fr_0.92fr]">
-      <form onSubmit={handleSubmit} className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-[0_18px_60px_rgba(15,23,42,0.05)] md:p-8">
+      <form
+        onSubmit={handleSubmit}
+        className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-[0_18px_60px_rgba(15,23,42,0.05)] md:p-8"
+      >
         <SectionHeader
           eyebrow={isEditing ? "DÜZENLEME MODU" : "YENİ KAYIT"}
           title={isEditing ? "İçeriği düzenle" : "Yeni içerik ekle"}
@@ -553,14 +613,32 @@ export default function AdminDocumentForm({ editingDoc, onCancelEdit, onFinish }
             <div className="grid gap-5">
               <div>
                 <FieldLabel>Başlık</FieldLabel>
-                <input type="text" value={form.title} onChange={(e) => updateField("title", e.target.value)} placeholder="Örn: 7. Sınıf Oran Orantı Yaprak Test" className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-blue-400" required />
-                <div className="mt-2 text-xs text-slate-500">{form.title.trim().length} karakter</div>
+                <input
+                  type="text"
+                  value={form.title}
+                  onChange={(e) => updateField("title", e.target.value)}
+                  placeholder="Örn: 7. Sınıf Oran Orantı Yaprak Test"
+                  className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-blue-400"
+                  required
+                />
+                <div className="mt-2 text-xs text-slate-500">
+                  {form.title.trim().length} karakter
+                </div>
               </div>
 
               <div>
                 <FieldLabel>Açıklama</FieldLabel>
-                <textarea value={form.description} onChange={(e) => updateField("description", e.target.value)} placeholder="İçeriğin ne sunduğunu kısa ve net şekilde yaz." rows={4} className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-blue-400" required />
-                <div className="mt-2 text-xs text-slate-500">{form.description.trim().length} karakter</div>
+                <textarea
+                  value={form.description}
+                  onChange={(e) => updateField("description", e.target.value)}
+                  placeholder="İçeriğin ne sunduğunu kısa ve net şekilde yaz."
+                  rows={4}
+                  className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-blue-400"
+                  required
+                />
+                <div className="mt-2 text-xs text-slate-500">
+                  {form.description.trim().length} karakter
+                </div>
               </div>
             </div>
           </FieldCard>
@@ -569,109 +647,213 @@ export default function AdminDocumentForm({ editingDoc, onCancelEdit, onFinish }
             <div className="grid gap-5 md:grid-cols-2">
               <div>
                 <FieldLabel>Sınıf</FieldLabel>
-                <select value={form.grade} onChange={(e) => { const value = e.target.value as GradeLevel; updateField("grade", value); updateField("topics", []); }} className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-blue-400">
-                  {gradeOptions.map((grade) => <option key={grade} value={grade}>{grade}. Sınıf</option>)}
+                <select
+                  value={form.grade}
+                  onChange={(e) => {
+                    const value = e.target.value as GradeLevel;
+                    updateField("grade", value);
+                    updateField("topics", []);
+                    updateField("subtopic", "");
+                  }}
+                  className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-blue-400"
+                >
+                  {gradeOptions.map((grade) => (
+                    <option key={grade} value={grade}>
+                      {grade}. Sınıf
+                    </option>
+                  ))}
                 </select>
               </div>
+
               <div>
                 <FieldLabel>
-                  Tür{" "}
-                  <span className="font-normal text-slate-400 text-xs">(birden fazla seçilebilir)</span>
+                  Tür
+                  <span className="ml-2 text-xs font-normal text-slate-400">
+                    ({PAST_EXAMS_TYPE} tekil çalışır)
+                  </span>
                 </FieldLabel>
                 <div className="space-y-1 rounded-2xl border border-slate-200 bg-white p-3">
-                  {documentTypeCatalog.map((item) => (
-                    <label
-                      key={item}
-                      className="flex cursor-pointer items-center gap-2.5 rounded-xl px-2 py-1.5 hover:bg-slate-50"
-                    >
-                      <input
-                        type="checkbox"
-                        checked={form.types.includes(item)}
-                        onChange={(e) => {
-                          const next = e.target.checked
-                            ? [...form.types, item]
-                            : form.types.filter((t) => t !== item);
-                          updateField("types", next);
-                        }}
-                        className="h-4 w-4 shrink-0 rounded accent-blue-700"
-                      />
-                      <span className="text-sm text-slate-700">{item}</span>
-                    </label>
-                  ))}
+                  {documentTypeCatalog.map((item) => {
+                    const isDisabled =
+                      pastExamsSelected && item !== PAST_EXAMS_TYPE;
+
+                    return (
+                      <label
+                        key={item}
+                        className={`flex items-center gap-2.5 rounded-xl px-2 py-1.5 ${
+                          isDisabled ? "cursor-not-allowed opacity-50" : "cursor-pointer hover:bg-slate-50"
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={form.types.includes(item)}
+                          disabled={isDisabled}
+                          onChange={(e) => toggleType(item, e.target.checked)}
+                          className="h-4 w-4 shrink-0 rounded accent-blue-700"
+                        />
+                        <span className="text-sm text-slate-700">{item}</span>
+                      </label>
+                    );
+                  })}
                 </div>
               </div>
+
               <div>
                 <FieldLabel>
-                  Konu{" "}
-                  <span className="font-normal text-slate-400 text-xs">(birden fazla seçilebilir)</span>
+                  Konu
+                  <span className="ml-2 text-xs font-normal text-slate-400">
+                    ({ALL_TOPICS_LABEL} tekil çalışır)
+                  </span>
                 </FieldLabel>
                 <div className="max-h-52 space-y-1 overflow-y-auto rounded-2xl border border-slate-200 bg-white p-3">
-                  {topicOptions.map((item) => (
-                    <label
-                      key={item}
-                      className="flex cursor-pointer items-start gap-2.5 rounded-xl px-2 py-1.5 hover:bg-slate-50"
-                    >
-                      <input
-                        type="checkbox"
-                        checked={form.topics.includes(item)}
-                        onChange={(e) => {
-                          const next = e.target.checked
-                            ? [...form.topics, item]
-                            : form.topics.filter((t) => t !== item);
-                          updateField("topics", next);
-                        }}
-                        className="mt-0.5 h-4 w-4 shrink-0 rounded accent-blue-700"
-                      />
-                      <span className="text-xs leading-5 text-slate-700">{item}</span>
-                    </label>
-                  ))}
+                  {topicOptions.map((item) => {
+                    const isDisabled =
+                      (allTopicsSelected && item !== ALL_TOPICS_LABEL) ||
+                      (!allTopicsSelected &&
+                        item === ALL_TOPICS_LABEL &&
+                        form.topics.length > 0);
+
+                    return (
+                      <label
+                        key={item}
+                        className={`flex items-start gap-2.5 rounded-xl px-2 py-1.5 ${
+                          isDisabled ? "cursor-not-allowed opacity-50" : "cursor-pointer hover:bg-slate-50"
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={form.topics.includes(item)}
+                          disabled={isDisabled}
+                          onChange={(e) => toggleTopic(item, e.target.checked)}
+                          className="mt-0.5 h-4 w-4 shrink-0 rounded accent-blue-700"
+                        />
+                        <span className="text-xs leading-5 text-slate-700">{item}</span>
+                      </label>
+                    );
+                  })}
                 </div>
               </div>
+
               <div>
                 <FieldLabel>Alt Konu</FieldLabel>
-                <input type="text" value={form.subtopic} onChange={(e) => updateField("subtopic", e.target.value)} placeholder="Örn: Kesir Problemleri" className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-blue-400" />
+                <input
+                  type="text"
+                  value={form.subtopic}
+                  onChange={(e) => updateField("subtopic", e.target.value)}
+                  placeholder="Örn: Kesir Problemleri"
+                  disabled={allTopicsSelected}
+                  className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-blue-400 disabled:cursor-not-allowed disabled:bg-slate-100"
+                />
+                {allTopicsSelected ? (
+                  <p className="mt-2 text-xs text-slate-500">
+                    {ALL_TOPICS_LABEL} seçildiğinde alt konu kullanılmaz.
+                  </p>
+                ) : null}
               </div>
+
               <div className="md:col-span-2">
                 <FieldLabel>Kaynak Türü</FieldLabel>
-                <select value={form.sourceType} onChange={(e) => updateField("sourceType", e.target.value as SourceType)} className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-blue-400">
-                  {sourceTypeCatalog.map((item) => <option key={item} value={item}>{item}</option>)}
+                <select
+                  value={form.sourceType}
+                  onChange={(e) => updateField("sourceType", e.target.value as SourceType)}
+                  className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-blue-400"
+                >
+                  {sourceTypeCatalog.map((item) => (
+                    <option key={item} value={item}>
+                      {item}
+                    </option>
+                  ))}
                 </select>
               </div>
             </div>
           </FieldCard>
 
-          <FieldCard title="Doküman bilgileri">
+          <FieldCard title="Döküman bilgileri">
             <div className="grid gap-5 md:grid-cols-2">
               <div>
                 <FieldLabel>Zorluk</FieldLabel>
-                <select value={form.difficulty} onChange={(e) => updateField("difficulty", e.target.value as FormState["difficulty"])} className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-blue-400">
+                <select
+                  value={form.difficulty}
+                  onChange={(e) =>
+                    updateField("difficulty", e.target.value as FormState["difficulty"])
+                  }
+                  className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-blue-400"
+                >
                   <option value="">Belirtilmedi</option>
-                  {documentDifficultyCatalog.map((item) => <option key={item} value={item}>{item}</option>)}
+                  {documentDifficultyCatalog.map((item) => (
+                    <option key={item} value={item}>
+                      {item}
+                    </option>
+                  ))}
                 </select>
               </div>
+
               <div>
                 <FieldLabel>Kazanım Kodu</FieldLabel>
-                <input type="text" value={form.curriculumCode} onChange={(e) => updateField("curriculumCode", e.target.value)} placeholder="Örn: M.8.2.1.1" className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-blue-400" />
+                <input
+                  type="text"
+                  value={form.curriculumCode}
+                  onChange={(e) => updateField("curriculumCode", e.target.value)}
+                  placeholder="Örn: M.8.2.1.1"
+                  className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-blue-400"
+                />
               </div>
+
               <div>
                 <FieldLabel>Sayfa Sayısı</FieldLabel>
-                <input type="number" min={1} value={form.pageCount} onChange={(e) => updateField("pageCount", e.target.value)} placeholder="Opsiyonel" className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-blue-400" />
+                <input
+                  type="number"
+                  min={1}
+                  value={form.pageCount}
+                  onChange={(e) => updateField("pageCount", e.target.value)}
+                  placeholder="Opsiyonel"
+                  className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-blue-400"
+                />
               </div>
+
               <div>
                 <FieldLabel>Soru Sayısı</FieldLabel>
-                <input type="number" min={1} value={form.questionCount} onChange={(e) => updateField("questionCount", e.target.value)} placeholder="Opsiyonel" className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-blue-400" />
+                <input
+                  type="number"
+                  min={1}
+                  value={form.questionCount}
+                  onChange={(e) => updateField("questionCount", e.target.value)}
+                  placeholder="Opsiyonel"
+                  className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-blue-400"
+                />
               </div>
+
               <div>
                 <FieldLabel>Kaynak Yılı</FieldLabel>
-                <input type="number" min={2000} max={2100} value={form.sourceYear} onChange={(e) => updateField("sourceYear", e.target.value)} placeholder="Örn: 2026" className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-blue-400" />
+                <input
+                  type="number"
+                  min={2000}
+                  max={2100}
+                  value={form.sourceYear}
+                  onChange={(e) => updateField("sourceYear", e.target.value)}
+                  placeholder="Örn: 2026"
+                  className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-blue-400"
+                />
               </div>
+
               <div className="grid gap-3">
                 <label className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-4 text-sm font-semibold text-slate-700">
-                  <input type="checkbox" checked={form.isPrintReady} onChange={(e) => updateField("isPrintReady", e.target.checked)} className="h-4 w-4" />
+                  <input
+                    type="checkbox"
+                    checked={form.isPrintReady}
+                    onChange={(e) => updateField("isPrintReady", e.target.checked)}
+                    className="h-4 w-4"
+                  />
                   Yazdırmaya hazır
                 </label>
+
                 <label className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-4 text-sm font-semibold text-slate-700">
-                  <input type="checkbox" checked={form.hasVideoSolution} onChange={(e) => updateField("hasVideoSolution", e.target.checked)} className="h-4 w-4" />
+                  <input
+                    type="checkbox"
+                    checked={form.hasVideoSolution}
+                    onChange={(e) => updateField("hasVideoSolution", e.target.checked)}
+                    className="h-4 w-4"
+                  />
                   Video çözüm mevcut
                 </label>
               </div>
@@ -682,18 +864,40 @@ export default function AdminDocumentForm({ editingDoc, onCancelEdit, onFinish }
             <div className="grid gap-5">
               <div>
                 <FieldLabel>İçerik Bağlantısı</FieldLabel>
-                <input type="url" value={form.fileUrl} onChange={(e) => updateField("fileUrl", e.target.value)} placeholder="https://..." className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-blue-400" required />
+                <input
+                  type="url"
+                  value={form.fileUrl}
+                  onChange={(e) => updateField("fileUrl", e.target.value)}
+                  placeholder="https://..."
+                  className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-blue-400"
+                  required
+                />
               </div>
+
               <div className="grid gap-5 md:grid-cols-2">
                 <div>
                   <FieldLabel>Çözüm Bağlantısı</FieldLabel>
-                  <input type="url" value={form.solutionUrl} onChange={(e) => updateField("solutionUrl", e.target.value)} placeholder="Opsiyonel çözüm bağlantısı" className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-blue-400" />
+                  <input
+                    type="url"
+                    value={form.solutionUrl}
+                    onChange={(e) => updateField("solutionUrl", e.target.value)}
+                    placeholder="Opsiyonel çözüm bağlantısı"
+                    className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-blue-400"
+                  />
                 </div>
+
                 <div>
                   <FieldLabel>Cevap Anahtarı Bağlantısı</FieldLabel>
-                  <input type="url" value={form.answerKeyUrl} onChange={(e) => updateField("answerKeyUrl", e.target.value)} placeholder="Opsiyonel cevap anahtarı bağlantısı" className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-blue-400" />
+                  <input
+                    type="url"
+                    value={form.answerKeyUrl}
+                    onChange={(e) => updateField("answerKeyUrl", e.target.value)}
+                    placeholder="Opsiyonel cevap anahtarı bağlantısı"
+                    className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-blue-400"
+                  />
                 </div>
               </div>
+
               <div className="rounded-[1.5rem] border border-blue-100 bg-blue-50 p-4">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <div>
@@ -702,10 +906,15 @@ export default function AdminDocumentForm({ editingDoc, onCancelEdit, onFinish }
                       Birden fazla video, ek kaynak veya öğretmen notu ekle.
                     </p>
                   </div>
-                  <button type="button" onClick={addExtraLink} className="rounded-2xl border border-blue-200 bg-white px-4 py-2 text-sm font-semibold text-blue-800 transition hover:bg-blue-100">
+                  <button
+                    type="button"
+                    onClick={addExtraLink}
+                    className="rounded-2xl border border-blue-200 bg-white px-4 py-2 text-sm font-semibold text-blue-800 transition hover:bg-blue-100"
+                  >
                     Bağlantı Ekle
                   </button>
                 </div>
+
                 <div className="mt-4 grid gap-3">
                   {form.links.length === 0 ? (
                     <div className="rounded-2xl border border-dashed border-blue-200 bg-white/70 px-4 py-3 text-sm font-semibold text-blue-700">
@@ -713,16 +922,39 @@ export default function AdminDocumentForm({ editingDoc, onCancelEdit, onFinish }
                     </div>
                   ) : (
                     form.links.map((link, index) => (
-                      <div key={index} className="grid gap-3 rounded-2xl border border-blue-100 bg-white p-3 md:grid-cols-[0.75fr_1fr_1.4fr_auto]">
-                        <select value={link.kind} onChange={(e) => updateExtraLink(index, "kind", e.target.value)} className="rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none transition focus:border-blue-400">
+                      <div
+                        key={index}
+                        className="grid gap-3 rounded-2xl border border-blue-100 bg-white p-3 md:grid-cols-[0.75fr_1fr_1.4fr_auto]"
+                      >
+                        <select
+                          value={link.kind}
+                          onChange={(e) => updateExtraLink(index, "kind", e.target.value)}
+                          className="rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none transition focus:border-blue-400"
+                        >
                           <option value="video">Video</option>
                           <option value="solution">Çözüm</option>
                           <option value="answer_key">Cevap</option>
                           <option value="extra">Ek</option>
                         </select>
-                        <input type="text" value={link.label} onChange={(e) => updateExtraLink(index, "label", e.target.value)} placeholder="Etiket" className="rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none transition focus:border-blue-400" />
-                        <input type="url" value={link.url} onChange={(e) => updateExtraLink(index, "url", e.target.value)} placeholder="https://..." className="rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none transition focus:border-blue-400" />
-                        <button type="button" onClick={() => removeExtraLink(index)} className="rounded-2xl border border-red-200 bg-red-50 px-4 py-2 text-sm font-semibold text-red-700 transition hover:bg-red-100">
+                        <input
+                          type="text"
+                          value={link.label}
+                          onChange={(e) => updateExtraLink(index, "label", e.target.value)}
+                          placeholder="Etiket"
+                          className="rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none transition focus:border-blue-400"
+                        />
+                        <input
+                          type="url"
+                          value={link.url}
+                          onChange={(e) => updateExtraLink(index, "url", e.target.value)}
+                          placeholder="https://..."
+                          className="rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none transition focus:border-blue-400"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => removeExtraLink(index)}
+                          className="rounded-2xl border border-red-200 bg-red-50 px-4 py-2 text-sm font-semibold text-red-700 transition hover:bg-red-100"
+                        >
                           Sil
                         </button>
                       </div>
@@ -730,12 +962,27 @@ export default function AdminDocumentForm({ editingDoc, onCancelEdit, onFinish }
                   )}
                 </div>
               </div>
+
               <div className="rounded-[1.5rem] border border-slate-200 bg-slate-50 p-4">
                 <FieldLabel>Tanıtım Görseli Yükle</FieldLabel>
-                <input key={fileInputKey} type="file" accept="image/png,image/jpeg,image/webp,image/jpg" onChange={handleCoverImageChange} className="block w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 file:mr-4 file:rounded-xl file:border-0 file:bg-blue-800 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-blue-900" />
-                <p className="mt-3 text-xs leading-6 text-slate-500">PNG, JPG veya WEBP yükle. Maksimum 5 MB.</p>
-                {(form.coverImageUrl || localCoverPreviewUrl) ? (
-                  <button type="button" onClick={clearCoverImage} className="mt-3 rounded-2xl border border-red-300 bg-red-50 px-4 py-2 text-sm font-semibold text-red-700 transition hover:bg-red-100">Görseli Kaldır</button>
+                <input
+                  key={fileInputKey}
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp,image/jpg"
+                  onChange={handleCoverImageChange}
+                  className="block w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 file:mr-4 file:rounded-xl file:border-0 file:bg-blue-800 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-blue-900"
+                />
+                <p className="mt-3 text-xs leading-6 text-slate-500">
+                  PNG, JPG veya WEBP yükle. Maksimum 5 MB.
+                </p>
+                {form.coverImageUrl || localCoverPreviewUrl ? (
+                  <button
+                    type="button"
+                    onClick={clearCoverImage}
+                    className="mt-3 rounded-2xl border border-red-300 bg-red-50 px-4 py-2 text-sm font-semibold text-red-700 transition hover:bg-red-100"
+                  >
+                    Görseli Kaldır
+                  </button>
                 ) : null}
               </div>
             </div>
@@ -744,27 +991,60 @@ export default function AdminDocumentForm({ editingDoc, onCancelEdit, onFinish }
           <FieldCard title="Yayın ayarları">
             <div className="grid gap-3 md:grid-cols-2">
               <label className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-4 text-sm font-semibold text-slate-700">
-                <input type="checkbox" checked={form.featured} onChange={(e) => updateField("featured", e.target.checked)} className="h-4 w-4" />
+                <input
+                  type="checkbox"
+                  checked={form.featured}
+                  onChange={(e) => updateField("featured", e.target.checked)}
+                  className="h-4 w-4"
+                />
                 Öne çıkarılsın
               </label>
+
               <label className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-4 text-sm font-semibold text-slate-700">
-                <input type="checkbox" checked={form.published} onChange={(e) => updateField("published", e.target.checked)} className="h-4 w-4" />
+                <input
+                  type="checkbox"
+                  checked={form.published}
+                  onChange={(e) => updateField("published", e.target.checked)}
+                  className="h-4 w-4"
+                />
                 Yayında görünsün
               </label>
             </div>
           </FieldCard>
 
           {statusMessage ? (
-            <InlineNotice tone={statusType === "success" ? "success" : statusType === "warning" ? "warning" : "error"}>
+            <InlineNotice
+              tone={
+                statusType === "success"
+                  ? "success"
+                  : statusType === "warning"
+                    ? "warning"
+                    : "error"
+              }
+            >
               {statusMessage}
             </InlineNotice>
           ) : null}
 
           <div className="flex flex-wrap gap-3 pt-1">
-            <button type="submit" disabled={submitting} className="rounded-2xl bg-[linear-gradient(135deg,#1d4f91_0%,#2f6eb7_55%,#3b82f6_100%)] px-5 py-4 text-sm font-semibold text-white shadow-lg shadow-blue-900/20 transition hover:-translate-y-0.5 hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-70">
-              {submitting ? "İşleniyor..." : isEditing ? "Kaydı Güncelle" : "Kaydı Oluştur"}
+            <button
+              type="submit"
+              disabled={submitting}
+              className="rounded-2xl bg-[linear-gradient(135deg,#1d4f91_0%,#2f6eb7_55%,#3b82f6_100%)] px-5 py-4 text-sm font-semibold text-white shadow-lg shadow-blue-900/20 transition hover:-translate-y-0.5 hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-70"
+            >
+              {submitting
+                ? "İşleniyor..."
+                : isEditing
+                  ? "Kaydı Güncelle"
+                  : "Kaydı Oluştur"}
             </button>
-            <button type="button" onClick={resetFormCompletely} disabled={submitting} className="rounded-2xl border border-slate-300 bg-white px-5 py-4 text-sm font-semibold text-slate-700 transition hover:border-blue-300 hover:text-blue-800 disabled:cursor-not-allowed disabled:opacity-70">
+
+            <button
+              type="button"
+              onClick={resetFormCompletely}
+              disabled={submitting}
+              className="rounded-2xl border border-slate-300 bg-white px-5 py-4 text-sm font-semibold text-slate-700 transition hover:border-blue-300 hover:text-blue-800 disabled:cursor-not-allowed disabled:opacity-70"
+            >
               {isEditing ? "Düzenlemeyi İptal Et" : "Formu Temizle"}
             </button>
           </div>
@@ -773,32 +1053,83 @@ export default function AdminDocumentForm({ editingDoc, onCancelEdit, onFinish }
 
       <aside className="space-y-6">
         <div className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-[0_18px_60px_rgba(15,23,42,0.05)] md:p-8">
-          <SectionHeader eyebrow="CANLI ÖNİZLEME" title="İçerik kartı özeti" description="Form alanlarının dışarıya nasıl yansıdığını burada hızlıca gör." />
+          <SectionHeader
+            eyebrow="CANLI ÖNİZLEME"
+            title="İçerik kartı özeti"
+            description="Form alanlarının dışarıya nasıl yansıdığını burada hızlıca gör."
+          />
+
           <div className="mt-5 space-y-4">
             {livePreviewImage ? (
               <div className="overflow-hidden rounded-[1.5rem] border border-slate-200 bg-slate-50">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={livePreviewImage} alt={form.title || "Tanıtım görseli"} className="h-[240px] w-full object-cover" />
+                <img
+                  src={livePreviewImage}
+                  alt={form.title || "Tanıtım görseli"}
+                  className="h-[240px] w-full object-cover"
+                />
               </div>
             ) : (
-              <div className="rounded-[1.5rem] border border-dashed border-slate-300 bg-slate-50 p-10 text-center text-sm text-slate-500">Tanıtım görseli henüz eklenmedi.</div>
+              <div className="rounded-[1.5rem] border border-dashed border-slate-300 bg-slate-50 p-10 text-center text-sm text-slate-500">
+                Tanıtım görseli henüz eklenmedi.
+              </div>
             )}
 
             <div className="rounded-[1.6rem] bg-[linear-gradient(135deg,#1d4f91_0%,#2f6eb7_55%,#ea580c_100%)] p-5 text-white">
               <div className="mb-3 flex flex-wrap gap-2">
-                <span className="rounded-full bg-white/92 px-3 py-1 text-xs font-semibold text-blue-900">{form.grade}. Sınıf</span>
-                {form.types.length > 0
-                  ? form.types.map((t) => (
-                      <span key={t} className="rounded-full bg-white/20 px-3 py-1 text-xs font-semibold text-white">{t}</span>
-                    ))
-                  : <span className="rounded-full bg-white/20 px-3 py-1 text-xs font-semibold text-white/60">Tür seçilmedi</span>}
-                {form.difficulty ? <span className="rounded-full bg-white/20 px-3 py-1 text-xs font-semibold text-white">{form.difficulty}</span> : null}
-                {form.hasVideoSolution || form.solutionUrl ? <span className="rounded-full bg-white/20 px-3 py-1 text-xs font-semibold text-white">Video Çözüm</span> : null}
-                {form.featured ? <span className="rounded-full bg-orange-400 px-3 py-1 text-xs font-semibold text-white">Öne Çıkan</span> : null}
+                <span className="rounded-full bg-white/92 px-3 py-1 text-xs font-semibold text-blue-900">
+                  {form.grade}. Sınıf
+                </span>
+                {form.types.length > 0 ? (
+                  form.types.map((type) => (
+                    <span
+                      key={type}
+                      className="rounded-full bg-white/20 px-3 py-1 text-xs font-semibold text-white"
+                    >
+                      {type}
+                    </span>
+                  ))
+                ) : (
+                  <span className="rounded-full bg-white/20 px-3 py-1 text-xs font-semibold text-white/60">
+                    Tür seçilmedi
+                  </span>
+                )}
+                {hasMebBadge({ type: form.types.join(", ") }) ? (
+                  <span className="rounded-full bg-orange-200/20 px-3 py-1 text-xs font-semibold text-white">
+                    {MEB_LABEL}
+                  </span>
+                ) : null}
+                {form.difficulty ? (
+                  <span className="rounded-full bg-white/20 px-3 py-1 text-xs font-semibold text-white">
+                    {form.difficulty}
+                  </span>
+                ) : null}
+                {form.hasVideoSolution || form.solutionUrl ? (
+                  <span className="rounded-full bg-white/20 px-3 py-1 text-xs font-semibold text-white">
+                    Video Çözüm
+                  </span>
+                ) : null}
+                {form.featured ? (
+                  <span className="rounded-full bg-orange-400 px-3 py-1 text-xs font-semibold text-white">
+                    Öne Çıkan
+                  </span>
+                ) : null}
               </div>
-              <h3 className="text-xl font-black leading-tight tracking-[-0.02em]">{form.title || "Başlık burada görünecek"}</h3>
-              <p className="mt-3 text-sm leading-7 text-blue-50">{form.description || "Açıklama burada görünecek."}</p>
-              <div className="mt-4 text-sm font-semibold text-white/90">{form.topics.join(", ") || "Konu seçilmedi"}{form.subtopic ? ` • ${form.subtopic}` : ""}</div>
+
+              <h3 className="text-xl font-black leading-tight tracking-[-0.02em]">
+                {form.title || "Başlık burada görünecek"}
+              </h3>
+
+              <p className="mt-3 text-sm leading-7 text-blue-50">
+                {form.description || "Açıklama burada görünecek."}
+              </p>
+
+              <div className="mt-4 text-sm font-semibold text-white/90">
+                {getDenseTopicDisplay({
+                  topic: form.topics.join(", "),
+                  subtopic: form.subtopic,
+                }) || "Konu seçilmedi"}
+              </div>
             </div>
           </div>
         </div>

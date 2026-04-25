@@ -12,6 +12,7 @@ import {
   getTopicsByGrade,
   sourceTypeCatalog,
 } from "@/data/catalog";
+import { ALL_TOPICS_LABEL } from "@/lib/document-taxonomy";
 import {
   DocumentDifficulty,
   DocumentItem,
@@ -93,7 +94,7 @@ const HEADER_ALIASES: Record<CanonicalHeader, string[]> = {
 
 function slugifyTr(text: string) {
   return text
-    .toLowerCase()
+    .toLocaleLowerCase("tr")
     .trim()
     .replace(/ğ/g, "g")
     .replace(/ü/g, "u")
@@ -108,7 +109,7 @@ function slugifyTr(text: string) {
 
 function normalizeHeader(text: string) {
   return text
-    .toLowerCase()
+    .toLocaleLowerCase("tr")
     .trim()
     .replace(/ğ/g, "g")
     .replace(/ü/g, "u")
@@ -129,23 +130,15 @@ function detectDelimiter(firstLine: string) {
 }
 
 function parseBoolean(value: string, fallback: boolean) {
-  const normalized = value.trim().toLowerCase();
+  const normalized = value.trim().toLocaleLowerCase("tr");
 
   if (!normalized) return fallback;
 
-  if (
-    ["1", "true", "evet", "yes", "var", "yayinda", "on"].includes(
-      normalized
-    )
-  ) {
+  if (["1", "true", "evet", "yes", "var", "yayinda", "on"].includes(normalized)) {
     return true;
   }
 
-  if (
-    ["0", "false", "hayir", "hayır", "no", "yok", "taslak", "off"].includes(
-      normalized
-    )
-  ) {
+  if (["0", "false", "hayir", "hayır", "no", "yok", "taslak", "off"].includes(normalized)) {
     return false;
   }
 
@@ -163,7 +156,6 @@ function isValidUrl(value: string) {
 
 function parsePositiveInteger(value: string) {
   const parsed = Number(value);
-
   return Number.isInteger(parsed) && parsed > 0 ? parsed : undefined;
 }
 
@@ -284,28 +276,25 @@ export default function AdminBulkImport() {
 
     if (lines.length < 2) {
       setStatusType("error");
-      setStatusMessage(
-        "En az bir başlık satırı ve bir veri satırı bulunmalı."
-      );
+      setStatusMessage("En az bir başlık satırı ve bir veri satırı bulunmalı.");
       setPreviewRows([]);
       return;
     }
 
     const delimiter = detectDelimiter(lines[0]);
     const headerCells = lines[0].split(delimiter).map((cell) => cell.trim());
-
     const headerMap = new Map<CanonicalHeader, number>();
 
     headerCells.forEach((header, index) => {
       const normalized = normalizeHeader(header);
 
-      (
-        Object.entries(HEADER_ALIASES) as Array<[CanonicalHeader, string[]]>
-      ).forEach(([canonical, aliases]) => {
-        if (aliases.includes(normalized)) {
-          headerMap.set(canonical, index);
+      (Object.entries(HEADER_ALIASES) as Array<[CanonicalHeader, string[]]>).forEach(
+        ([canonical, aliases]) => {
+          if (aliases.includes(normalized)) {
+            headerMap.set(canonical, index);
+          }
         }
-      });
+      );
     });
 
     const missingRequired = REQUIRED_HEADERS.filter(
@@ -364,6 +353,7 @@ export default function AdminBulkImport() {
         errors.push("Konu boş.");
       } else if (
         ["5", "6", "7", "8"].includes(grade) &&
+        topic !== ALL_TOPICS_LABEL &&
         !getTopicsByGrade(grade as GradeLevel).includes(topic)
       ) {
         errors.push("Konu seçilen sınıfla uyuşmuyor.");
@@ -438,16 +428,14 @@ export default function AdminBulkImport() {
           description,
           grade: grade as GradeLevel,
           topic,
-          subtopic: subtopic || undefined,
+          subtopic: topic === ALL_TOPICS_LABEL ? undefined : subtopic || undefined,
           type,
           sourceType: sourceType as SourceType,
           fileUrl,
           solutionUrl: solutionUrl || undefined,
           answerKeyUrl: answerKeyUrl || undefined,
           coverImageUrl: coverImageUrl || undefined,
-          difficulty: difficulty
-            ? (difficulty as DocumentDifficulty)
-            : undefined,
+          difficulty: difficulty ? (difficulty as DocumentDifficulty) : undefined,
           pageCount: parsedPageCount,
           questionCount: parsedQuestionCount,
           sourceYear: parsedSourceYear,
@@ -466,8 +454,8 @@ export default function AdminBulkImport() {
     setStatusType("success");
     setStatusMessage(
       `Önizleme hazır. Geçerli: ${
-        parsed.filter((x) => x.errors.length === 0).length
-      }, Hatalı: ${parsed.filter((x) => x.errors.length > 0).length}`
+        parsed.filter((row) => row.errors.length === 0).length
+      }, Hatalı: ${parsed.filter((row) => row.errors.length > 0).length}`
     );
   }
 
@@ -500,8 +488,8 @@ export default function AdminBulkImport() {
     <section className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-[0_18px_60px_rgba(15,23,42,0.05)] md:p-8">
       <SectionHeader
         eyebrow="TOPLU İÇERİK GİRİŞİ"
-        title="Excel / Sheets’ten çoklu kayıt ekle"
-        description="Excel veya Google Sheets’te hazırladığın satırları başlık satırıyla birlikte kopyala, buraya yapıştır, önizle ve tek seferde ekle."
+        title="Excel / Sheets&apos;ten çoklu kayıt ekle"
+        description="Excel veya Google Sheets&apos;te hazırladığın satırları başlık satırıyla birlikte kopyala, buraya yapıştır, önizle ve tek seferde ekle."
       />
 
       <div className="mt-6 grid gap-4 sm:grid-cols-3">
@@ -564,11 +552,15 @@ export default function AdminBulkImport() {
 
         <div className="space-y-4">
           <InlineNotice title="Beklenen başlıklar">
-            title, description, grade, topic, subtopic, type, sourceType, fileUrl, solutionUrl, answerKeyUrl, coverImageUrl, difficulty, pageCount, questionCount, sourceYear, curriculumCode, isPrintReady, hasVideoSolution, featured, published
+            title, description, grade, topic, subtopic, type, sourceType, fileUrl,
+            solutionUrl, answerKeyUrl, coverImageUrl, difficulty, pageCount,
+            questionCount, sourceYear, curriculumCode, isPrintReady,
+            hasVideoSolution, featured, published
           </InlineNotice>
 
           <InlineNotice tone="info" title="En temiz yöntem">
-            Excel veya Google Sheets’te tabloyu başlık satırıyla birlikte seçip doğrudan yapıştır. Alan ayırıcı olarak sekme en sorunsuz yöntemdir.
+            Excel veya Google Sheets&apos;te tabloyu başlık satırıyla birlikte seçip
+            doğrudan yapıştır. Alan ayırıcı olarak sekme en sorunsuz yöntemdir.
           </InlineNotice>
         </div>
       </div>

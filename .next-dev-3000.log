@@ -1,0 +1,45 @@
+
+> premat@0.1.0 dev
+> next dev --hostname 127.0.0.1 --port 3000
+
+▲ Next.js 16.1.7 (Turbopack)
+- Local:         http://127.0.0.1:3000
+- Network:       http://127.0.0.1:3000
+- Environments: .env.local
+
+✓ Starting...
+Creating turbopack project { dir: 'C:\\Users\\ihsan\\OneDrive\\premat', testMode: true }
+✓ Ready in 1077ms
+ GET / 200 in 1107ms (compile: 568ms, proxy.ts: 169ms, render: 370ms)
+ GET /manifest.webmanifest 200 in 88ms (compile: 65ms, proxy.ts: 9ms, render: 14ms)
+ GET /panel 307 in 234ms (compile: 136ms, proxy.ts: 9ms, render: 89ms)
+ GET /panel-giris 200 in 139ms (compile: 74ms, proxy.ts: 4ms, render: 60ms)
+ GET /manifest.webmanifest 200 in 18ms (compile: 6ms, proxy.ts: 9ms, render: 4ms)
+ GET /panel 200 in 318ms (compile: 3ms, proxy.ts: 176ms, render: 138ms)
+ GET /panel 200 in 346ms (compile: 2ms, proxy.ts: 5ms, render: 339ms)
+ GET /manifest.webmanifest 200 in 11ms (compile: 3ms, proxy.ts: 4ms, render: 4ms)
+ GET /panel?section=documents 200 in 385ms (compile: 7ms, proxy.ts: 10ms, render: 368ms)
+ GET /manifest.webmanifest 200 in 13ms (compile: 3ms, proxy.ts: 4ms, render: 7ms)
+ GET /panel?section=tests 200 in 214ms (compile: 6ms, proxy.ts: 12ms, render: 196ms)
+ GET /manifest.webmanifest 200 in 14ms (compile: 3ms, proxy.ts: 7ms, render: 4ms)
+ GET /panel?section=operations 200 in 273ms (compile: 4ms, proxy.ts: 9ms, render: 260ms)
+ GET /manifest.webmanifest 200 in 11ms (compile: 3ms, proxy.ts: 4ms, render: 3ms)
+ GET /panel?section=overview 200 in 138ms (compile: 6ms, proxy.ts: 10ms, render: 121ms)
+ GET /manifest.webmanifest 200 in 9ms (compile: 2ms, proxy.ts: 4ms, render: 3ms)
+ GET /panel?section=documents 200 in 140ms (compile: 6ms, proxy.ts: 11ms, render: 123ms)
+ GET /manifest.webmanifest 200 in 13ms (compile: 4ms, proxy.ts: 7ms, render: 3ms)
+ GET /panel?section=tests 200 in 127ms (compile: 7ms, proxy.ts: 9ms, render: 111ms)
+ GET /manifest.webmanifest 200 in 12ms (compile: 5ms, proxy.ts: 4ms, render: 3ms)
+ GET /panel?section=operations 200 in 147ms (compile: 6ms, proxy.ts: 11ms, render: 129ms)
+ GET /manifest.webmanifest 200 in 9ms (compile: 2ms, proxy.ts: 4ms, render: 3ms)
+ GET /panel?section=overview 200 in 131ms (compile: 6ms, proxy.ts: 10ms, render: 116ms)
+ GET /manifest.webmanifest 200 in 9ms (compile: 2ms, proxy.ts: 4ms, render: 3ms)
+ GET /panel?section=documents 200 in 402ms (compile: 6ms, proxy.ts: 7ms, render: 389ms)
+ GET /manifest.webmanifest 200 in 7ms (compile: 1962µs, proxy.ts: 2ms, render: 2ms)
+ GET /panel-giris 200 in 39ms (compile: 3ms, proxy.ts: 3ms, render: 33ms)
+ GET /panel-giris 200 in 23ms (compile: 2ms, proxy.ts: 4ms, render: 16ms)
+ GET /manifest.webmanifest 200 in 9ms (compile: 3ms, proxy.ts: 4ms, render: 2ms)
+ GET / 200 in 132ms (compile: 5ms, proxy.ts: 6ms, render: 122ms)
+ GET /manifest.webmanifest 200 in 18ms (compile: 5ms, proxy.ts: 9ms, render: 4ms)
+ GET / 200 in 324ms (compile: 112ms, proxy.ts: 7ms, render: 205ms)
+ GET /manifest.webmanifest 200 in 13ms (compile: 4ms, proxy.ts: 6ms, render: 3ms)
