@@ -1,12 +1,10 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { useAuth } from "@/components/providers/AuthProvider";
 
 export default function PanelLoginPageClient() {
-  const router = useRouter();
   const { login, logout, isAuthenticated, isAdmin, isLoading, userEmail } =
     useAuth();
 
@@ -14,12 +12,6 @@ export default function PanelLoginPageClient() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
-
-  useEffect(() => {
-    if (!isLoading && isAuthenticated && isAdmin) {
-      router.replace("/panel");
-    }
-  }, [isAuthenticated, isAdmin, isLoading, router]);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -35,7 +27,7 @@ export default function PanelLoginPageClient() {
 
     setError("");
     setSubmitting(false);
-    router.replace("/panel");
+    window.location.assign("/panel");
   }
 
   return (

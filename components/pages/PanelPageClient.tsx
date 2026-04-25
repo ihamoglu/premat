@@ -73,12 +73,6 @@ function PanelPageInner() {
   }, [searchParams]);
 
   useEffect(() => {
-    if (!isLoading && (!isAuthenticated || !isAdmin)) {
-      router.replace("/panel-giris");
-    }
-  }, [isAuthenticated, isAdmin, isLoading, router]);
-
-  useEffect(() => {
     document.body.style.overflow = drawerOpen ? "hidden" : "";
 
     return () => {
@@ -128,7 +122,8 @@ function PanelPageInner() {
             Yetkisiz erişim
           </h1>
           <p className="mt-3 text-slate-300">
-            Bu alan yalnızca tanımlı admin hesabına açıktır.
+            Bu alan yalnızca tanımlı admin hesabına açıktır. Oturum doğrulaması
+            tamamlanmadıysa sayfayı yenile.
           </p>
         </div>
       </main>
