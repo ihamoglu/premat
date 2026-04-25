@@ -5,20 +5,20 @@ import { getPublishedDocuments } from "@/lib/server-documents";
 import { absoluteUrl, siteConfig } from "@/lib/site";
 
 export const metadata: Metadata = {
-  title: "Matematik İçin Düzenli ve Güvenilir Dökümanlar",
+  title: "premat | Matematik İçin Düzenli ve Güvenilir Döküman Arşivi",
   description: siteConfig.longDescription,
   alternates: {
     canonical: "/",
   },
   openGraph: {
-    title: `${siteConfig.name} | Matematik İçin Düzenli ve Güvenilir Dökümanlar`,
+    title: "premat | Matematik İçin Düzenli ve Güvenilir Döküman Arşivi",
     description: siteConfig.longDescription,
     url: siteConfig.url,
     images: [absoluteUrl(siteConfig.ogImage)],
   },
   twitter: {
     card: "summary_large_image",
-    title: `${siteConfig.name} | Matematik İçin Düzenli ve Güvenilir Dökümanlar`,
+    title: "premat | Matematik İçin Düzenli ve Güvenilir Döküman Arşivi",
     description: siteConfig.longDescription,
     images: [absoluteUrl(siteConfig.ogImage)],
   },
@@ -31,14 +31,14 @@ export default async function HomePage() {
     {
       "@context": "https://schema.org",
       "@type": "Organization",
-      name: siteConfig.name,
+      name: siteConfig.shortName,
       url: siteConfig.url,
-      logo: absoluteUrl(siteConfig.ogImage),
+      logo: absoluteUrl("/icon.png"),
     },
     {
       "@context": "https://schema.org",
       "@type": "WebSite",
-      name: siteConfig.name,
+      name: siteConfig.shortName,
       url: siteConfig.url,
       description: siteConfig.longDescription,
       potentialAction: {

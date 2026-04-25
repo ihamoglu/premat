@@ -9,18 +9,20 @@ import GoogleAnalytics from "@/components/analytics/GoogleAnalytics";
 import AutoAdsLoader from "@/components/ads/AutoAdsLoader";
 import { absoluteUrl, siteConfig } from "@/lib/site";
 
+const defaultTitle = `${siteConfig.name} | Matematik İçin Düzenli ve Güvenilir Döküman Arşivi`;
+
 export const metadata: Metadata = {
   metadataBase: new URL(siteConfig.url),
   title: {
-    default: `${siteConfig.name} | Matematik İçin Düzenli ve Güvenilir Dökümanlar`,
+    default: defaultTitle,
     template: `%s | ${siteConfig.name}`,
   },
   description: siteConfig.longDescription,
-  applicationName: siteConfig.name,
+  applicationName: siteConfig.shortName,
   keywords: siteConfig.keywords,
-  authors: [{ name: siteConfig.name }],
-  creator: siteConfig.name,
-  publisher: siteConfig.name,
+  authors: [{ name: siteConfig.shortName }],
+  creator: siteConfig.shortName,
+  publisher: siteConfig.shortName,
   alternates: {
     canonical: "/",
   },
@@ -28,28 +30,31 @@ export const metadata: Metadata = {
     type: "website",
     locale: siteConfig.locale,
     url: siteConfig.url,
-    siteName: siteConfig.name,
-    title: `${siteConfig.name} | Matematik İçin Düzenli ve Güvenilir Dökümanlar`,
+    siteName: siteConfig.shortName,
+    title: defaultTitle,
     description: siteConfig.longDescription,
     images: [
       {
         url: absoluteUrl(siteConfig.ogImage),
         width: 512,
         height: 512,
-        alt: `${siteConfig.name} kare logo`,
+        alt: `${siteConfig.shortName} logo`,
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: `${siteConfig.name} | Matematik İçin Düzenli ve Güvenilir Dökümanlar`,
+    title: defaultTitle,
     description: siteConfig.longDescription,
     images: [absoluteUrl(siteConfig.ogImage)],
   },
   icons: {
-    icon: "/brand/logo-square.png",
-    shortcut: "/brand/logo-square.png",
-    apple: "/brand/logo-square.png",
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/icon.png", type: "image/png", sizes: "512x512" },
+    ],
+    shortcut: [{ url: "/favicon.ico" }],
+    apple: [{ url: "/apple-icon.png", sizes: "180x180", type: "image/png" }],
   },
 };
 

@@ -56,3 +56,9 @@ Creating turbopack project { dir: 'C:\\Users\\ihsan\\OneDrive\\premat', testMode
 ✓ Compiled in 98ms
  GET / 200 in 353ms (compile: 109ms, proxy.ts: 7ms, render: 236ms)
  GET /manifest.webmanifest 200 in 17ms (compile: 4ms, proxy.ts: 8ms, render: 4ms)
+✓ Compiled in 1249ms
+✓ Compiled in 174ms
+ GET / 200 in 1364ms (compile: 633ms, proxy.ts: 77ms, render: 655ms)
+✓ Compiled in 12ms
+✓ Compiled in 5ms
+✓ Compiled in 45ms
