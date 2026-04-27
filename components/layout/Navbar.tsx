@@ -17,6 +17,7 @@ const desktopNavItems: NavItem[] = [
   { href: "/", label: "Ana Sayfa" },
   { href: "/documents", label: "Dökümanlar" },
   { href: "/testler", label: "Testler" },
+  { href: "/araclar", label: "Araçlar" },
   { href: "/sinif/5", label: "5. Sınıf" },
   { href: "/sinif/6", label: "6. Sınıf" },
   { href: "/sinif/7", label: "7. Sınıf" },
@@ -29,8 +30,14 @@ const mobileMainItems: NavItem[] = [
   { href: "/", label: "Ana Sayfa" },
   { href: "/documents", label: "Dökümanlar" },
   { href: "/testler", label: "Testler" },
+  { href: "/araclar", label: "Araçlar" },
   { href: "https://prekoc.com.tr", label: "Koçluk", external: true },
   { href: "/ogretmen", label: "Öğretmen" },
+];
+
+const toolNavItems: NavItem[] = [
+  { href: "/araclar/lgs-puan-hesaplama", label: "LGS Puan Hesaplama" },
+  { href: "/araclar/yks-puan-hesaplama", label: "YKS Puan Hesaplama" },
 ];
 
 const mobileGradeItems = [
@@ -52,6 +59,8 @@ export default function Navbar() {
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [openGrade, setOpenGrade] = useState<string | null>(null);
+  const [openMobileTools, setOpenMobileTools] = useState(false);
+  const [toolsMenuOpen, setToolsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
 
   const locationKey = useMemo(
@@ -63,6 +72,8 @@ export default function Navbar() {
     const timeoutId = window.setTimeout(() => {
       setMobileMenuOpen(false);
       setOpenGrade(null);
+      setOpenMobileTools(false);
+      setToolsMenuOpen(false);
     }, 0);
 
     return () => window.clearTimeout(timeoutId);
@@ -166,6 +177,82 @@ export default function Navbar() {
                       }
                     : undefined;
 
+                  if (item.href === "/araclar") {
+                    return (
+                      <div
+                        key={item.href}
+                        className="relative"
+                        onMouseEnter={() => setToolsMenuOpen(true)}
+                        onMouseLeave={() => setToolsMenuOpen(false)}
+                        onBlur={(event) => {
+                          const nextTarget = event.relatedTarget;
+                          if (
+                            nextTarget instanceof Node &&
+                            event.currentTarget.contains(nextTarget)
+                          ) {
+                            return;
+                          }
+
+                          setToolsMenuOpen(false);
+                        }}
+                      >
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setToolsMenuOpen((current) => !current)
+                          }
+                          onFocus={() => setToolsMenuOpen(true)}
+                          className={className}
+                          style={activeStyle}
+                          aria-expanded={toolsMenuOpen}
+                          aria-haspopup="menu"
+                        >
+                          <span className="inline-flex items-center gap-1.5">
+                            {item.label}
+                            <svg
+                              viewBox="0 0 24 24"
+                              className={`h-3.5 w-3.5 transition-transform ${
+                                toolsMenuOpen ? "rotate-180" : ""
+                              }`}
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2.4"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            >
+                              <path d="M6 9l6 6 6-6" />
+                            </svg>
+                          </span>
+                        </button>
+
+                        {toolsMenuOpen ? (
+                          <div
+                            className="absolute left-0 top-full z-50 w-64 overflow-hidden rounded-2xl border border-slate-200 bg-white p-2 shadow-2xl shadow-slate-900/12"
+                            role="menu"
+                          >
+                            <Link
+                              href="/araclar"
+                              className="block rounded-xl px-4 py-3 text-sm font-bold text-slate-700 transition hover:bg-blue-50 hover:text-blue-900"
+                              role="menuitem"
+                            >
+                              Tüm Araçlar
+                            </Link>
+                            {toolNavItems.map((tool) => (
+                              <Link
+                                key={tool.href}
+                                href={tool.href}
+                                className="block rounded-xl px-4 py-3 text-sm font-bold text-slate-700 transition hover:bg-blue-50 hover:text-blue-900"
+                                role="menuitem"
+                              >
+                                {tool.label}
+                              </Link>
+                            ))}
+                          </div>
+                        ) : null}
+                      </div>
+                    );
+                  }
+
                   return item.external ? (
                     <a key={item.label} href={item.href} className={className} style={activeStyle}>
                       {item.label}
@@ -249,6 +336,75 @@ export default function Navbar() {
                       : "text-slate-700 hover:bg-blue-50 hover:text-blue-900"
                   }`;
 
+                  if (item.href === "/araclar") {
+                    return (
+                      <div
+                        key={item.label}
+                        className="overflow-hidden rounded-2xl border border-slate-200 bg-white"
+                      >
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setOpenMobileTools((current) => !current)
+                          }
+                          className={`flex w-full items-center justify-between px-4 py-3 text-left text-sm font-semibold transition ${
+                            active
+                              ? "bg-[linear-gradient(135deg,#1d4f91_0%,#2f6eb7_100%)] text-white shadow-md shadow-blue-900/20"
+                              : "text-slate-700 hover:bg-blue-50 hover:text-blue-900"
+                          }`}
+                          aria-expanded={openMobileTools}
+                        >
+                          <span>{item.label}</span>
+                          <svg
+                            viewBox="0 0 24 24"
+                            className={`h-4 w-4 transition-transform duration-200 ${
+                              openMobileTools ? "rotate-90" : ""
+                            }`}
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2.2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          >
+                            <path d="M9 6l6 6-6 6" />
+                          </svg>
+                        </button>
+
+                        {openMobileTools ? (
+                          <div className="border-t border-blue-100 bg-blue-50/60 px-3 py-3">
+                            <div className="grid gap-2">
+                              <Link
+                                href="/araclar"
+                                onClick={() => {
+                                  setMobileMenuOpen(false);
+                                  setOpenGrade(null);
+                                  setOpenMobileTools(false);
+                                }}
+                                className="rounded-xl border border-blue-100 bg-white px-3 py-2 text-xs font-semibold text-slate-700 transition hover:border-blue-300 hover:text-blue-800"
+                              >
+                                Tüm Araçlar
+                              </Link>
+                              {toolNavItems.map((tool) => (
+                                <Link
+                                  key={tool.href}
+                                  href={tool.href}
+                                  onClick={() => {
+                                    setMobileMenuOpen(false);
+                                    setOpenGrade(null);
+                                    setOpenMobileTools(false);
+                                  }}
+                                  className="rounded-xl border border-blue-100 bg-white px-3 py-2 text-xs font-semibold text-slate-700 transition hover:border-blue-300 hover:text-blue-800"
+                                >
+                                  {tool.label}
+                                </Link>
+                              ))}
+                            </div>
+                          </div>
+                        ) : null}
+                      </div>
+                    );
+                  }
+
                   return item.external ? (
                     <a
                       key={item.label}
@@ -256,6 +412,7 @@ export default function Navbar() {
                       onClick={() => {
                         setMobileMenuOpen(false);
                         setOpenGrade(null);
+                        setOpenMobileTools(false);
                       }}
                       className={className}
                     >
@@ -269,6 +426,7 @@ export default function Navbar() {
                       onClick={() => {
                         setMobileMenuOpen(false);
                         setOpenGrade(null);
+                        setOpenMobileTools(false);
                       }}
                       className={className}
                     >
