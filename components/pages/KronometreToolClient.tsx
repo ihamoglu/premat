@@ -18,6 +18,17 @@ type TimerState = {
   breakSeconds: number;
 };
 
+type PersistedKronometreState = {
+  activeTool: ToolKey;
+  activeThemeKey: ThemeKey;
+  timers: Record<ToolKey, TimerState>;
+  countdownHours: string;
+  countdownMinutes: string;
+  examPreset: (typeof examPresets)[number]["key"];
+  examCustomMinutes: string;
+  savedAt: number;
+};
+
 type ToolConfig = {
   key: ToolKey;
   label: string;
@@ -204,6 +215,8 @@ const initialTimers: Record<ToolKey, TimerState> = {
   },
 };
 
+const KRONOMETRE_STORAGE_KEY = "premat:kronometre:v1";
+
 export default function KronometreToolClient() {
   const [activeTool, setActiveTool] = useState<ToolKey>("pomodoro");
   const [activeThemeKey, setActiveThemeKey] = useState<ThemeKey>("blue");
@@ -218,6 +231,7 @@ export default function KronometreToolClient() {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [currentClock, setCurrentClock] = useState("--:--");
   const timerCardRef = useRef<HTMLDivElement>(null);
+  const hasLoadedStorageRef = useRef(false);
 
   const activeTheme =
     timerThemes.find((theme) => theme.key === activeThemeKey) ?? timerThemes[0];
@@ -251,6 +265,53 @@ export default function KronometreToolClient() {
       window.clearInterval(intervalId);
     };
   }, []);
+
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => {
+      const persistedState = readPersistedKronometreState();
+
+      if (persistedState) {
+        setActiveTool(persistedState.activeTool);
+        setActiveThemeKey(persistedState.activeThemeKey);
+        setCountdownHours(persistedState.countdownHours);
+        setCountdownMinutes(persistedState.countdownMinutes);
+        setExamPreset(persistedState.examPreset);
+        setExamCustomMinutes(persistedState.examCustomMinutes);
+        setTimers(
+          applyElapsedToTimers(persistedState.timers, persistedState.savedAt)
+        );
+      }
+
+      hasLoadedStorageRef.current = true;
+    }, 0);
+
+    return () => window.clearTimeout(timeoutId);
+  }, []);
+
+  useEffect(() => {
+    if (!hasLoadedStorageRef.current) {
+      return;
+    }
+
+    persistKronometreState({
+      activeTool,
+      activeThemeKey,
+      timers,
+      countdownHours,
+      countdownMinutes,
+      examPreset,
+      examCustomMinutes,
+      savedAt: Date.now(),
+    });
+  }, [
+    activeTool,
+    activeThemeKey,
+    timers,
+    countdownHours,
+    countdownMinutes,
+    examPreset,
+    examCustomMinutes,
+  ]);
 
   useEffect(() => {
     const interval = window.setInterval(() => {
@@ -299,23 +360,39 @@ export default function KronometreToolClient() {
     : 1;
 
   function startTimer() {
-    setTimers((current) => ({
-      ...current,
-      [activeTool]: {
-        ...current[activeTool],
-        status: "running",
-      },
-    }));
+    setTimers((current) => {
+      const timer = current[activeTool];
+      const nextTimer =
+        timer.status === "done" || timer.remainingSeconds <= 0
+          ? resetState(activeTool, timer)
+          : timer;
+
+      return {
+        ...current,
+        [activeTool]: {
+          ...nextTimer,
+          status: "running",
+        },
+      };
+    });
   }
 
   function pauseTimer() {
-    setTimers((current) => ({
-      ...current,
-      [activeTool]: {
-        ...current[activeTool],
-        status: "paused",
-      },
-    }));
+    setTimers((current) => {
+      const timer = current[activeTool];
+
+      if (timer.status !== "running") {
+        return current;
+      }
+
+      return {
+        ...current,
+        [activeTool]: {
+          ...timer,
+          status: "paused",
+        },
+      };
+    });
   }
 
   function resetTimer() {
@@ -511,7 +588,7 @@ export default function KronometreToolClient() {
               timer={activeTimer}
             />
 
-            <div className="mt-7 flex w-full max-w-md flex-col justify-center gap-3 sm:flex-row">
+            <div className="relative z-20 mt-7 flex w-full max-w-md flex-col justify-center gap-3 sm:flex-row">
               <ControlButton
                 onClick={resetTimer}
                 icon="reset"
@@ -633,6 +710,159 @@ function resetState(tool: ToolKey, timer: TimerState): TimerState {
   };
 }
 
+function applyElapsedToTimers(
+  timers: Record<ToolKey, TimerState>,
+  savedAt: number
+): Record<ToolKey, TimerState> {
+  const elapsedSeconds = Math.max(0, Math.floor((Date.now() - savedAt) / 1000));
+
+  if (elapsedSeconds <= 0) {
+    return timers;
+  }
+
+  return {
+    pomodoro: applyElapsedToTimer(timers.pomodoro, elapsedSeconds),
+    study: applyElapsedToTimer(timers.study, elapsedSeconds),
+    countdown: applyElapsedToTimer(timers.countdown, elapsedSeconds),
+    exam: applyElapsedToTimer(timers.exam, elapsedSeconds),
+  };
+}
+
+function applyElapsedToTimer(timer: TimerState, elapsedSeconds: number): TimerState {
+  if (timer.status !== "running" || elapsedSeconds <= 0) {
+    return timer;
+  }
+
+  let nextTimer = { ...timer };
+  let remainingElapsed = elapsedSeconds;
+  let guard = 0;
+
+  while (remainingElapsed > 0 && nextTimer.status === "running" && guard < 1000) {
+    if (nextTimer.remainingSeconds > remainingElapsed) {
+      return {
+        ...nextTimer,
+        remainingSeconds: nextTimer.remainingSeconds - remainingElapsed,
+      };
+    }
+
+    remainingElapsed -= Math.max(1, nextTimer.remainingSeconds);
+    nextTimer = advanceTimer(nextTimer);
+    guard += 1;
+  }
+
+  return nextTimer;
+}
+
+function persistKronometreState(state: PersistedKronometreState) {
+  try {
+    window.localStorage.setItem(KRONOMETRE_STORAGE_KEY, JSON.stringify(state));
+  } catch {
+    // Depolama kapalıysa sayaç normal şekilde çalışmaya devam eder.
+  }
+}
+
+function readPersistedKronometreState(): PersistedKronometreState | null {
+  try {
+    const rawState = window.localStorage.getItem(KRONOMETRE_STORAGE_KEY);
+
+    if (!rawState) {
+      return null;
+    }
+
+    const parsed: unknown = JSON.parse(rawState);
+
+    if (!isRecord(parsed)) {
+      return null;
+    }
+
+    return {
+      activeTool: isToolKey(parsed.activeTool) ? parsed.activeTool : "pomodoro",
+      activeThemeKey: isThemeKey(parsed.activeThemeKey)
+        ? parsed.activeThemeKey
+        : "blue",
+      timers: coerceTimers(parsed.timers),
+      countdownHours:
+        typeof parsed.countdownHours === "string" ? parsed.countdownHours : "0",
+      countdownMinutes:
+        typeof parsed.countdownMinutes === "string"
+          ? parsed.countdownMinutes
+          : "30",
+      examPreset: isExamPresetKey(parsed.examPreset)
+        ? parsed.examPreset
+        : "lgs-verbal",
+      examCustomMinutes:
+        typeof parsed.examCustomMinutes === "string"
+          ? parsed.examCustomMinutes
+          : "45",
+      savedAt: typeof parsed.savedAt === "number" ? parsed.savedAt : Date.now(),
+    };
+  } catch {
+    return null;
+  }
+}
+
+function coerceTimers(value: unknown): Record<ToolKey, TimerState> {
+  const source = isRecord(value) ? value : {};
+
+  return {
+    pomodoro: coerceTimer(source.pomodoro, initialTimers.pomodoro),
+    study: coerceTimer(source.study, initialTimers.study),
+    countdown: coerceTimer(source.countdown, initialTimers.countdown),
+    exam: coerceTimer(source.exam, initialTimers.exam),
+  };
+}
+
+function coerceTimer(value: unknown, fallback: TimerState): TimerState {
+  if (!isRecord(value)) {
+    return fallback;
+  }
+
+  return {
+    remainingSeconds: coerceNumber(value.remainingSeconds, fallback.remainingSeconds),
+    phase: isPhase(value.phase) ? value.phase : fallback.phase,
+    status: isTimerStatus(value.status) ? value.status : fallback.status,
+    completedCycles: coerceNumber(value.completedCycles, fallback.completedCycles),
+    targetCycles: coerceNumber(value.targetCycles, fallback.targetCycles),
+    workSeconds: coerceNumber(value.workSeconds, fallback.workSeconds),
+    breakSeconds: coerceNumber(value.breakSeconds, fallback.breakSeconds),
+  };
+}
+
+function coerceNumber(value: unknown, fallback: number) {
+  return typeof value === "number" && Number.isFinite(value) ? value : fallback;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
+}
+
+function isToolKey(value: unknown): value is ToolKey {
+  return tools.some((tool) => tool.key === value);
+}
+
+function isThemeKey(value: unknown): value is ThemeKey {
+  return timerThemes.some((theme) => theme.key === value);
+}
+
+function isExamPresetKey(
+  value: unknown
+): value is (typeof examPresets)[number]["key"] {
+  return examPresets.some((preset) => preset.key === value);
+}
+
+function isPhase(value: unknown): value is Phase {
+  return value === "work" || value === "break" || value === "single";
+}
+
+function isTimerStatus(value: unknown): value is TimerStatus {
+  return (
+    value === "idle" ||
+    value === "running" ||
+    value === "paused" ||
+    value === "done"
+  );
+}
+
 function playBell() {
   try {
     const AudioContextConstructor: typeof AudioContext | undefined =
@@ -743,7 +973,7 @@ function TimerCircle({
   const isLongTime = timer.remainingSeconds >= 3600;
 
   return (
-    <div className="relative mt-7 flex h-[244px] w-[244px] items-center justify-center sm:h-[312px] sm:w-[312px] md:h-[350px] md:w-[350px] lg:h-[382px] lg:w-[382px]">
+    <div className="pointer-events-none relative mt-7 flex h-[244px] w-[244px] items-center justify-center sm:h-[312px] sm:w-[312px] md:h-[350px] md:w-[350px] lg:h-[382px] lg:w-[382px]">
       <div
         className="absolute inset-[-18%] rounded-full opacity-35 blur-2xl"
         style={{ background: theme.soft }}
@@ -794,7 +1024,7 @@ function ControlButton({
     <button
       type="button"
       onClick={onClick}
-      className={`inline-flex min-h-14 w-full items-center justify-center gap-2 rounded-2xl px-6 py-3 text-base font-black transition sm:w-auto sm:min-w-[150px] ${
+      className={`inline-flex min-h-14 w-full touch-manipulation select-none items-center justify-center gap-2 rounded-2xl px-6 py-3 text-base font-black transition sm:w-auto sm:min-w-[150px] ${
         secondary
           ? "border border-white/18 bg-black/12 text-white/88 backdrop-blur hover:bg-white/12"
           : "text-white shadow-2xl hover:-translate-y-0.5"
