@@ -34,6 +34,13 @@ const tools = [
       "2018-2025 YKS verileriyle TYT, SAY, SÖZ, EA ve DİL puan tahmini.",
     badge: "Hesaplama Aracı",
   },
+  {
+    href: "/araclar/sinava-kac-gun-kaldi",
+    title: "LGS/YKS Geri Sayım",
+    description:
+      "LGS ve YKS sınavlarına kalan gün, saat, dakika ve saniyeyi canlı takip et.",
+    badge: "Sayaç Aracı",
+  },
 ];
 
 export default function ToolsPage() {

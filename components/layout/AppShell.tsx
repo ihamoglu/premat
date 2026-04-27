@@ -6,6 +6,7 @@ import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import SplashScreen from "@/components/common/SplashScreen";
 import WorklistDrawer from "@/components/worklist/WorklistDrawer";
+import HomeCountdownWidget from "@/components/tools/HomeCountdownWidget";
 
 function NavbarFallback() {
   return <div className="h-[74px] border-b border-slate-200 bg-white/90" />;
@@ -105,6 +106,7 @@ export default function AppShell({
 
         {!isPanelRoute ? <Footer /> : null}
         {!isPanelRoute ? <WorklistDrawer /> : null}
+        {isHomeRoute && shellIsReady ? <HomeCountdownWidget /> : null}
       </div>
     </>
   );

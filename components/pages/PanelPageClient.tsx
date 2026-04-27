@@ -12,6 +12,7 @@ import AdminQualityReport from "@/components/admin/AdminQualityReport";
 import AdminLinkHealthCheck from "@/components/admin/AdminLinkHealthCheck";
 import AdminOperationsReport from "@/components/admin/AdminOperationsReport";
 import AdminStorageCleanup from "@/components/admin/AdminStorageCleanup";
+import AdminExamCountdownSettings from "@/components/admin/AdminExamCountdownSettings";
 import { useAuth } from "@/components/providers/AuthProvider";
 import {
   DocumentsProvider,
@@ -19,7 +20,7 @@ import {
 } from "@/components/providers/DocumentsProvider";
 import { DocumentItem } from "@/types/document";
 
-type PanelSection = "overview" | "documents" | "tests" | "operations";
+type PanelSection = "overview" | "documents" | "tests" | "tools" | "operations";
 
 const panelSections: Array<{
   id: PanelSection;
@@ -40,6 +41,11 @@ const panelSections: Array<{
     id: "tests",
     label: "Testler",
     description: "Online test oluşturucu",
+  },
+  {
+    id: "tools",
+    label: "Araçlar",
+    description: "Sayaç ve araç ayarları",
   },
   {
     id: "operations",
@@ -64,6 +70,7 @@ function PanelPageInner() {
       section === "overview" ||
       section === "documents" ||
       section === "tests" ||
+      section === "tools" ||
       section === "operations"
     ) {
       return section;
@@ -305,6 +312,10 @@ function PanelPageInner() {
               ) : null}
 
               {currentSection === "tests" ? <AdminTestBuilder /> : null}
+
+              {currentSection === "tools" ? (
+                <AdminExamCountdownSettings />
+              ) : null}
 
               {currentSection === "operations" ? (
                 <>

@@ -38,6 +38,7 @@ const mobileMainItems: NavItem[] = [
 const toolNavItems: NavItem[] = [
   { href: "/araclar/lgs-puan-hesaplama", label: "LGS Puan Hesaplama" },
   { href: "/araclar/yks-puan-hesaplama", label: "YKS Puan Hesaplama" },
+  { href: "/araclar/sinava-kac-gun-kaldi", label: "LGS/YKS Geri Sayım" },
 ];
 
 const mobileGradeItems = [
