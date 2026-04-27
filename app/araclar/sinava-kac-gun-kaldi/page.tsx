@@ -71,12 +71,6 @@ export default function ExamCountdownPage() {
 
             <div className="space-y-5 p-5 sm:p-7 md:p-9">
               <ExamCountdownDisplay />
-
-              <div className="rounded-2xl border border-blue-100 bg-blue-50/70 p-4 text-sm leading-6 text-slate-700">
-                Tarihler Premat yönetici panelinden güncellenir. Resmi sınav
-                takvimlerinde değişiklik olursa sayaç tarihi panelden yeniden
-                ayarlanabilir.
-              </div>
             </div>
           </div>
         </section>

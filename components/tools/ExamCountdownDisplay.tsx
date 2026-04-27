@@ -175,7 +175,7 @@ function CountdownCard({
 
         {parts.expired ? (
           <div className="mt-4 rounded-2xl border border-white/25 bg-white/15 p-3 text-sm font-semibold leading-6 text-white">
-            Sınav tarihi geçti. Yeni tarih admin panelden güncellenebilir.
+            Sınav tarihi tamamlandı.
           </div>
         ) : null}
       </div>
