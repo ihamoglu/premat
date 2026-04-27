@@ -498,7 +498,7 @@ export default function KronometreToolClient() {
     >
       <section
         ref={timerCardRef}
-        className="relative isolate min-h-[100svh] overflow-visible bg-slate-950 text-white shadow-2xl shadow-slate-950/30 md:min-h-[calc(100vh-3rem)] md:rounded-[2rem] md:border md:border-white/10 fullscreen:h-[100svh] fullscreen:min-h-[100svh] fullscreen:overflow-x-hidden fullscreen:overflow-y-auto fullscreen:overscroll-contain fullscreen:rounded-none fullscreen:border-0"
+        className="relative isolate h-[100svh] min-h-[100svh] overflow-x-hidden overflow-y-auto overscroll-contain bg-slate-950 text-white shadow-2xl shadow-slate-950/30 md:h-[calc(100svh-3rem)] md:min-h-[calc(100svh-3rem)] md:rounded-[2rem] md:border md:border-white/10 fullscreen:h-[100svh] fullscreen:min-h-[100svh] fullscreen:rounded-none fullscreen:border-0"
         style={{ background: activeTheme.background }}
       >
         <FloatingLayer theme={activeTheme} />
