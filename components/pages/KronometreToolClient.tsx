@@ -493,17 +493,17 @@ export default function KronometreToolClient() {
 
   return (
     <main
-      className="min-h-screen bg-slate-950 p-0 md:p-6"
+      className="min-h-[100svh] bg-slate-950 p-0 md:p-6"
       style={{ background: activeTheme.background }}
     >
       <section
         ref={timerCardRef}
-        className="relative isolate min-h-screen overflow-hidden bg-slate-950 text-white shadow-2xl shadow-slate-950/30 md:min-h-[calc(100vh-3rem)] md:rounded-[2rem] md:border md:border-white/10 fullscreen:min-h-screen fullscreen:rounded-none fullscreen:border-0"
+        className="relative isolate min-h-[100svh] overflow-x-hidden overflow-y-auto overscroll-contain bg-slate-950 text-white shadow-2xl shadow-slate-950/30 md:min-h-[calc(100vh-3rem)] md:rounded-[2rem] md:border md:border-white/10 fullscreen:h-[100svh] fullscreen:min-h-[100svh] fullscreen:rounded-none fullscreen:border-0"
         style={{ background: activeTheme.background }}
       >
         <FloatingLayer theme={activeTheme} />
 
-        <div className="relative z-10 mx-auto flex min-h-screen max-w-7xl flex-col px-4 py-5 sm:px-6 md:min-h-[calc(100vh-3rem)] md:px-8 fullscreen:min-h-screen">
+        <div className="relative z-10 mx-auto flex min-h-[100svh] max-w-7xl flex-col px-4 py-4 sm:px-6 sm:py-5 md:min-h-[calc(100vh-3rem)] md:px-8 fullscreen:min-h-[100svh]">
           <header className="flex flex-wrap items-center justify-between gap-3">
             <div className="inline-flex min-w-0 items-center gap-3">
               <span
@@ -550,7 +550,7 @@ export default function KronometreToolClient() {
             </div>
           </header>
 
-          <div className="mx-auto mt-8 flex max-w-full gap-2 overflow-x-auto rounded-full border border-white/10 bg-black/18 p-1 backdrop-blur-md sm:mt-10">
+          <div className="mx-auto mt-4 flex max-w-full gap-2 overflow-x-auto rounded-full border border-white/10 bg-black/18 p-1 backdrop-blur-md sm:mt-8 md:mt-10">
             {tools.map((tool) => {
               const active = activeTool === tool.key;
 
@@ -559,7 +559,7 @@ export default function KronometreToolClient() {
                   key={tool.key}
                   type="button"
                   onClick={() => setActiveTool(tool.key)}
-                  className={`inline-flex shrink-0 items-center justify-center gap-2 rounded-full px-4 py-3 text-sm font-black transition sm:px-6 ${
+                  className={`inline-flex shrink-0 items-center justify-center gap-2 rounded-full px-4 py-2.5 text-sm font-black transition sm:px-6 sm:py-3 ${
                     active
                       ? "bg-white/24 text-white shadow-lg"
                       : "text-white/48 hover:bg-white/10 hover:text-white/80"
@@ -572,7 +572,7 @@ export default function KronometreToolClient() {
             })}
           </div>
 
-          <div className="flex flex-1 flex-col items-center justify-center py-7 sm:py-8">
+          <div className="flex flex-1 flex-col items-center justify-center py-4 sm:py-6 md:py-8">
             <div className="text-center">
               <div className="text-xs font-black uppercase tracking-[0.18em] text-white/45">
                 {getPhaseLabel(activeTimer)}
@@ -588,7 +588,7 @@ export default function KronometreToolClient() {
               timer={activeTimer}
             />
 
-            <div className="relative z-20 mt-7 flex w-full max-w-md flex-col justify-center gap-3 sm:flex-row">
+            <div className="relative z-20 mt-5 flex w-full max-w-md flex-col justify-center gap-3 sm:mt-7 sm:flex-row">
               <ControlButton
                 onClick={resetTimer}
                 icon="reset"
@@ -617,7 +617,7 @@ export default function KronometreToolClient() {
               )}
             </div>
 
-            <div className="mt-7 w-full max-w-4xl">
+            <div className="mt-5 w-full max-w-4xl sm:mt-7">
               {(activeTool === "pomodoro" || activeTool === "study") ? (
                 <CycleSettings
                   timer={activeTimer}
@@ -971,9 +971,21 @@ function TimerCircle({
 }) {
   const safeProgress = Math.max(0, Math.min(100, progress * 100));
   const isLongTime = timer.remainingSeconds >= 3600;
+  const circleStyle: CSSProperties = {
+    height: "clamp(198px, min(68vw, 54svh), 382px)",
+    width: "clamp(198px, min(68vw, 54svh), 382px)",
+  };
+  const timeStyle: CSSProperties = {
+    fontSize: isLongTime
+      ? "clamp(2.25rem, min(11vw, 10svh), 4.85rem)"
+      : "clamp(3.2rem, min(18vw, 15svh), 6.4rem)",
+  };
 
   return (
-    <div className="pointer-events-none relative mt-7 flex h-[244px] w-[244px] items-center justify-center sm:h-[312px] sm:w-[312px] md:h-[350px] md:w-[350px] lg:h-[382px] lg:w-[382px]">
+    <div
+      className="pointer-events-none relative mt-5 flex items-center justify-center sm:mt-7"
+      style={circleStyle}
+    >
       <div
         className="absolute inset-[-18%] rounded-full opacity-35 blur-2xl"
         style={{ background: theme.soft }}
@@ -987,11 +999,8 @@ function TimerCircle({
       >
         <div className="flex h-full w-full flex-col items-center justify-center rounded-full border border-white/10 bg-black/24 text-center shadow-inner shadow-black/30 backdrop-blur-md">
           <div
-            className={`font-black leading-none tracking-[-0.06em] text-white drop-shadow-sm ${
-              isLongTime
-                ? "text-[2.85rem] sm:text-[4rem] md:text-[4.85rem]"
-                : "text-[4rem] sm:text-[5.6rem] md:text-[6.4rem]"
-            }`}
+            className="font-black leading-none tracking-[-0.06em] text-white drop-shadow-sm"
+            style={timeStyle}
           >
             {formatTime(timer.remainingSeconds)}
           </div>
@@ -1197,7 +1206,7 @@ function InfoPill({ label, value }: { label: string; value: string }) {
 
 function StatusCard({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-2xl border border-white/10 bg-black/14 px-4 py-3 text-center backdrop-blur-md">
+    <div className="rounded-2xl border border-white/10 bg-black/14 px-4 py-2.5 text-center backdrop-blur-md sm:py-3">
       <div className="text-[11px] font-black uppercase tracking-[0.12em] text-white/38">
         {label}
       </div>
@@ -1217,7 +1226,7 @@ function ThemePicker({
     timerThemes.find((theme) => theme.key === activeThemeKey) ?? timerThemes[0];
 
   return (
-    <div className="mt-7 text-center">
+    <div className="mt-5 text-center sm:mt-7">
       <div className="text-xs font-black uppercase tracking-[0.18em] text-white/38">
         Tema Seç
       </div>
