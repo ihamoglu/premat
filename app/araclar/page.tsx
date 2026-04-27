@@ -41,6 +41,13 @@ const tools = [
       "LGS ve YKS sınavlarına kalan gün, saat, dakika ve saniyeyi canlı takip et.",
     badge: "Sayaç Aracı",
   },
+  {
+    href: "/araclar/kronometre",
+    title: "Kronometre",
+    description:
+      "Pomodoro, etüt, geri sayım ve sınav sayacı araçlarını tam ekran destekli kullan.",
+    badge: "Zaman Aracı",
+  },
 ];
 
 export default function ToolsPage() {
