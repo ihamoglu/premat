@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import InlineNotice from "@/components/ui/InlineNotice";
 import SectionHeader from "@/components/ui/SectionHeader";
 import { documentDifficultyCatalog, getTopicsByGrade } from "@/data/catalog";
-import { supabase } from "@/lib/supabase";
+import { fetchAdminJson, uploadAdminImage } from "@/lib/admin-api-client";
 import type { DocumentDifficulty, GradeLevel } from "@/types/document";
 
 const optionLabels = ["A", "B", "C", "D"];
@@ -48,6 +48,20 @@ type TestItemRow = {
   question_set_id: string;
   question_id: string;
   position: number;
+};
+
+type BuilderDataResponse = {
+  ok: true;
+  tests: TestRow[];
+  questions: QuestionRow[];
+  options: OptionRow[];
+  items: TestItemRow[];
+};
+
+type AdminTestActionResponse = {
+  ok: true;
+  id?: string;
+  slug?: string;
 };
 
 type NoticeTone = "success" | "warning" | "error" | "";
@@ -122,6 +136,8 @@ function slugifyTr(text: string) {
     .replace(/-+/g, "-");
 }
 
+void slugifyTr;
+
 function isValidHttpUrl(value: string) {
   if (!value.trim()) return true;
   try {
@@ -130,14 +146,6 @@ function isValidHttpUrl(value: string) {
   } catch {
     return false;
   }
-}
-
-function getFileExtension(file: File) {
-  const fromName = file.name.split(".").pop()?.toLowerCase();
-  if (fromName) return fromName;
-  if (file.type === "image/png") return "png";
-  if (file.type === "image/webp") return "webp";
-  return "jpg";
 }
 
 function formatDate(value: string) {
@@ -291,24 +299,14 @@ export default function AdminTestBuilder() {
     setLoading(true);
     setStatus("", "");
     try {
-      const [setsResult, questionsResult, optionsResult, itemsResult] =
-        await Promise.all([
-          supabase.from("question_sets").select("*").order("created_at", { ascending: false }),
-          supabase.from("questions").select("*").order("created_at", { ascending: false }),
-          supabase.from("question_options").select("*"),
-          supabase.from("question_set_items").select("*").order("position", { ascending: true }),
-        ]);
-
-      if (setsResult.error) throw setsResult.error;
-      if (questionsResult.error) throw questionsResult.error;
-      if (optionsResult.error) throw optionsResult.error;
-      if (itemsResult.error) throw itemsResult.error;
-
-      const nextTests = (setsResult.data ?? []) as TestRow[];
+      const data = await fetchAdminJson<BuilderDataResponse>("/api/admin/tests", {
+        cache: "no-store",
+      });
+      const nextTests = data.tests;
       setTests(nextTests);
-      setQuestions((questionsResult.data ?? []) as QuestionRow[]);
-      setOptions((optionsResult.data ?? []) as OptionRow[]);
-      setItems((itemsResult.data ?? []) as TestItemRow[]);
+      setQuestions(data.questions);
+      setOptions(data.options);
+      setItems(data.items);
       setSelectedTestId(preferredTestId || selectedTestId || nextTests[0]?.id || "");
     } catch (error) {
       setStatus(
@@ -467,35 +465,7 @@ export default function AdminTestBuilder() {
   async function uploadQuestionImageIfNeeded() {
     if (!imageFile) return questionForm.imageUrl.trim() || null;
 
-    const extension = getFileExtension(imageFile);
-    const path = `documents/questions/${new Date().getFullYear()}/${Date.now()}-${crypto.randomUUID()}.${extension}`;
-    const { error } = await supabase.storage
-      .from("document-covers")
-      .upload(path, imageFile, {
-        cacheControl: "3600",
-        contentType: imageFile.type,
-        upsert: false,
-      });
-
-    if (error) throw error;
-
-    const { data } = supabase.storage.from("document-covers").getPublicUrl(path);
-    return data.publicUrl;
-  }
-
-  async function publishAttachedQuestions(testId: string) {
-    const questionIds = items
-      .filter((item) => item.question_set_id === testId)
-      .map((item) => item.question_id);
-
-    if (questionIds.length === 0) return;
-
-    const { error } = await supabase
-      .from("questions")
-      .update({ published: true })
-      .in("id", questionIds);
-
-    if (error) throw error;
+    return uploadAdminImage(imageFile, "question-image");
   }
 
   async function saveTest() {
@@ -542,33 +512,40 @@ export default function AdminTestBuilder() {
         grade: testForm.grade,
         topic: testForm.topic,
         difficulty: testForm.difficulty || null,
-        duration_minutes: duration,
+        durationMinutes: duration,
         published: testForm.published,
       };
 
       if (selectedTest) {
-        const { error } = await supabase
-          .from("question_sets")
-          .update(payload)
-          .eq("id", selectedTest.id);
-
-        if (error) throw error;
-        if (testForm.published) await publishAttachedQuestions(selectedTest.id);
+        const result = await fetchAdminJson<AdminTestActionResponse>(
+          "/api/admin/tests",
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              action: "save-test",
+              payload: {
+                id: selectedTest.id,
+                ...payload,
+              },
+            }),
+          }
+        );
         setStatus("success", "Test ayarları güncellendi.");
-        await revalidateTests(selectedTest.slug);
+        await revalidateTests(result.slug || selectedTest.slug);
         await loadBuilderData(selectedTest.id);
       } else {
-        const { data, error } = await supabase
-          .from("question_sets")
-          .insert({
-            id: crypto.randomUUID(),
-            slug: `${slugifyTr(testForm.title)}-${Date.now()}`,
-            ...payload,
-          })
-          .select("id, slug")
-          .single();
-
-        if (error) throw error;
+        const data = await fetchAdminJson<AdminTestActionResponse>(
+          "/api/admin/tests",
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              action: "save-test",
+              payload,
+            }),
+          }
+        );
         setStatus("success", "Yeni test oluşturuldu. Şimdi soruları ekleyebilirsin.");
         await revalidateTests(data.slug);
         await loadBuilderData(data.id);
@@ -586,16 +563,22 @@ export default function AdminTestBuilder() {
     setSavingTest(true);
     setStatus("", "");
     try {
-      if (nextPublished) await publishAttachedQuestions(selectedTest.id);
-
-      const { error } = await supabase
-        .from("question_sets")
-        .update({ published: nextPublished })
-        .eq("id", selectedTest.id);
-
-      if (error) throw error;
+      const result = await fetchAdminJson<AdminTestActionResponse>(
+        "/api/admin/tests",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            action: "toggle-publication",
+            payload: {
+              testId: selectedTest.id,
+              published: nextPublished,
+            },
+          }),
+        }
+      );
       setStatus("success", nextPublished ? "Test yayına alındı." : "Test yayından çıkarıldı.");
-      await revalidateTests(selectedTest.slug);
+      await revalidateTests(result.slug || selectedTest.slug);
       await loadBuilderData(selectedTest.id);
     } catch (error) {
       setStatus("error", error instanceof Error ? error.message : "Yayın durumu değiştirilemedi.");
@@ -665,78 +648,32 @@ export default function AdminTestBuilder() {
 
     try {
       const uploadedImageUrl = await uploadQuestionImageIfNeeded();
-      const questionId = editingQuestionId || crypto.randomUUID();
-      const questionPayload = {
-        grade: selectedTest.grade,
-        topic: selectedTest.topic,
-        difficulty: selectedTest.difficulty,
-        question_text: questionForm.text.trim(),
-        question_image_url: uploadedImageUrl,
-        solution_text: questionForm.solution.trim() || null,
-        published: selectedTest.published,
-      };
-
-      if (editingQuestionId) {
-        const { error: questionError } = await supabase
-          .from("questions")
-          .update(questionPayload)
-          .eq("id", editingQuestionId);
-
-        if (questionError) throw questionError;
-      } else {
-        const { error: questionError } = await supabase.from("questions").insert({
-          id: questionId,
-          ...questionPayload,
-        });
-
-        if (questionError) throw questionError;
-      }
-
-      const currentOptions = editingQuestionId
-        ? optionsByQuestion.get(editingQuestionId) ?? []
-        : [];
-
-      const optionResults = await Promise.all(
-        optionLabels.map((label, index) => {
-          const payload = {
-            question_id: questionId,
-            label,
-            text: questionForm.options[index].trim(),
-            is_correct: label === questionForm.correct,
-          };
-          const existingOption = currentOptions.find(
-            (option) => option.label === label
-          );
-
-          if (existingOption) {
-            return supabase
-              .from("question_options")
-              .update(payload)
-              .eq("id", existingOption.id);
-          }
-
-          return supabase.from("question_options").insert(payload);
-        })
+      const nextPosition =
+        selectedItems.reduce((max, item) => Math.max(max, item.position), -10) + 10;
+      const result = await fetchAdminJson<AdminTestActionResponse>(
+        "/api/admin/tests",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            action: "save-question",
+            payload: {
+              testId: selectedTest.id,
+              editingQuestionId: editingQuestionId || undefined,
+              questionText: questionForm.text.trim(),
+              questionImageUrl: uploadedImageUrl,
+              solutionText: questionForm.solution.trim() || null,
+              options: questionForm.options,
+              correct: questionForm.correct,
+              nextPosition,
+            },
+          }),
+        }
       );
-
-      const optionsError = optionResults.find((result) => result.error)?.error;
-      if (optionsError) throw optionsError;
-
-      if (!editingQuestionId) {
-        const nextPosition =
-          selectedItems.reduce((max, item) => Math.max(max, item.position), -10) + 10;
-        const { error: itemError } = await supabase.from("question_set_items").insert({
-          question_set_id: selectedTest.id,
-          question_id: questionId,
-          position: nextPosition,
-        });
-
-        if (itemError) throw itemError;
-      }
 
       setStatus("success", editingQuestionId ? "Soru güncellendi." : "Soru teste eklendi.");
       resetQuestionForm();
-      await revalidateTests(selectedTest.slug);
+      await revalidateTests(result.slug || selectedTest.slug);
       await loadBuilderData(selectedTest.id);
     } catch (error) {
       setStatus("error", error instanceof Error ? error.message : "Soru kaydedilemedi.");
@@ -753,15 +690,23 @@ export default function AdminTestBuilder() {
     try {
       const nextPosition =
         selectedItems.reduce((max, item) => Math.max(max, item.position), -10) + 10;
-      const { error } = await supabase.from("question_set_items").insert({
-        question_set_id: selectedTest.id,
-        question_id: questionId,
-        position: nextPosition,
-      });
-
-      if (error) throw error;
+      const result = await fetchAdminJson<AdminTestActionResponse>(
+        "/api/admin/tests",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            action: "add-existing-question",
+            payload: {
+              testId: selectedTest.id,
+              questionId,
+              position: nextPosition,
+            },
+          }),
+        }
+      );
       setStatus("success", "Mevcut soru teste eklendi.");
-      await revalidateTests(selectedTest.slug);
+      await revalidateTests(result.slug || selectedTest.slug);
       await loadBuilderData(selectedTest.id);
     } catch (error) {
       setStatus("error", error instanceof Error ? error.message : "Soru teste eklenemedi.");
@@ -776,15 +721,22 @@ export default function AdminTestBuilder() {
     setSavingQuestion(true);
     setStatus("", "");
     try {
-      const { error } = await supabase
-        .from("question_set_items")
-        .delete()
-        .eq("question_set_id", selectedTest.id)
-        .eq("question_id", questionId);
-
-      if (error) throw error;
+      const result = await fetchAdminJson<AdminTestActionResponse>(
+        "/api/admin/tests",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            action: "remove-question",
+            payload: {
+              testId: selectedTest.id,
+              questionId,
+            },
+          }),
+        }
+      );
       setStatus("success", "Soru testten çıkarıldı.");
-      await revalidateTests(selectedTest.slug);
+      await revalidateTests(result.slug || selectedTest.slug);
       await loadBuilderData(selectedTest.id);
     } catch (error) {
       setStatus("error", error instanceof Error ? error.message : "Soru testten çıkarılamadı.");
@@ -806,18 +758,21 @@ export default function AdminTestBuilder() {
     setSavingQuestion(true);
 
     try {
-      const results = await Promise.all(
-        reordered.map((item, itemIndex) =>
-          supabase
-            .from("question_set_items")
-            .update({ position: itemIndex * 10 })
-            .eq("question_set_id", selectedTest.id)
-            .eq("question_id", item.question_id)
-        )
+      const result = await fetchAdminJson<AdminTestActionResponse>(
+        "/api/admin/tests",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            action: "move-questions",
+            payload: {
+              testId: selectedTest.id,
+              orderedQuestionIds: reordered.map((item) => item.question_id),
+            },
+          }),
+        }
       );
-      const error = results.find((result) => result.error)?.error;
-      if (error) throw error;
-      await revalidateTests(selectedTest.slug);
+      await revalidateTests(result.slug || selectedTest.slug);
       await loadBuilderData(selectedTest.id);
     } catch (error) {
       setStatus("error", error instanceof Error ? error.message : "Soru sırası güncellenemedi.");

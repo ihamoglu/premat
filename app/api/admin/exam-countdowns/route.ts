@@ -1,6 +1,6 @@
 import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
-import { isAdminEmail } from "@/lib/admin";
+import { requireAdmin } from "@/lib/admin-server";
 import {
   examCountdownKeys,
   getFallbackExamCountdowns,
@@ -11,7 +11,6 @@ import {
   type ExamCountdownKey,
   type ExamCountdownRow,
 } from "@/lib/exam-countdowns";
-import { createClient } from "@/lib/supabase/server";
 
 type CountdownPayload = {
   countdowns?: Array<{
@@ -21,32 +20,18 @@ type CountdownPayload = {
   }>;
 };
 
-async function ensureAdmin() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-    error,
-  } = await supabase.auth.getUser();
-
-  if (error || !user || !isAdminEmail(user.email)) {
-    return null;
-  }
-
-  return supabase;
-}
-
 export async function GET() {
   try {
-    const supabase = await ensureAdmin();
+    const admin = await requireAdmin();
 
-    if (!supabase) {
+    if (!admin) {
       return NextResponse.json(
         { ok: false, message: "Yetkisiz işlem." },
         { status: 401 }
       );
     }
 
-    const { data, error } = await supabase
+    const { data, error } = await admin.supabase
       .from("exam_countdowns")
       .select("exam_key, label, exam_at, active, updated_at");
 
@@ -81,9 +66,9 @@ export async function GET() {
 
 export async function PUT(request: Request) {
   try {
-    const supabase = await ensureAdmin();
+    const admin = await requireAdmin();
 
-    if (!supabase) {
+    if (!admin) {
       return NextResponse.json(
         { ok: false, message: "Yetkisiz işlem." },
         { status: 401 }
@@ -93,7 +78,7 @@ export async function PUT(request: Request) {
     const body = (await request.json()) as CountdownPayload;
     const payload = validatePayload(body);
 
-    const { data, error } = await supabase
+    const { data, error } = await admin.supabase
       .from("exam_countdowns")
       .upsert(payload, { onConflict: "exam_key" })
       .select("exam_key, label, exam_at, active, updated_at");

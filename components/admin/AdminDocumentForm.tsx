@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { supabase } from "@/lib/supabase";
+import { uploadAdminImage } from "@/lib/admin-api-client";
 import { useDocuments } from "@/components/providers/DocumentsProvider";
 import SectionHeader from "@/components/ui/SectionHeader";
 import InlineNotice from "@/components/ui/InlineNotice";
@@ -106,14 +106,6 @@ function slugifyTr(text: string) {
     .replace(/[^a-z0-9\s-]/g, "")
     .replace(/\s+/g, "-")
     .replace(/-+/g, "-");
-}
-
-function getFileExtension(file: File) {
-  const fromName = file.name.split(".").pop()?.toLowerCase();
-  if (fromName) return fromName;
-  if (file.type === "image/png") return "png";
-  if (file.type === "image/webp") return "webp";
-  return "jpg";
 }
 
 function parsePositiveInteger(value: string) {
@@ -399,21 +391,7 @@ export default function AdminDocumentForm({
   async function uploadCoverImageIfNeeded(): Promise<string | undefined> {
     if (!coverImageFile) return form.coverImageUrl || undefined;
 
-    const extension = getFileExtension(coverImageFile);
-    const path = `documents/${new Date().getFullYear()}/${Date.now()}-${crypto.randomUUID()}.${extension}`;
-
-    const { error: uploadError } = await supabase.storage
-      .from("document-covers")
-      .upload(path, coverImageFile, {
-        cacheControl: "3600",
-        contentType: coverImageFile.type,
-        upsert: false,
-      });
-
-    if (uploadError) throw uploadError;
-
-    const { data } = supabase.storage.from("document-covers").getPublicUrl(path);
-    return data.publicUrl;
+    return uploadAdminImage(coverImageFile, "document-cover");
   }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {

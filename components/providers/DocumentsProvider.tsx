@@ -9,6 +9,7 @@ import {
   useState,
 } from "react";
 import { supabase } from "@/lib/supabase";
+import { fetchAdminJson } from "@/lib/admin-api-client";
 import {
   DocumentDifficulty,
   DocumentItem,
@@ -16,7 +17,6 @@ import {
   DocumentLinkKind,
 } from "@/types/document";
 import { useAuth } from "@/components/providers/AuthProvider";
-import { extractPublicStoragePath } from "@/lib/storage-paths";
 
 type DocumentsScope = "public" | "admin";
 
@@ -32,8 +32,6 @@ type DocumentsContextType = {
 const DocumentsContext = createContext<DocumentsContextType | undefined>(
   undefined
 );
-
-const COVER_BUCKET = "document-covers";
 
 type SupabaseDocumentRow = {
   id: string;
@@ -106,18 +104,6 @@ function mapRowToDocument(row: SupabaseDocumentRow): DocumentItem {
   };
 }
 
-function getDocumentMetadataPayload(doc: DocumentItem) {
-  return {
-    difficulty: doc.difficulty || null,
-    page_count: doc.pageCount || null,
-    question_count: doc.questionCount || null,
-    source_year: doc.sourceYear || null,
-    curriculum_code: doc.curriculumCode || null,
-    is_print_ready: doc.isPrintReady,
-    has_video_solution: doc.hasVideoSolution || Boolean(doc.solutionUrl),
-  };
-}
-
 function mapRowToDocumentLink(row: SupabaseDocumentLinkRow): DocumentLink {
   return {
     id: row.id,
@@ -160,40 +146,6 @@ async function attachDocumentLinks(documents: DocumentItem[]) {
   }));
 }
 
-async function syncDocumentLinks(doc: DocumentItem) {
-  const explicitLinks = (doc.links ?? [])
-    .filter((link) => link.url.trim() && link.label.trim())
-    .map((link, index) => ({
-      document_id: doc.id,
-      kind: link.kind,
-      label: link.label.trim(),
-      url: link.url.trim(),
-      position: index * 10,
-    }));
-
-  const { error: deleteError } = await supabase
-    .from("document_links")
-    .delete()
-    .eq("document_id", doc.id);
-
-  if (deleteError) {
-    console.error("Doküman ek bağlantıları temizlenemedi:", deleteError.message);
-    return;
-  }
-
-  if (explicitLinks.length === 0) {
-    return;
-  }
-
-  const { error: insertError } = await supabase
-    .from("document_links")
-    .insert(explicitLinks);
-
-  if (insertError) {
-    console.error("Doküman ek bağlantıları kaydedilemedi:", insertError.message);
-  }
-}
-
 async function revalidatePublicContent(payload?: {
   slug?: string;
   grade?: string;
@@ -207,21 +159,7 @@ async function revalidatePublicContent(payload?: {
       body: JSON.stringify(payload ?? {}),
     });
   } catch (error) {
-    console.error("Public içerik revalidate çağrısı başarısız:", error);
-  }
-}
-
-async function removeCoverImageByPublicUrl(publicUrl?: string | null) {
-  const path = extractPublicStoragePath(COVER_BUCKET, publicUrl);
-
-  if (!path) {
-    return;
-  }
-
-  const { error } = await supabase.storage.from(COVER_BUCKET).remove([path]);
-
-  if (error) {
-    console.error("Eski kapak görseli silinemedi:", error.message);
+    console.error("Public content revalidate failed:", error);
   }
 }
 
@@ -237,7 +175,7 @@ export function DocumentsProvider({
 
   const ensureAdminAccess = useCallback(() => {
     if (scope !== "admin" || !isAuthenticated || !isAdmin) {
-      throw new Error("Bu işlem yalnızca admin scope içinde çalışır.");
+      throw new Error("Bu islem yalnizca admin scope icinde calisir.");
     }
   }, [scope, isAuthenticated, isAdmin]);
 
@@ -265,7 +203,7 @@ export function DocumentsProvider({
     const { data, error } = await query;
 
     if (error) {
-      console.error("Kayıtlar alınamadı:", error.message);
+      console.error("Kayitlar alinamadi:", error.message);
       return;
     }
 
@@ -284,33 +222,13 @@ export function DocumentsProvider({
   const addDocument = useCallback(async (doc: DocumentItem) => {
     ensureAdminAccess();
 
-    const insertPayload = {
-      id: doc.id,
-      slug: doc.slug,
-      title: doc.title,
-      description: doc.description,
-      grade: doc.grade,
-      topic: doc.topic,
-      subtopic: doc.subtopic || null,
-      type: doc.type,
-      source_type: doc.sourceType,
-      file_url: doc.fileUrl,
-      solution_url: doc.solutionUrl || null,
-      answer_key_url: doc.answerKeyUrl || null,
-      cover_image_url: doc.coverImageUrl || null,
-      ...getDocumentMetadataPayload(doc),
-      featured: doc.featured,
-      published: doc.published,
-    };
-
-    const { error } = await supabase.from("documents").insert(insertPayload);
-
-    if (error) {
-      console.error("Kayıt eklenemedi:", error.message);
-      throw error;
-    }
-
-    await syncDocumentLinks(doc);
+    await fetchAdminJson<{ ok: true; count: number }>("/api/admin/documents", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ document: doc }),
+    });
     await refreshDocuments();
     await revalidatePublicContent({
       slug: doc.slug,
@@ -325,33 +243,13 @@ export function DocumentsProvider({
       return;
     }
 
-    const insertPayload = docs.map((doc) => ({
-      id: doc.id,
-      slug: doc.slug,
-      title: doc.title,
-      description: doc.description,
-      grade: doc.grade,
-      topic: doc.topic,
-      subtopic: doc.subtopic || null,
-      type: doc.type,
-      source_type: doc.sourceType,
-      file_url: doc.fileUrl,
-      solution_url: doc.solutionUrl || null,
-      answer_key_url: doc.answerKeyUrl || null,
-      cover_image_url: doc.coverImageUrl || null,
-      ...getDocumentMetadataPayload(doc),
-      featured: doc.featured,
-      published: doc.published,
-    }));
-
-    const { error } = await supabase.from("documents").insert(insertPayload);
-
-    if (error) {
-      console.error("Toplu kayıt eklenemedi:", error.message);
-      throw error;
-    }
-
-    await Promise.all(docs.map((doc) => syncDocumentLinks(doc)));
+    await fetchAdminJson<{ ok: true; count: number }>("/api/admin/documents", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ documents: docs }),
+    });
     await refreshDocuments();
     await revalidatePublicContent();
   }, [ensureAdminAccess, refreshDocuments]);
@@ -359,67 +257,32 @@ export function DocumentsProvider({
   const updateDocument = useCallback(async (updatedDoc: DocumentItem) => {
     ensureAdminAccess();
 
-    const existingDoc = documents.find((doc) => doc.id === updatedDoc.id);
-
-    const updatePayload = {
-      slug: updatedDoc.slug,
-      title: updatedDoc.title,
-      description: updatedDoc.description,
-      grade: updatedDoc.grade,
-      topic: updatedDoc.topic,
-      subtopic: updatedDoc.subtopic || null,
-      type: updatedDoc.type,
-      source_type: updatedDoc.sourceType,
-      file_url: updatedDoc.fileUrl,
-      solution_url: updatedDoc.solutionUrl || null,
-      answer_key_url: updatedDoc.answerKeyUrl || null,
-      cover_image_url: updatedDoc.coverImageUrl || null,
-      ...getDocumentMetadataPayload(updatedDoc),
-      featured: updatedDoc.featured,
-      published: updatedDoc.published,
-    };
-
-    const { error } = await supabase
-      .from("documents")
-      .update(updatePayload)
-      .eq("id", updatedDoc.id);
-
-    if (error) {
-      console.error("Kayıt güncellenemedi:", error.message);
-      throw error;
-    }
-
-    const oldCoverUrl = existingDoc?.coverImageUrl || null;
-    const newCoverUrl = updatedDoc.coverImageUrl || null;
-
-    if (oldCoverUrl && oldCoverUrl !== newCoverUrl) {
-      await removeCoverImageByPublicUrl(oldCoverUrl);
-    }
-
-    await syncDocumentLinks(updatedDoc);
+    await fetchAdminJson<{ ok: true }>("/api/admin/documents", {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ document: updatedDoc }),
+    });
     await refreshDocuments();
     await revalidatePublicContent({
       slug: updatedDoc.slug,
       grade: updatedDoc.grade,
     });
-  }, [documents, ensureAdminAccess, refreshDocuments]);
+  }, [ensureAdminAccess, refreshDocuments]);
 
   const deleteDocument = useCallback(async (id: string) => {
     ensureAdminAccess();
 
     const targetDoc = documents.find((doc) => doc.id === id);
 
-    const { error } = await supabase.from("documents").delete().eq("id", id);
-
-    if (error) {
-      console.error("Kayıt silinemedi:", error.message);
-      throw error;
-    }
-
-    if (targetDoc?.coverImageUrl) {
-      await removeCoverImageByPublicUrl(targetDoc.coverImageUrl);
-    }
-
+    await fetchAdminJson<{ ok: true }>("/api/admin/documents", {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ id }),
+    });
     await refreshDocuments();
     await revalidatePublicContent({
       slug: targetDoc?.slug,

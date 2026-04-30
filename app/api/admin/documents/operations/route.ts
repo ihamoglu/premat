@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
-import { isAdminEmail } from "@/lib/admin";
-import { createClient } from "@/lib/supabase/server";
+import { requireAdmin } from "@/lib/admin-server";
 
 type EventRow = {
   document_id: string;
@@ -17,32 +16,18 @@ type EventRow = {
     | null;
 };
 
-async function ensureAdmin() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-    error,
-  } = await supabase.auth.getUser();
-
-  if (error || !user || !isAdminEmail(user.email)) {
-    return null;
-  }
-
-  return supabase;
-}
-
 export async function GET() {
   try {
-    const supabase = await ensureAdmin();
+    const admin = await requireAdmin();
 
-    if (!supabase) {
+    if (!admin) {
       return NextResponse.json(
         { ok: false, message: "Yetkisiz işlem." },
         { status: 401 }
       );
     }
 
-    const { data, error } = await supabase
+    const { data, error } = await admin.supabase
       .from("document_events")
       .select("document_id, event_type, documents(title, slug)")
       .order("created_at", { ascending: false })

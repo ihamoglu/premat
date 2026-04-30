@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { isAdminEmail } from "@/lib/admin";
-import { createClient } from "@/lib/supabase/server";
+import { requireAdmin } from "@/lib/admin-server";
+import { isSafePublicHttpUrl } from "@/lib/url-security";
 
 type LinkKind = "file" | "solution" | "answerKey";
 
@@ -19,38 +19,6 @@ const MAX_LIMIT = 100;
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-const BLOCKED_HOSTS =
-  /^(localhost|127\.\d+\.\d+\.\d+|0\.0\.0\.0|::1|10\.\d+\.\d+\.\d+|172\.(1[6-9]|2\d|3[01])\.\d+\.\d+|192\.168\.\d+\.\d+|169\.254\.\d+\.\d+)/i;
-
-function isSafePublicUrl(rawUrl: string): boolean {
-  try {
-    const parsed = new URL(rawUrl);
-    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
-      return false;
-    }
-    if (BLOCKED_HOSTS.test(parsed.hostname)) {
-      return false;
-    }
-    return true;
-  } catch {
-    return false;
-  }
-}
-
-async function ensureAdmin() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-    error,
-  } = await supabase.auth.getUser();
-
-  if (error || !user || !isAdminEmail(user.email)) {
-    return null;
-  }
-
-  return supabase;
-}
-
 function parseLimit(value: unknown) {
   const parsed = Number(value);
 
@@ -62,7 +30,7 @@ function parseLimit(value: unknown) {
 }
 
 async function checkUrl(url: string) {
-  if (!isSafePublicUrl(url)) {
+  if (!isSafePublicHttpUrl(url)) {
     return { ok: false, status: null, statusText: "Geçersiz veya erişilemeyen URL." };
   }
 
@@ -114,9 +82,9 @@ function collectLinks(row: LinkCheckRow) {
 
 export async function POST(request: Request) {
   try {
-    const supabase = await ensureAdmin();
+    const admin = await requireAdmin();
 
-    if (!supabase) {
+    if (!admin) {
       return NextResponse.json(
         { ok: false, message: "Yetkisiz işlem." },
         { status: 401 }
@@ -131,7 +99,7 @@ export async function POST(request: Request) {
       body = {};
     }
 
-    let query = supabase
+    let query = admin.supabase
       .from("documents")
       .select("id, slug, title, file_url, solution_url, answer_key_url")
       .order("created_at", { ascending: false })

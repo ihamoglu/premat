@@ -2,6 +2,7 @@ import { createHash } from "crypto";
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { getPublishedDocuments } from "@/lib/server-documents";
+import { checkRateLimit, getRequestFingerprint } from "@/lib/rate-limit";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabasePublishableKey =
@@ -27,6 +28,24 @@ function hashUserAgent(value: string | null) {
 
 export async function POST(request: Request) {
   try {
+    const rateLimit = checkRateLimit(
+      `document-events:${getRequestFingerprint(request)}`,
+      {
+        limit: 60,
+        windowMs: 60_000,
+      }
+    );
+
+    if (!rateLimit.ok) {
+      return NextResponse.json(
+        { ok: false, message: "Cok fazla istek." },
+        {
+          status: 429,
+          headers: { "Retry-After": String(rateLimit.retryAfter) },
+        }
+      );
+    }
+
     const body = (await request.json()) as {
       documentId?: unknown;
       eventType?: unknown;

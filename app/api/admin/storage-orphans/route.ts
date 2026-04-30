@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
-import { isAdminEmail } from "@/lib/admin";
+import { requireAdmin } from "@/lib/admin-server";
 import { extractPublicStoragePath } from "@/lib/storage-paths";
 
 const BUCKET = "document-covers";
@@ -20,26 +19,16 @@ type OrphanFile = {
   updatedAt: string | null;
 };
 
-async function ensureAdmin() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-    error,
-  } = await supabase.auth.getUser();
-
-  if (error || !user || !isAdminEmail(user.email)) {
-    return null;
-  }
-
-  return supabase;
-}
+type SupabaseAdminClient = NonNullable<
+  Awaited<ReturnType<typeof requireAdmin>>
+>["supabase"];
 
 function joinPath(prefix: string, name: string) {
   return prefix ? `${prefix}/${name}` : name;
 }
 
 async function listFilesRecursively(
-  supabase: Awaited<ReturnType<typeof createClient>>,
+  supabase: SupabaseAdminClient,
   prefix: string
 ): Promise<string[]> {
   const collected: string[] = [];
@@ -80,7 +69,7 @@ async function listFilesRecursively(
 }
 
 async function getReferencedStoragePaths(
-  supabase: Awaited<ReturnType<typeof createClient>>
+  supabase: SupabaseAdminClient
 ) {
   const { data: documents, error: documentsError } = await supabase
     .from("documents")
@@ -112,7 +101,7 @@ async function getReferencedStoragePaths(
 }
 
 async function getFileMeta(
-  supabase: Awaited<ReturnType<typeof createClient>>,
+  supabase: SupabaseAdminClient,
   path: string
 ): Promise<OrphanFile> {
   const folderParts = path.split("/");
@@ -143,9 +132,9 @@ async function getFileMeta(
 
 export async function GET() {
   try {
-    const supabase = await ensureAdmin();
+    const admin = await requireAdmin();
 
-    if (!supabase) {
+    if (!admin) {
       return NextResponse.json(
         { ok: false, message: "Yetkisiz işlem." },
         { status: 401 }
@@ -153,13 +142,13 @@ export async function GET() {
     }
 
     const [referencedPaths, allFiles] = await Promise.all([
-      getReferencedStoragePaths(supabase),
-      listFilesRecursively(supabase, ROOT_PREFIX),
+      getReferencedStoragePaths(admin.supabase),
+      listFilesRecursively(admin.supabase, ROOT_PREFIX),
     ]);
 
     const orphanPaths = allFiles.filter((path) => !referencedPaths.has(path));
     const orphanFiles = await Promise.all(
-      orphanPaths.map((path) => getFileMeta(supabase, path))
+      orphanPaths.map((path) => getFileMeta(admin.supabase, path))
     );
 
     const totalBytes = orphanFiles.reduce(
@@ -189,9 +178,9 @@ export async function GET() {
 
 export async function DELETE(request: Request) {
   try {
-    const supabase = await ensureAdmin();
+    const admin = await requireAdmin();
 
-    if (!supabase) {
+    if (!admin) {
       return NextResponse.json(
         { ok: false, message: "Yetkisiz işlem." },
         { status: 401 }
@@ -212,8 +201,8 @@ export async function DELETE(request: Request) {
 
     if (targetPaths.length === 0) {
       const [referencedPaths, allFiles] = await Promise.all([
-        getReferencedStoragePaths(supabase),
-        listFilesRecursively(supabase, ROOT_PREFIX),
+        getReferencedStoragePaths(admin.supabase),
+        listFilesRecursively(admin.supabase, ROOT_PREFIX),
       ]);
 
       targetPaths = allFiles.filter((path) => !referencedPaths.has(path));
@@ -227,7 +216,9 @@ export async function DELETE(request: Request) {
       });
     }
 
-    const { error } = await supabase.storage.from(BUCKET).remove(targetPaths);
+    const { error } = await admin.supabase.storage
+      .from(BUCKET)
+      .remove(targetPaths);
 
     if (error) {
       throw error;

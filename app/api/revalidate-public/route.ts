@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { revalidatePath, revalidateTag } from "next/cache";
-import { createClient } from "@/lib/supabase/server";
-import { isAdminEmail } from "@/lib/admin";
+import { requireAdmin } from "@/lib/admin-server";
 
 type RevalidatePayload = {
   slug?: string;
@@ -10,14 +9,9 @@ type RevalidatePayload = {
 };
 
 export async function POST(request: Request) {
-  const supabase = await createClient();
+  const admin = await requireAdmin();
 
-  const {
-    data: { user },
-    error,
-  } = await supabase.auth.getUser();
-
-  if (error || !user || !isAdminEmail(user.email)) {
+  if (!admin) {
     return NextResponse.json(
       { ok: false, message: "Yetkisiz işlem." },
       { status: 401 }
