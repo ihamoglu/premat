@@ -178,6 +178,32 @@
   }
 }
 
+@keyframes kronometreBreathe {
+  0%, 100% {
+    transform: scale(1);
+    filter: saturate(1);
+  }
+  50% {
+    transform: scale(1.012);
+    filter: saturate(1.08);
+  }
+}
+
+@keyframes kronometreCompleteFlash {
+  0% {
+    transform: scale(1);
+    filter: brightness(1);
+  }
+  45% {
+    transform: scale(1.018);
+    filter: brightness(1.18);
+  }
+  100% {
+    transform: scale(1);
+    filter: brightness(1);
+  }
+}
+
 @keyframes prematSlideInLeft {
   from {
     transform: translateX(-100%);
@@ -263,6 +289,63 @@
   .premat-pulse-glow {
     animation: prematPulseGlow 3s ease-in-out infinite;
   }
+
+  .kronometre-ring-breathe {
+    animation: kronometreBreathe 7s ease-in-out infinite;
+  }
+
+  .kronometre-ring-complete {
+    animation: kronometreCompleteFlash 0.42s ease-out both;
+  }
+}
+
+@media (max-height: 520px) and (orientation: landscape) {
+  .kronometre-layout {
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+  }
+
+  .kronometre-topbar h1 {
+    font-size: 0.95rem;
+  }
+
+  .kronometre-tabs {
+    margin-top: 0.45rem;
+    max-width: 32rem;
+  }
+
+  .kronometre-tabs button {
+    min-height: 2.15rem;
+    padding-top: 0.35rem;
+    padding-bottom: 0.35rem;
+  }
+
+  .kronometre-stage {
+    padding-top: 0.45rem;
+    padding-bottom: 0.45rem;
+  }
+
+  .kronometre-timer-circle {
+    margin-top: 0.35rem;
+  }
+
+  .kronometre-theme-status {
+    margin-top: 0.45rem;
+  }
+}
+
+@media (max-width: 430px) {
+  .kronometre-topbar {
+    gap: 0.45rem;
+  }
+
+  .kronometre-topbar h1 {
+    font-size: 1rem;
+  }
+
+  .kronometre-tabs {
+    border-radius: 1.1rem;
+  }
 }
 
 /* ============================================================
@@ -283,7 +366,9 @@
   .premat-gradient-text-animated,
   .premat-card-reveal,
   .premat-drawer-in,
-  .premat-pulse-glow {
+  .premat-pulse-glow,
+  .kronometre-ring-breathe,
+  .kronometre-ring-complete {
     animation: none !important;
     opacity: 1 !important;
     transform: none !important;

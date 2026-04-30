@@ -45,6 +45,8 @@ type TimerTheme = {
   glow: string;
   dot: string;
   soft: string;
+  surface: string;
+  textMuted: string;
 };
 
 type IconName =
@@ -105,6 +107,8 @@ const timerThemes: TimerTheme[] = [
     glow: "rgba(34,169,232,0.22)",
     dot: "rgba(56,189,248,0.68)",
     soft: "rgba(34,169,232,0.14)",
+    surface: "rgba(5, 19, 38, 0.54)",
+    textMuted: "rgba(226, 242, 255, 0.68)",
   },
   {
     key: "pink",
@@ -116,6 +120,8 @@ const timerThemes: TimerTheme[] = [
     glow: "rgba(236,72,153,0.22)",
     dot: "rgba(244,114,182,0.65)",
     soft: "rgba(236,72,153,0.16)",
+    surface: "rgba(36, 5, 22, 0.56)",
+    textMuted: "rgba(255, 228, 241, 0.68)",
   },
   {
     key: "night",
@@ -127,6 +133,8 @@ const timerThemes: TimerTheme[] = [
     glow: "rgba(99,102,241,0.22)",
     dot: "rgba(199,210,254,0.72)",
     soft: "rgba(99,102,241,0.15)",
+    surface: "rgba(3, 7, 18, 0.58)",
+    textMuted: "rgba(224, 231, 255, 0.68)",
   },
   {
     key: "forest",
@@ -138,6 +146,8 @@ const timerThemes: TimerTheme[] = [
     glow: "rgba(34,197,94,0.22)",
     dot: "rgba(74,222,128,0.62)",
     soft: "rgba(34,197,94,0.15)",
+    surface: "rgba(3, 36, 18, 0.56)",
+    textMuted: "rgba(220, 252, 231, 0.68)",
   },
   {
     key: "sunset",
@@ -149,6 +159,8 @@ const timerThemes: TimerTheme[] = [
     glow: "rgba(251,146,60,0.24)",
     dot: "rgba(253,186,116,0.7)",
     soft: "rgba(251,146,60,0.15)",
+    surface: "rgba(67, 20, 7, 0.54)",
+    textMuted: "rgba(255, 237, 213, 0.7)",
   },
   {
     key: "lavender",
@@ -160,6 +172,8 @@ const timerThemes: TimerTheme[] = [
     glow: "rgba(129,140,248,0.22)",
     dot: "rgba(196,181,253,0.68)",
     soft: "rgba(129,140,248,0.16)",
+    surface: "rgba(22, 19, 57, 0.56)",
+    textMuted: "rgba(237, 233, 254, 0.68)",
   },
 ];
 
@@ -493,27 +507,27 @@ export default function KronometreToolClient() {
 
   return (
     <main
-      className="min-h-[100svh] bg-slate-950 p-0 md:p-6"
+      className="kronometre-page min-h-[100svh] bg-slate-950 p-0 md:p-5"
       style={{ background: activeTheme.background }}
     >
       <section
         ref={timerCardRef}
-        className="relative isolate h-[100svh] min-h-[100svh] overflow-x-hidden overflow-y-auto overscroll-contain bg-slate-950 text-white shadow-2xl shadow-slate-950/30 md:h-[calc(100svh-3rem)] md:min-h-[calc(100svh-3rem)] md:rounded-[2rem] md:border md:border-white/10 fullscreen:h-[100svh] fullscreen:min-h-[100svh] fullscreen:rounded-none fullscreen:border-0"
+        className="kronometre-shell relative isolate h-[100svh] min-h-[100svh] overflow-x-hidden overflow-y-auto overscroll-contain bg-slate-950 text-white shadow-2xl shadow-slate-950/30 md:h-[calc(100svh-2.5rem)] md:min-h-[calc(100svh-2.5rem)] md:rounded-[2rem] md:border md:border-white/10 fullscreen:h-[100svh] fullscreen:min-h-[100svh] fullscreen:rounded-none fullscreen:border-0"
         style={{ background: activeTheme.background }}
       >
         <FloatingLayer theme={activeTheme} />
 
-        <div className="relative z-10 mx-auto flex min-h-[100svh] max-w-7xl flex-col px-4 py-4 sm:px-6 sm:py-5 md:min-h-[calc(100vh-3rem)] md:px-8 fullscreen:min-h-[100svh]">
-          <header className="flex flex-wrap items-center justify-between gap-3">
+        <div className="kronometre-layout relative z-10 mx-auto flex min-h-[100svh] max-w-7xl flex-col px-3 py-3 sm:px-5 sm:py-4 md:min-h-[calc(100svh-2.5rem)] md:px-7 fullscreen:min-h-[100svh]">
+          <header className="kronometre-topbar flex items-center justify-between gap-2">
             <div className="inline-flex min-w-0 items-center gap-3">
               <span
-                className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl text-base font-black text-white shadow-lg"
+                className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl text-base font-black text-white shadow-lg sm:h-11 sm:w-11"
                 style={{ background: activeTheme.button }}
               >
                 P
               </span>
               <div className="min-w-0">
-                <div className="text-xs font-black uppercase tracking-[0.18em] text-white/50">
+                <div className="hidden text-xs font-black uppercase tracking-[0.18em] text-white/55 sm:block">
                   Premat Araçları
                 </div>
                 <h1 className="truncate text-lg font-black text-white sm:text-xl">
@@ -522,9 +536,9 @@ export default function KronometreToolClient() {
               </div>
             </div>
 
-            <div className="ml-auto flex items-center gap-2">
-              <div className="inline-flex min-h-12 items-center gap-2 rounded-2xl border border-white/10 bg-black/18 px-3 text-left text-white backdrop-blur sm:px-4">
-                <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-white/10 text-white/78">
+            <div className="ml-auto flex shrink-0 items-center gap-2">
+              <div className="inline-flex min-h-11 items-center gap-2 rounded-2xl border border-white/10 px-3 text-left text-white shadow-lg backdrop-blur sm:min-h-12 sm:px-4" style={{ background: activeTheme.surface }}>
+                <span className="hidden h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-white/10 text-white/78 sm:inline-flex">
                   <ClockIcon />
                 </span>
                 <span className="leading-none">
@@ -541,16 +555,18 @@ export default function KronometreToolClient() {
                 <button
                   type="button"
                   onClick={toggleFullscreen}
-                  className="inline-flex items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/10 px-4 py-3 text-sm font-black text-white/90 backdrop-blur transition hover:bg-white/15"
+                  className="inline-flex min-h-11 items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/10 px-3 text-sm font-black text-white/90 shadow-lg backdrop-blur transition duration-200 hover:bg-white/15 sm:min-h-12 sm:px-4"
                 >
                   <ToolIcon name="fullscreen" />
-                  {isFullscreen ? "Tam Ekrandan Çık" : "Tam Ekran"}
+                  <span className="hidden sm:inline">
+                    {isFullscreen ? "Tam Ekrandan Çık" : "Tam Ekran"}
+                  </span>
                 </button>
               ) : null}
             </div>
           </header>
 
-          <div className="mx-auto mt-4 flex max-w-full gap-2 overflow-x-auto rounded-full border border-white/10 bg-black/18 p-1 backdrop-blur-md sm:mt-8 md:mt-10">
+          <div className="kronometre-tabs mx-auto mt-3 grid w-full max-w-[34rem] grid-cols-2 gap-2 rounded-[1.35rem] border border-white/10 p-1.5 shadow-xl backdrop-blur-md sm:mt-5 sm:grid-cols-4" style={{ background: activeTheme.surface }}>
             {tools.map((tool) => {
               const active = activeTool === tool.key;
 
@@ -559,10 +575,10 @@ export default function KronometreToolClient() {
                   key={tool.key}
                   type="button"
                   onClick={() => setActiveTool(tool.key)}
-                  className={`inline-flex shrink-0 items-center justify-center gap-2 rounded-full px-4 py-2.5 text-sm font-black transition sm:px-6 sm:py-3 ${
+                  className={`inline-flex min-h-10 items-center justify-center gap-2 rounded-2xl px-2.5 py-2 text-xs font-black transition duration-200 sm:min-h-11 sm:px-3 sm:text-sm ${
                     active
-                      ? "bg-white/24 text-white shadow-lg"
-                      : "text-white/48 hover:bg-white/10 hover:text-white/80"
+                      ? "bg-white/24 text-white shadow-lg shadow-black/20"
+                      : "text-white/62 hover:bg-white/10 hover:text-white"
                   }`}
                 >
                   <ToolIcon name={tool.icon} />
@@ -572,12 +588,12 @@ export default function KronometreToolClient() {
             })}
           </div>
 
-          <div className="flex flex-1 flex-col items-center justify-center py-4 sm:py-6 md:py-8">
+          <div className="kronometre-stage flex flex-1 flex-col items-center justify-center py-3 sm:py-5 md:py-6">
             <div className="text-center">
               <div className="text-xs font-black uppercase tracking-[0.18em] text-white/45">
                 {getPhaseLabel(activeTimer)}
               </div>
-              <p className="mt-2 max-w-[32rem] px-3 text-sm font-semibold leading-6 text-white/58">
+              <p className="mt-1 hidden max-w-[32rem] px-3 text-sm font-semibold leading-6 sm:block" style={{ color: activeTheme.textMuted }}>
                 {activeConfig.description}
               </p>
             </div>
@@ -588,7 +604,7 @@ export default function KronometreToolClient() {
               timer={activeTimer}
             />
 
-            <div className="relative z-20 mt-5 flex w-full max-w-md flex-col justify-center gap-3 sm:mt-7 sm:flex-row">
+            <div className="relative z-20 mt-4 grid w-full max-w-md grid-cols-2 justify-center gap-2 sm:mt-6 sm:gap-3">
               <ControlButton
                 onClick={resetTimer}
                 icon="reset"
@@ -617,7 +633,7 @@ export default function KronometreToolClient() {
               )}
             </div>
 
-            <div className="mt-5 w-full max-w-4xl sm:mt-7">
+            <div className="mt-4 w-full max-w-4xl sm:mt-5">
               {(activeTool === "pomodoro" || activeTool === "study") ? (
                 <CycleSettings
                   timer={activeTimer}
@@ -646,21 +662,23 @@ export default function KronometreToolClient() {
               ) : null}
             </div>
 
-            <ThemePicker
-              activeThemeKey={activeThemeKey}
-              onThemeChange={setActiveThemeKey}
-            />
+            <div className="kronometre-theme-status mt-3 grid w-full max-w-4xl gap-3 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-center">
+              <ThemePicker
+                activeThemeKey={activeThemeKey}
+                onThemeChange={setActiveThemeKey}
+              />
 
-            <div className="mt-5 grid w-full max-w-4xl gap-3 sm:grid-cols-3">
-              <StatusCard
-                label="Durum"
-                value={getStatusLabel(activeTimer.status)}
-              />
-              <StatusCard label="Aşama" value={getPhaseLabel(activeTimer)} />
-              <StatusCard
-                label="Tamamlanan"
-                value={`${activeTimer.completedCycles}/${activeTimer.targetCycles}`}
-              />
+              <div className="grid grid-cols-3 gap-2">
+                <StatusCard
+                  label="Durum"
+                  value={getStatusLabel(activeTimer.status)}
+                />
+                <StatusCard label="Aşama" value={getPhaseLabel(activeTimer)} />
+                <StatusCard
+                  label="Tur"
+                  value={`${activeTimer.completedCycles}/${activeTimer.targetCycles}`}
+                />
+              </div>
             </div>
           </div>
         </div>
@@ -972,42 +990,48 @@ function TimerCircle({
   const safeProgress = Math.max(0, Math.min(100, progress * 100));
   const isLongTime = timer.remainingSeconds >= 3600;
   const circleStyle: CSSProperties = {
-    height: "clamp(198px, min(68vw, 54svh), 382px)",
-    width: "clamp(198px, min(68vw, 54svh), 382px)",
+    height: "clamp(174px, min(62vw, 43svh), 370px)",
+    width: "clamp(174px, min(62vw, 43svh), 370px)",
   };
   const timeStyle: CSSProperties = {
     fontSize: isLongTime
-      ? "clamp(2.25rem, min(11vw, 10svh), 4.85rem)"
-      : "clamp(3.2rem, min(18vw, 15svh), 6.4rem)",
+      ? "clamp(2rem, min(10vw, 8.5svh), 4.65rem)"
+      : "clamp(3rem, min(16vw, 12svh), 6.1rem)",
   };
 
   return (
     <div
-      className="pointer-events-none relative mt-5 flex items-center justify-center sm:mt-7"
+      className={`kronometre-timer-circle pointer-events-none relative mt-3 flex items-center justify-center sm:mt-5 ${
+        timer.status === "running" ? "kronometre-ring-breathe" : ""
+      } ${timer.status === "done" ? "kronometre-ring-complete" : ""}`}
       style={circleStyle}
     >
       <div
-        className="absolute inset-[-18%] rounded-full opacity-35 blur-2xl"
+        className="absolute inset-[-14%] rounded-full opacity-35 blur-2xl"
         style={{ background: theme.soft }}
       />
       <div
-        className="absolute inset-0 rounded-full p-[10px] sm:p-[12px]"
+        className="absolute inset-0 rounded-full p-[8px] sm:p-[12px]"
         style={{
           background: `conic-gradient(${theme.ring} ${safeProgress}%, rgba(255,255,255,0.12) 0)`,
           boxShadow: `0 0 46px ${theme.soft}`,
         }}
       >
-        <div className="flex h-full w-full flex-col items-center justify-center rounded-full border border-white/10 bg-black/24 text-center shadow-inner shadow-black/30 backdrop-blur-md">
+        <div
+          className="flex h-full w-full flex-col items-center justify-center rounded-full border border-white/10 text-center shadow-inner shadow-black/30 backdrop-blur-md"
+          style={{ background: theme.surface }}
+        >
           <div
             className="font-black leading-none tracking-[-0.06em] text-white drop-shadow-sm"
             style={timeStyle}
+            aria-live="polite"
           >
             {formatTime(timer.remainingSeconds)}
           </div>
-          <div className="mt-4 text-base font-black text-white/62 sm:text-xl">
+          <div className="mt-2 text-sm font-black sm:mt-4 sm:text-xl" style={{ color: theme.textMuted }}>
             {getPhaseLabel(timer)}
           </div>
-          <div className="mt-2 text-xs font-bold uppercase tracking-[0.16em] text-white/34">
+          <div className="mt-1 text-[10px] font-bold uppercase tracking-[0.16em] text-white/38 sm:mt-2 sm:text-xs">
             %{Math.round(safeProgress)}
           </div>
         </div>
@@ -1033,9 +1057,9 @@ function ControlButton({
     <button
       type="button"
       onClick={onClick}
-      className={`inline-flex min-h-14 w-full touch-manipulation select-none items-center justify-center gap-2 rounded-2xl px-6 py-3 text-base font-black transition sm:w-auto sm:min-w-[150px] ${
+      className={`inline-flex min-h-12 w-full touch-manipulation select-none items-center justify-center gap-2 rounded-2xl px-4 py-2.5 text-sm font-black transition duration-200 sm:min-h-14 sm:px-6 sm:py-3 sm:text-base ${
         secondary
-          ? "border border-white/18 bg-black/12 text-white/88 backdrop-blur hover:bg-white/12"
+          ? "border border-white/18 bg-black/12 text-white/88 backdrop-blur hover:bg-white/12 active:scale-[0.99]"
           : "text-white shadow-2xl hover:-translate-y-0.5"
       }`}
       style={secondary ? undefined : { background: theme.button }}
@@ -1056,7 +1080,7 @@ function CycleSettings({
   onTargetChange: (tool: "pomodoro" | "study", value: string) => void;
 }) {
   return (
-    <div className="grid gap-3 rounded-[1.5rem] border border-white/10 bg-black/16 p-3 backdrop-blur-md sm:grid-cols-3 sm:p-4">
+    <div className="grid grid-cols-3 gap-2 rounded-[1.25rem] border border-white/10 bg-black/16 p-2.5 backdrop-blur-md sm:p-3">
       <InfoPill label="Çalışma" value={`${timer.workSeconds / 60} dk`} />
       <InfoPill label="Mola" value={`${timer.breakSeconds / 60} dk`} />
       <NumberField
@@ -1083,7 +1107,7 @@ function CountdownSettings({
   onChange: (hours: string, minutes: string) => void;
 }) {
   return (
-    <div className="grid gap-3 rounded-[1.5rem] border border-white/10 bg-black/16 p-3 backdrop-blur-md sm:grid-cols-2 sm:p-4">
+    <div className="grid grid-cols-2 gap-2 rounded-[1.25rem] border border-white/10 bg-black/16 p-2.5 backdrop-blur-md sm:p-3">
       <NumberField
         label="Saat"
         value={hours}
@@ -1118,8 +1142,8 @@ function ExamSettings({
   onCustomMinutesChange: (value: string) => void;
 }) {
   return (
-    <div className="grid gap-3 rounded-[1.5rem] border border-white/10 bg-black/16 p-3 backdrop-blur-md sm:p-4">
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-7">
+    <div className="grid gap-2 rounded-[1.25rem] border border-white/10 bg-black/16 p-2.5 backdrop-blur-md sm:p-3">
+      <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 lg:grid-cols-7">
         {examPresets.map((item) => {
           const active = preset === item.key;
 
@@ -1129,16 +1153,16 @@ function ExamSettings({
               type="button"
               disabled={disabled}
               onClick={() => onPresetChange(item.key)}
-              className={`min-h-[76px] min-w-0 rounded-2xl border px-2 py-3 text-center transition ${
+              className={`min-h-12 min-w-0 rounded-2xl border px-2 py-2 text-center transition duration-200 sm:min-h-14 ${
                 active
                   ? "border-white/40 bg-white/22 text-white shadow-lg"
                   : "border-white/10 bg-white/7 text-white/64 hover:bg-white/12 hover:text-white"
               } disabled:cursor-not-allowed disabled:opacity-55`}
             >
-              <span className="block truncate text-sm font-black">
+              <span className="block truncate text-xs font-black sm:text-sm">
                 {item.label}
               </span>
-              <span className="mt-1 block text-xs font-bold text-white/52">
+              <span className="mt-0.5 block text-[11px] font-bold text-white/58 sm:mt-1 sm:text-xs">
                 {item.minutes} dk
               </span>
             </button>
@@ -1146,7 +1170,7 @@ function ExamSettings({
         })}
       </div>
 
-      <div className="max-w-xs">
+      <div className={`${preset === "custom" ? "block" : "hidden"} max-w-xs`}>
         <NumberField
           label="Özel dakika"
           value={customMinutes}
@@ -1177,7 +1201,7 @@ function NumberField({
 }) {
   return (
     <label className="block min-w-0">
-      <span className="mb-2 block text-[11px] font-black uppercase tracking-[0.12em] text-white/45">
+      <span className="mb-1.5 block text-[10px] font-black uppercase tracking-[0.12em] text-white/50 sm:text-[11px]">
         {label}
       </span>
       <input
@@ -1187,7 +1211,7 @@ function NumberField({
         value={value}
         disabled={disabled}
         onChange={(event) => onChange(event.target.value)}
-        className="h-12 w-full rounded-2xl border border-white/12 bg-white/10 px-4 text-sm font-black text-white outline-none transition placeholder:text-white/30 focus:border-white/35 focus:ring-4 focus:ring-white/10 disabled:bg-white/5 disabled:text-white/42"
+        className="h-10 w-full rounded-2xl border border-white/12 bg-white/10 px-3 text-sm font-black text-white outline-none transition placeholder:text-white/30 focus:border-white/35 focus:ring-4 focus:ring-white/10 disabled:bg-white/5 disabled:text-white/42 sm:h-12 sm:px-4"
       />
     </label>
   );
@@ -1195,22 +1219,26 @@ function NumberField({
 
 function InfoPill({ label, value }: { label: string; value: string }) {
   return (
-    <div className="min-w-0 rounded-2xl border border-white/10 bg-white/10 px-4 py-3">
-      <div className="text-[11px] font-black uppercase tracking-[0.12em] text-white/45">
+    <div className="min-w-0 rounded-2xl border border-white/10 bg-white/10 px-3 py-2 sm:px-4 sm:py-3">
+      <div className="truncate text-[10px] font-black uppercase tracking-[0.1em] text-white/50 sm:text-[11px]">
         {label}
       </div>
-      <div className="mt-1 truncate text-lg font-black text-white">{value}</div>
+      <div className="mt-0.5 truncate text-sm font-black text-white sm:mt-1 sm:text-lg">
+        {value}
+      </div>
     </div>
   );
 }
 
 function StatusCard({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-2xl border border-white/10 bg-black/14 px-4 py-2.5 text-center backdrop-blur-md sm:py-3">
-      <div className="text-[11px] font-black uppercase tracking-[0.12em] text-white/38">
+    <div className="rounded-2xl border border-white/10 bg-black/14 px-2 py-2 text-center backdrop-blur-md sm:px-4 sm:py-3">
+      <div className="truncate text-[9px] font-black uppercase tracking-[0.1em] text-white/45 sm:text-[11px]">
         {label}
       </div>
-      <div className="mt-1 text-base font-black text-white">{value}</div>
+      <div className="mt-0.5 truncate text-xs font-black text-white sm:mt-1 sm:text-base">
+        {value}
+      </div>
     </div>
   );
 }
@@ -1226,11 +1254,11 @@ function ThemePicker({
     timerThemes.find((theme) => theme.key === activeThemeKey) ?? timerThemes[0];
 
   return (
-    <div className="mt-5 text-center sm:mt-7">
-      <div className="text-xs font-black uppercase tracking-[0.18em] text-white/38">
+    <div className="text-center lg:text-left">
+      <div className="text-[10px] font-black uppercase tracking-[0.18em] text-white/45 sm:text-xs">
         Tema Seç
       </div>
-      <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
+      <div className="mt-2 flex flex-wrap items-center justify-center gap-2 lg:justify-start">
         {timerThemes.map((theme) => {
           const active = theme.key === activeThemeKey;
 
@@ -1240,7 +1268,7 @@ function ThemePicker({
               type="button"
               onClick={() => onThemeChange(theme.key)}
               aria-label={`${theme.label} tema`}
-              className={`h-11 w-11 rounded-2xl border transition hover:-translate-y-0.5 ${
+              className={`h-9 w-9 rounded-2xl border transition duration-200 hover:-translate-y-0.5 sm:h-10 sm:w-10 ${
                 active
                   ? "border-white bg-white/14 p-1 shadow-lg"
                   : "border-white/8 p-0 hover:border-white/26"
@@ -1254,7 +1282,7 @@ function ThemePicker({
           );
         })}
       </div>
-      <div className="mt-2 text-sm font-black text-white/52">
+      <div className="mt-1 text-xs font-black text-white/58 sm:text-sm">
         {activeTheme.label}
       </div>
     </div>
